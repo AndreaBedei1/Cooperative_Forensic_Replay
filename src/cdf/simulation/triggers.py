@@ -1,35 +1,3 @@
-"""Privileged triggers for scripted actions (scenario construction only).
-
-A triggered action has no fixed start time.  It is armed when the run starts
-and fires when a condition on the simulator's true state becomes true; it then
-starts ``reaction_s`` later and plays exactly like a timed action.  This is how
-a scenario makes one vehicle *react* to another (an evasive manoeuvre that
-happens because a car cut in, and does not happen when it does not) instead of
-replaying a schedule that coincides with it.
-
-The condition reads true poses of other actors, which no recorder has.  That is
-legitimate for building a scenario and for nothing else: firings are written to
-``ground_truth/triggers.jsonl`` only, never to ``vehicles/``, and the
-reconstruction never sees them.  A trigger whose target is not in the run (a
-counterfactual without that vehicle) can never fire.
-
-Kinds:
-
-``envelope_entry``
-    Fires the first time any part of the target's true bounding box lies in a
-    corridor ahead of the owner's front face: ``ahead_m`` long, as wide as the
-    owner plus ``lateral_margin_m`` on each side, in the owner's own frame.
-
-``corridor_clearance``
-    Fires the first time the target's true bounding box is inside the owner's
-    lateral corridor (as wide as the owner plus ``lateral_margin_m`` on each
-    side) with some of it ahead of the owner's front face, and the clearance
-    from that face to the nearest part of the box inside the corridor is at
-    most ``clearance_m``: a vehicle that cuts in close, measured box to box
-    (exact geometry, any orientation; negative when the part inside the
-    corridor reaches back beside the owner).  The firing record carries the
-    measured clearance.
-"""
 
 from __future__ import annotations
 
@@ -44,7 +12,6 @@ TRIGGER_KINDS = ("envelope_entry", "corridor_clearance")
 
 @dataclass(frozen=True)
 class Pose:
-    """A vehicle's true planar pose and bounding box (centre, yaw, half extents)."""
 
     x: float
     y: float
@@ -55,7 +22,6 @@ class Pose:
 
 @dataclass
 class ActionTrigger:
-    """When an armed action fires.  See the module docstring."""
 
     kind: str
     target: str
@@ -102,7 +68,6 @@ class ActionTrigger:
         raise ValueError(self.kind)
 
     def measure(self, owner: Pose, target: Pose) -> Dict[str, float]:
-        """What the condition measured (for the privileged firing record)."""
         if self.kind == "corridor_clearance":
             clearance = corridor_front_clearance(owner, target, self.lateral_margin_m)
             return {} if clearance is None else {"front_clearance_m": round(clearance, 3)}
@@ -120,7 +85,6 @@ class ActionTrigger:
 
 
 def box_outline(pose: Pose, step: float = 0.25) -> List[Tuple[float, float]]:
-    """Points every ``step`` metres along a box's outline, world frame."""
     c, s = math.cos(math.radians(pose.yaw_deg)), math.sin(math.radians(pose.yaw_deg))
     ex, ey = pose.half_length, pose.half_width
 
@@ -134,12 +98,6 @@ def box_outline(pose: Pose, step: float = 0.25) -> List[Tuple[float, float]]:
 
 
 def envelope_entry(owner: Pose, target: Pose, ahead_m: float, lateral_margin_m: float) -> bool:
-    """Is any part of ``target``'s box inside the corridor ahead of ``owner``'s front face?
-
-    Owner frame: x forward, y to the right (CARLA's left-handed convention);
-    the corridor is ``half_length < x <= half_length + ahead_m`` and
-    ``|y| <= half_width + lateral_margin_m``.
-    """
     c, s = math.cos(math.radians(owner.yaw_deg)), math.sin(math.radians(owner.yaw_deg))
     front = owner.half_length
     half = owner.half_width + lateral_margin_m
@@ -153,7 +111,6 @@ def envelope_entry(owner: Pose, target: Pose, ahead_m: float, lateral_margin_m: 
 
 
 def _in_owner_frame(owner: Pose, pose: Pose) -> List[Tuple[float, float]]:
-    """The corners of ``pose``'s box in ``owner``'s frame (x forward, y right)."""
     c, s = math.cos(math.radians(owner.yaw_deg)), math.sin(math.radians(owner.yaw_deg))
     tc, ts = math.cos(math.radians(pose.yaw_deg)), math.sin(math.radians(pose.yaw_deg))
     corners = []
@@ -166,7 +123,6 @@ def _in_owner_frame(owner: Pose, pose: Pose) -> List[Tuple[float, float]]:
 
 
 def _clip(polygon: List[Tuple[float, float]], inside: Any, cut: Any) -> List[Tuple[float, float]]:
-    """One Sutherland-Hodgman step: keep the part of a convex polygon where ``inside(point)``."""
     out: List[Tuple[float, float]] = []
     for i, current in enumerate(polygon):
         previous = polygon[i - 1]
@@ -180,13 +136,6 @@ def _clip(polygon: List[Tuple[float, float]], inside: Any, cut: Any) -> List[Tup
 
 
 def corridor_front_clearance(owner: Pose, target: Pose, lateral_margin_m: float) -> Optional[float]:
-    """Clearance from ``owner``'s front face to the part of ``target``'s box inside its corridor.
-
-    The corridor is ``|y| <= half_width + lateral_margin_m`` in the owner's frame
-    (x forward, y right).  None when no part of the target's box is inside it
-    ahead of the front face; negative when the part inside reaches back beside
-    the owner.  Exact box geometry, any relative orientation.
-    """
     half = owner.half_width + lateral_margin_m
 
     def cut_at(y_limit: float) -> Any:
@@ -203,12 +152,6 @@ def corridor_front_clearance(owner: Pose, target: Pose, lateral_margin_m: float)
 
 
 def fire_due_triggers(t: float, poses: Dict[str, Pose], armed: Iterable[Tuple[str, Any]]) -> List[Dict[str, Any]]:
-    """Fire every armed action whose condition holds at scenario time ``t``.
-
-    ``armed`` yields ``(owner_id, action)`` for actions with a trigger that has
-    not fired yet; ``poses`` holds every participant actually in the run.
-    Returns one privileged record per firing.
-    """
     fired = []
     for owner_id, action in armed:
         trigger: Optional[ActionTrigger] = action.trigger
@@ -216,7 +159,7 @@ def fire_due_triggers(t: float, poses: Dict[str, Pose], armed: Iterable[Tuple[st
             continue
         owner, target = poses.get(owner_id), poses.get(trigger.target)
         if owner is None or target is None:
-            continue  # the target is not in this run: the action can never fire
+            continue
         if trigger.condition(owner, target):
             action.fire(t)
             record = {"t_scenario": round(float(t), 4), "participant_id": owner_id,

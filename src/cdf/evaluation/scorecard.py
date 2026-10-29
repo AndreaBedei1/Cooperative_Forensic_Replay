@@ -1,48 +1,3 @@
-"""Scientific scorecard of one reconstructed run (PRIVILEGED: evaluation only).
-
-A small set of metrics that answer the study's question (is the accident reconstructed?), built on the
-verdicts the existing evaluation already writes (``evaluation.json``, ``fusion_metrics.json``,
-``event_oracle.json``) and on the ground truth.  Nothing here changes a threshold of the reconstruction or of
-those verdicts; where a new rule is needed it is stated below and kept deliberately simple.
-
-1. Collisions.  The true collisions are those of ``evaluation.json`` (``collisions``; a recontact of the same pair
-   is part of the collision it follows).  A collision is IDENTIFIED when a collision node names exactly its
-   participants, DETECTED when it is identified or when a node that one of its own recorders reported at that time
-   names other participants (misattributed; ``evaluation.match_collisions``).  A collision none of whose vehicles
-   records is listed (``involves_recorder`` false) but not REPORTABLE: no collision sensor reports it.  Recall and the
-   identified rate are over the reportable collisions.  Of the ``extra_collisions``, a true recontact reported as
-   a collision of its own is a RECONTACT SPLIT, every other one INVENTED; precision = identified / (detected +
-   invented + recontact splits); the timing error is the evaluation's ``report_timing_error_s``.
-2. Completeness.  Every true vehicle is either a recorder (represented by its own pose stream) or a road user
-   that recorded nothing.  Such a road user is OBSERVABLE when it lay in the field of view of some recorder radar
-   with a clear line of sight (``cdf.evaluation.visibility``, partial bodies count) for at least
-   ``min_track_frames`` radar sweeps -- the fewest the tracker can turn into a track.  It is REPRESENTED when an
-   anonymous road user of the fusion has it as true identity (``fusion_metrics.entities``).  Duplicates: further
-   road users of the same true vehicle; recorder ghosts: road users that are in truth a recorder (a missed
-   recorder link draws that recorder twice); phantoms: road users with no true identity, split (a diagnostic; the
-   identity rule is unchanged) into NEAR, whose tracks lie at a median distance of at most ``PHANTOM_NEAR_M`` from
-   the nearest true vehicle box (a displaced estimate of a vehicle beyond the 1.5 m identity tolerance), and FAR
-   (clutter).  ``min_track_frames`` is the run's own tracker setting.  Coverage: the represented time of a vehicle
-   (sum of its road users' ``coverage_s``, capped) over its observable time.
-3. Position and speed of the reconstructed road users that record nothing against the truth: median, P95, mean
-   and RMSE of the centre error and of the speed error (``fusion_metrics.road_user_state_errors``: recorder
-   ghosts excluded, counted under 2); heading is a diagnostic only.
-4. Association: wrong and missed recorder links (the "WRONG link" and "missed link" verdicts of
-   ``fusion_metrics``), false and missed merges, fragmented vehicles, phantoms.
-5. Essential semantics, by physical meaning rather than exact timestamps:
-   * CRITICAL_TTC warning: for each true contact and each recorder involved in it, the first CRITICAL_TTC_START
-     about the partner in the ``WARNING_WINDOW_S`` before the contact (the reconstruction's subject is the
-     track's true identity, as in the oracle).  ``in_time`` when it precedes the contact; the lead time is
-     reported.  ``justified`` when the COVERAGE oracle (ideal tracks while observable) also raises one about the
-     partner in that window -- otherwise the warning was not observable or not justified by the definition.
-   * Path intrusion: EGO_PATH_ENTRY and CUT_IN_*_START about the same subject are one manoeuvre: the starts of
-     either kind less than ``MATCH_WINDOW_S`` apart are grouped (``match_intrusions``).  An oracle manoeuvre is
-     found when the reconstruction reports either kind for the same recorder and subject within ``MATCH_WINDOW_S``
-     of any of its starts, in any order; a reconstructed manoeuvre with no oracle start that close is extra.
-   * Unconfirmed CRITICAL_TTC alarms: reconstruction CRITICAL_TTC_START with no COVERAGE counterpart within
-     ``MATCH_WINDOW_S`` and no true contact of the pair within ``WARNING_WINDOW_S`` after it.  These are
-     CANDIDATES for visual review, not proven false alarms: the oracle itself is an idealisation.
-"""
 
 from __future__ import annotations
 
@@ -56,12 +11,11 @@ from .visibility import Box, coverage, frames_by_participant, RadarView
 
 WARNING_WINDOW_S = 8.0
 MATCH_WINDOW_S = 2.0
-PHANTOM_NEAR_M = 3.0  # twice the evaluation's identity tolerance (IDENTITY_MAX_BOX_DISTANCE_M)
+PHANTOM_NEAR_M = 3.0
 INTRUSION_TYPES = ("EGO_PATH_ENTRY", "CUT_IN_FROM_LEFT_START", "CUT_IN_FROM_RIGHT_START")
 
 
 def _manoeuvres(times: List[float]) -> List[List[float]]:
-    """Starts less than MATCH_WINDOW_S apart (single linkage) form one manoeuvre."""
     groups: List[List[float]] = []
     for t in sorted(times):
         if groups and t - groups[-1][-1] < MATCH_WINDOW_S:
@@ -72,9 +26,7 @@ def _manoeuvres(times: List[float]) -> List[List[float]]:
 
 
 def match_intrusions(oracle: List[float], reconstruction: List[float]) -> Dict[str, Any]:
-    """Path-intrusion manoeuvres of one (recorder, subject): expected and found oracle manoeuvres, the first start
-    of each missed one and of each reconstructed manoeuvre with no oracle counterpart (module docstring)."""
-    near = lambda group, others: any(abs(a - b) <= MATCH_WINDOW_S for a in group for b in others)  # noqa: E731
+    near = lambda group, others: any(abs(a - b) <= MATCH_WINDOW_S for a in group for b in others)
     expected, found = _manoeuvres(oracle), _manoeuvres(reconstruction)
     hits = [group for group in expected if near(group, reconstruction)]
     return {"expected": len(expected), "found": len(hits),
@@ -101,8 +53,6 @@ def _radar_views(vehicle_dir: Path) -> List[RadarView]:
 
 def observable_seconds(run_dir: Path, recorders: List[str], min_frames: int, step: int = 1
                        ) -> Dict[str, Dict[str, Any]]:
-    """For each non-recorder vehicle: seconds in view of some recorder radar, and whether that reaches
-    ``min_frames`` sweeps (frames sampled every ``step``; radar sweeps are one per frame at 20 Hz)."""
     states = _jsonl(Path(run_dir) / "ground_truth" / "states.jsonl")
     frames = frames_by_participant(states)
     ordered = sorted(frames)
@@ -141,13 +91,11 @@ def _stat(block: Optional[Mapping[str, Any]]) -> Dict[str, Optional[float]]:
 
 
 def run_min_track_frames(run_dir: Path) -> int:
-    """The fewest radar frames of a track in the reconstruction of this run (its own configuration)."""
     graph = _json(Path(run_dir) / "reconstruction" / "global" / "global_graph.json")
     return int(((graph.get("reconstruction_config") or {}).get("tracking") or {}).get("min_track_frames", 5))
 
 
 def collision_score(evaluation: Mapping[str, Any], recorders: List[str]) -> Dict[str, Any]:
-    """1. Collisions (module docstring)."""
     contacts = []
     for c in evaluation.get("collisions", []):
         pair = tuple(sorted(c["participants"]))
@@ -176,8 +124,6 @@ def collision_score(evaluation: Mapping[str, Any], recorders: List[str]) -> Dict
 
 
 def association_score(fusion: Mapping[str, Any], phantoms: List[str]) -> Dict[str, Any]:
-    """4. Association: the recorder-link verdicts as ``fusion_metrics`` names them ("correct link", "WRONG link",
-    "missed link"), merges, fragmented vehicles and phantoms."""
     counts = fusion.get("decision_counts", {})
     return {"decisions": counts, "wrong_links": counts.get("WRONG link", 0), "missed_links": counts.get("missed link", 0),
             "merges": fusion.get("merges", {}),
@@ -196,16 +142,14 @@ def scorecard(run_dir: Path, min_track_frames: Optional[int] = None,
     gt_meta = _json(run_dir / "ground_truth" / "metadata.json")
     recorders = [p["participant_id"] for p in gt_meta.get("participants", []) if p.get("record")]
     all_vehicles = [p["participant_id"] for p in gt_meta.get("participants", [])]
-    if not all_vehicles:  # recordings made before the ground-truth metadata listed the participants
+    if not all_vehicles:
         with (run_dir / "ground_truth" / "states.jsonl").open(encoding="utf-8") as handle:
             all_vehicles = sorted({json.loads(line)["participant_id"] for line in handle if line.strip()})
         recorders = sorted(p.name for p in (run_dir / "vehicles").iterdir() if (p / "ego.jsonl").exists())
 
-    # 1. Collisions
     collisions = collision_score(evaluation, recorders)
     contacts = collisions["contacts"]
 
-    # 2. Completeness
     if min_track_frames is None:
         min_track_frames = run_min_track_frames(run_dir)
     visibility = observable_seconds(run_dir, recorders, min_track_frames)
@@ -235,8 +179,6 @@ def scorecard(run_dir: Path, min_track_frames: Optional[int] = None,
                          "road_users": [e["id"] for e in mine], "coverage": None if cov is None else round(cov, 3)})
     observable = [v for v in vehicles if v["observable"]]
     duplicates = sum(max(0, len(v["road_users"]) - 1) for v in vehicles)
-    # A road user that is in truth a recorder: the recorder is drawn twice (its own pose and an anonymous box),
-    # a missed recorder link.
     recorder_ghosts = sorted(e["id"] for e in entities if e.get("identity_is_recorder"))
     completeness = {"true_vehicles": len(vehicles), "recorders": len(recorders),
                     "observable": len(observable), "represented_observable": sum(v["represented"] for v in observable),
@@ -248,16 +190,13 @@ def scorecard(run_dir: Path, min_track_frames: Optional[int] = None,
                     "phantoms_near": phantoms_near, "phantoms_far": [p for p in phantoms if p not in phantoms_near],
                     "min_track_frames": min_track_frames, "vehicles": vehicles}
 
-    # 3. Errors of the reconstructed road users (recorder ghosts excluded; older files: every road user)
     se = fusion.get("road_user_state_errors", fusion.get("state_errors", {}))
     errors = {"centre_error_m": _stat(se.get("centre_error_m")), "speed_error_mps": _stat(se.get("speed_error_mps")),
               "velocity_error_mps": _stat(se.get("velocity_error_mps")),
               "heading_error_deg_diagnostic": _stat(se.get("heading_error_deg"))}
 
-    # 4. Association
     association = association_score(fusion, phantoms)
 
-    # 5. Essential semantics
     semantics: Dict[str, Any] = {"available": oracle is not None}
     if oracle is not None:
         origins = _origins(run_dir, recorders)
@@ -276,7 +215,7 @@ def scorecard(run_dir: Path, min_track_frames: Optional[int] = None,
                     continue
                 tc = float(c["sim_time"]) - origins[r]
                 contact_local[(r, s)].append(tc)
-                window = lambda ts: [t for t in ts if tc - WARNING_WINDOW_S <= t <= tc]  # noqa: E731
+                window = lambda ts: [t for t in ts if tc - WARNING_WINDOW_S <= t <= tc]
                 rec = window(starts(rec_events, r, s, ("CRITICAL_TTC_START",)))
                 ora = window(starts(cov_events, r, s, ("CRITICAL_TTC_START",)))
                 warnings.append({"recorder": r, "partner": s, "contact_t_local": round(tc, 3),
@@ -356,7 +295,7 @@ def markdown(cards: List[Dict[str, Any]], title: str) -> str:
     keys = list(rows[0]) if rows else []
     out = ["# " + title, "", "| " + " | ".join(keys) + " |", "|" + "---|" * len(keys)]
     out += ["| " + " | ".join(_fmt(r[k]) for k in keys) + " |" for r in rows]
-    tot = lambda k: sum(r[k] or 0 for r in rows)  # noqa: E731
+    tot = lambda k: sum(r[k] or 0 for r in rows)
     out += ["", "Totals: contacts {0}, detected {1}, identified {2}, invented {3}; observable vehicles {4}, "
             "represented {5}, duplicates {6}, recorder ghosts {12}, phantoms {7}; wrong links {8}; justified "
             "CRITICAL_TTC warnings {9}, in time {10}; unconfirmed alarms {11}.".format(
@@ -366,12 +305,6 @@ def markdown(cards: List[Dict[str, Any]], title: str) -> str:
     return "\n".join(out) + "\n"
 
 
-# Campaign summaries.  One row per job, paired with the G0 baseline job of the same run; the
-# conditions pool the jobs of one seed (rates are ratios of sums, counts and paired changes are means per job, so
-# that a condition with several recorder subsets per run compares with one that has a single job per run), then
-# average the seeds.
-# ``observable`` / ``represented`` there count the road users that record nothing (the question of the study);
-# the recorders, always represented by their own pose stream, are left out.
 PAIRED = ("identified", "invented", "represented", "missed_observable", "duplicates", "rec_ghosts", "phantoms",
           "pos_med_m")
 
@@ -380,7 +313,6 @@ def _numbers(card: Mapping[str, Any]) -> Dict[str, Any]:
     col, com, err, ass, sem = (card["collisions"], card["completeness"], card["errors"], card["association"],
                                card.get("semantics") or {})
     intrusions = sem.get("path_intrusions") or {}
-    # Completeness of the road users that record nothing: a recorder is represented by its own pose stream.
     if "vehicles" in com:
         others = [v for v in com["vehicles"] if v.get("role") != "recorder" and v.get("observable")]
         observable, represented = len(others), sum(1 for v in others if v.get("represented"))
@@ -405,7 +337,6 @@ def _numbers(card: Mapping[str, Any]) -> Dict[str, Any]:
             "false_merges": (ass.get("merges") or {}).get("false"),
             "ttc_justified": sem.get("justified_warnings"), "ttc_in_time": sem.get("justified_warned_in_time"),
             "intrusions_found": intrusions.get("found"), "intrusions_expected": intrusions.get("expected"),
-            # Without the event oracle (semantics unavailable) the alarms are unknown, not zero.
             "unconfirmed_ttc": (None if "unconfirmed_critical_ttc" not in sem
                                 else len(sem["unconfirmed_critical_ttc"]))}
 
@@ -416,12 +347,8 @@ def _run_name(run: str) -> str:
 
 
 def campaign_rows(records: List[Mapping[str, Any]]) -> List[Dict[str, Any]]:
-    """One row per job record (give one record per job, e.g. its latest attempt): condition, seed, scenario,
-    degraded recorders (``recorder``: "A", "A+B"; ``degraded`` of ``recorders``), status, the scorecard numbers
-    and their paired change ``d_<number>`` from the complete G0 ``baseline`` job of the same run."""
     baselines = {_run_name(r["run"]): _numbers(r["scorecard"]) for r in records
                  if r.get("family") == "baseline" and r.get("status") == "complete" and r.get("scorecard")}
-    # A failed job has no scorecard: its run's number of recorders comes from the other jobs of the run.
     run_recorders = {_run_name(r["run"]): len(r["scorecard"].get("recorders") or []) for r in records
                      if r.get("status") == "complete" and r.get("scorecard")}
     rows = []
@@ -455,10 +382,6 @@ def _subset(row: Mapping[str, Any]) -> str:
 
 
 def condition_table(rows: List[Mapping[str, Any]]) -> List[Dict[str, Any]]:
-    """Per condition (family, level, degraded subset: all / alone / all but one, number of recorders of the runs:
-    comparisons between subsets are made within one population of runs): per seed the jobs are pooled
-    (rates are ratios of sums; counts and paired changes are means per job; the position error is the median
-    over jobs), then the table gives the mean over seeds and its SD (``<key>_sd``)."""
     groups: Dict[Tuple[str, str, str, Optional[int]], List[Mapping[str, Any]]] = defaultdict(list)
     for row in rows:
         groups[(row["family"], row["level"], _subset(row), row.get("recorders"))].append(row)
@@ -470,10 +393,9 @@ def condition_table(rows: List[Mapping[str, Any]]) -> List[Dict[str, Any]]:
             per_seed[m["seed"]].append(m)
         pooled = []
         for _, ms in sorted(per_seed.items()):
-            total = lambda key: sum(m[key] or 0 for m in ms)  # noqa: E731
-            per_job = lambda key: total(key) / len(ms)  # noqa: E731
-            # A job whose run has no complete baseline has no paired change; the others keep theirs.
-            paired = lambda key: (statistics.fmean([m["d_" + key] for m in ms if m.get("d_" + key) is not None])  # noqa: E731
+            total = lambda key: sum(m[key] or 0 for m in ms)
+            per_job = lambda key: total(key) / len(ms)
+            paired = lambda key: (statistics.fmean([m["d_" + key] for m in ms if m.get("d_" + key) is not None])
                                   if any(m.get("d_" + key) is not None for m in ms) else None)
             positions = [m["pos_med_m"] for m in ms if m["pos_med_m"] is not None]
             pooled.append({

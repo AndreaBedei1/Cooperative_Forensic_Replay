@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import argparse
@@ -22,9 +21,8 @@ MASS_REL_STD = 0.05
 JITTER_S = 0.010
 TRIGGER_DELTA_V_MPS = 8.0 / 3.6
 TRIGGER_WINDOW_S = 0.15
-NOMINAL_MASS_KG = 1500.0  # tracking.nominal_vehicle_mass_kg
+NOMINAL_MASS_KG = 1500.0
 CONDITIONS = {"G0": (None, None), "G2+severe": ("degraded", "severe")}
-# A recorder's callbacks this close to a true contact are its report of that contact (the evaluation's own window).
 CONTACT_WINDOW_S = 0.5
 
 
@@ -43,7 +41,6 @@ def _run_name(run_dir: Path) -> str:
 
 
 def _relative(run: Path) -> str:
-    """The run as a path relative to the repository, so the job records do not depend on where it is checked out."""
     path = Path(run).resolve()
     try:
         return path.relative_to(ROOT).as_posix()
@@ -60,9 +57,6 @@ def job_key(job: Dict[str, Any]) -> Tuple[Any, ...]:
 
 
 def trigger_census(runs: Sequence[Path]) -> List[Dict[str, Any]]:
-    """Per true contact (the committed evaluation) and recorder: its delta-V within TRIGGER_WINDOW_S of its first
-    callback, from the summed impulse over NOMINAL_MASS_KG and from its recorded horizontal velocity (the last
-    sample before the callback against those in the window)."""
     import numpy as np
     rows = []
     for run in runs:
@@ -111,7 +105,6 @@ def census_summary(rows: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
 
 
 def _copy(job: Dict[str, Any], work: Path, collisions: Any = None) -> Tuple[Path, Any]:
-    """The perturbed copy of the job's run under its condition (and collision perturbation), and its pose factory."""
     from cdf.robustness.perturb import GNSS_PROFILES, RADAR_PROFILES, PerturbedPoseSource, Perturbation, perturbed_copy
     run_dir = ROOT / job["run"]
     gnss, radar = CONDITIONS[job["condition"]]
@@ -139,8 +132,6 @@ def _road_maps(locals_: Sequence[Any]) -> Dict[str, Optional[str]]:
 
 
 def _node_times(graph: Any, recorders: Sequence[str], recorders_only: bool) -> Dict[Tuple[Any, ...], Optional[float]]:
-    """Global nodes keyed by type, actor, subject and occurrence.  Anonymous road users are numbered by the fusion,
-    so their names are collapsed to "U"; ``recorders_only`` keeps the nodes that name no anonymous road user."""
     def name(value: Optional[str]) -> Optional[str]:
         return value if value is None or value in recorders else "U"
     out: Dict[Tuple[Any, ...], Optional[float]] = {}
@@ -192,7 +183,6 @@ def clock_job(job: Dict[str, Any], work: Path) -> Dict[str, Any]:
     first = {p.name: float(_jsonl(p / "ego.jsonl")[0]["timestamp"]) for p in vehicles}
 
     def same_errors(vehicle_dir: Path, clock_origin: float):
-        # A clock offset does not change the receiver's errors: they stay attached to the raw sample instants.
         source = pose(vehicle_dir, first[Path(vehicle_dir).name])
         source.times = source.times + (first[Path(vehicle_dir).name] - clock_origin)
         return source
@@ -282,8 +272,6 @@ def edr_job(job: Dict[str, Any], work: Path) -> Dict[str, Any]:
 
 
 def use_maps(maps: Optional[str]) -> Dict[str, str]:
-    """The OpenDRIVE files of ``maps`` (a folder of ``*.xodr``) as the road model's sources, read as
-    ``road._opendrive_sources`` reads those of the installation; without it, the installation's."""
     from cdf.reconstruction import road
     if maps:
         road._SOURCES = {path.stem: path.read_text(encoding="utf-8", errors="replace")
@@ -302,7 +290,7 @@ def run_job(job: Dict[str, Any], work: str, maps: Optional[str] = None) -> Dict[
     try:
         result.update((clock_job if job["study"] == "clock" else edr_job)(job, Path(work)))
         result["status"] = "complete"
-    except Exception as exc:  # a failed job is recorded, not fatal
+    except Exception as exc:
         result.update(status="failed", error=repr(exc), traceback=traceback.format_exc())
     result["wall_s"] = round(time.monotonic() - start, 2)
     return result
@@ -369,7 +357,7 @@ def summarize(results: Sequence[Dict[str, Any]], out_dir: Path, runs: Sequence[P
                 row["reproduces_committed"] = sum(bool(r.get("reproduces_committed_alignment"))
                                                   and bool(r.get("reproduces_committed_graph")) for r in ok)
         else:
-            total = lambda key: sum(r[key] for r in ok)  # noqa: E731
+            total = lambda key: sum(r[key] for r in ok)
             row.update({key: total(key) for key in ("true", "reportable", "detected", "identified", "invented",
                                                     "matched_events", "rejected_matches")})
             row["identified_rate"] = row["identified"] / row["reportable"] if row["reportable"] else None
@@ -472,7 +460,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             attempts[job_key(r)] = attempts.get(job_key(r), 0) + 1
         pending = [j for j in jobs
                    if job_key(j) not in finished and attempts.get(job_key(j), 0) < args.max_attempts]
-        pending.sort(key=lambda j: j["condition"] == "G0")  # the slow degraded jobs first
+        pending.sort(key=lambda j: j["condition"] == "G0")
         print("{0} jobs ({1} workers)".format(len(pending), args.workers), flush=True)
         with ProcessPoolExecutor(max_workers=args.workers) as pool, jobs_file.open("a", encoding="utf-8") as handle:
             futures = [pool.submit(run_job, job, str(args.work), args.maps) for job in pending]
@@ -486,7 +474,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     n, len(pending), result["status"], result["study"], result["condition"], result["level"],
                     result["seed"], _run_name(Path(result["run"])), result["wall_s"]), flush=True)
     wanted = {job_key(j) for j in jobs}
-    record = summarize([r for r in done if job_key(r) in wanted], args.results, runs)  # only the requested seeds
+    record = summarize([r for r in done if job_key(r) in wanted], args.results, runs)
     print(markdown(record["rows"], record.get("trigger_census")))
     return 0
 

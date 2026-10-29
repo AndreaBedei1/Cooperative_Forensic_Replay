@@ -1,8 +1,3 @@
-"""Absolute and relative pose error of injected GNSS against recorded poses.
-
-Evaluation only: the recorded CARLA pose is the exact reference in this study.
-Pairwise errors compare simultaneous vectors, so a common translation cancels.
-"""
 import json
 import math
 from pathlib import Path

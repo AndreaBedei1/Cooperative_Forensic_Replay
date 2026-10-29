@@ -1,21 +1,3 @@
-"""Graph fusion: identity association, the global event graph, the global trace.
-
-This runs only after every local graph exists and the alignment is known.
-
-1. ``associate_tracks`` decides, for each anonymous local track, whether it can
-   be named after another recorder.  Each matched collision of the recorder
-   names a partner; the track must be its recorder's only persistent,
-   continuous, approaching, speed-consistent track at that contact (the
-   clearance at the contact weighs the confidence, it is no veto) and compatible with no
-   other partner.  With insufficient, ambiguous or conflicting evidence the
-   track keeps an anonymous global name such as ``A:track_001``: nothing is
-   guessed.
-2. ``fuse_graphs`` places every local node on the global time axis, merges the
-   matched collision reports into one node and keeps the provenance (graph,
-   local node, local time) of everything, including each observing recorder's
-   own perceived state just before the event (local names, never rewritten).
-3. ``global_trace`` groups the global nodes by global time for humans.
-"""
 
 from __future__ import annotations
 
@@ -32,22 +14,15 @@ from .tracking import LocalTrack
 
 ASSOCIATED = "ASSOCIATED"
 ANONYMOUS = "ANONYMOUS"
-# Track speed and partner speed are compared over at most this long before contact.
 SPEED_WINDOW_S = 3.0
 SPEED_STEP_S = 0.1
 
 
-# A track touches the recorder at a contact when observed this close to it in time.
 TOUCH_WINDOW_S = 0.06
 
 
 def _speed_rmse(track: LocalTrack, clock: GraphClock, partner: LocalReconstruction,
                 partner_clock: GraphClock, start: float, end: float) -> Optional[float]:
-    """Track speed versus the partner's own speed at the same global instants.
-
-    Speed is a magnitude, so it can be compared although the two recorders
-    have unrelated local frames.
-    """
     errors = []
     steps = int(math.floor((end - start) / SPEED_STEP_S + 1e-6))
     for step in range(steps + 1):
@@ -62,11 +37,6 @@ def _speed_rmse(track: LocalTrack, clock: GraphClock, partner: LocalReconstructi
 
 
 def _approach(track: LocalTrack, t_contact: float, cfg: FusionConfig) -> Optional[tuple]:
-    """(clearance at the start, clearance at the end) of the last ``approach_window_s`` of tracking before the contact.
-
-    The clearance (free distance from the recorder's own footprint to the
-    target's near surface) rather than the range from the radar, which sits at
-    the centre of the vehicle."""
     end = min(track.last_t, t_contact)
     window = [sample for sample in track.samples if end - cfg.approach_window_s - 1e-6 <= sample.t_local <= end + 1e-6]
     if len(window) < 2:
@@ -75,20 +45,18 @@ def _approach(track: LocalTrack, t_contact: float, cfg: FusionConfig) -> Optiona
 
 
 def _range_factor(range_m: float, cfg: FusionConfig) -> float:
-    """Confidence factor of the clearance at the contact: 1 up to ``contact_range_m``, then decaying."""
     excess = max(range_m - cfg.contact_range_m, 0.0)
     return math.exp(-0.5 * (excess / cfg.contact_range_scale_m) ** 2)
 
 
 class _Evidence:
-    """Evidence that one local track is the partner of the matched collision."""
 
     def __init__(self) -> None:
         self.lines: List[str] = []
         self.blocking: List[str] = []
         self.rmse: Optional[float] = None
         self.range_at_contact: Optional[float] = None
-        self.clearance_at_contact: Optional[float] = None  # observed within one sample of the contact
+        self.clearance_at_contact: Optional[float] = None
 
     def check(self, passed: bool, text: str) -> None:
         self.lines.append(text)
@@ -99,11 +67,6 @@ class _Evidence:
 def _observable_speed_check(track: LocalTrack, own: LocalReconstruction, clock: GraphClock,
                             partner: LocalReconstruction, partner_clock: GraphClock, start: float, end: float,
                             radial_speed_std_mps: float) -> Optional[bool]:
-    """Is the track's motion compatible with the partner's own speed in the direction the radar
-    observes (``identity._normal_component_consistent``, the collision-evidence rule): the partner is not slower
-    than the observed component along the outward normal by 3 sigma, nor faster than the track's whole ground
-    speed by 3 sigma.  The tangential component, which Doppler does not measure, cannot contradict a partner.
-    None without enough comparable samples."""
     from types import SimpleNamespace
     from .identity import _normal_component_consistent
     window = [s for s in track.samples if s.measured and start - 1e-6 <= s.t_local <= end + 1e-6]
@@ -117,7 +80,6 @@ def _observable_speed_check(track: LocalTrack, own: LocalReconstruction, clock: 
 def _evidence(track: LocalTrack, t_contact: float, clock: GraphClock, partner: LocalReconstruction,
               partner_clock: GraphClock, cfg: FusionConfig, own: LocalReconstruction,
               radial_speed_std_mps: float = 0.3) -> _Evidence:
-    """Hierarchical evidence for one contact; every check but the clearance at the contact is required."""
     evidence = _Evidence()
 
     seen_for = t_contact - track.first_t
@@ -149,8 +111,6 @@ def _evidence(track: LocalTrack, t_contact: float, clock: GraphClock, partner: L
     if evidence.rmse is None:
         evidence.check(False, "speed not comparable with {0}'s own speed before the collision".format(partner.owner))
     else:
-        # Not the full-speed RMSE against a fixed tolerance: it would reject a true partner whose tangential
-        # speed (not measured by Doppler) is estimated badly; the observable component is tested instead.
         verdict = _observable_speed_check(track, own, clock, partner, partner_clock, start, end, radial_speed_std_mps)
         evidence.check(verdict is not False,
                        "track motion {0} {1}'s own speed in the observed direction (3 sigma; full-speed RMSE "
@@ -166,7 +126,6 @@ def _evidence(track: LocalTrack, t_contact: float, clock: GraphClock, partner: L
     if near:
         evidence.range_at_contact = min(near)
         factor = _range_factor(evidence.range_at_contact, cfg)
-        # Evidence, not a veto: vehicle geometry, impact angle and a roof radar's view can keep it high.
         evidence.lines.append("clearance at the contact {0:.2f} m{1}".format(
             evidence.range_at_contact, "" if factor >= 0.999 else
             " (beyond {0:.2f} m: confidence factor {1:.2f})".format(cfg.contact_range_m, factor)))
@@ -175,7 +134,6 @@ def _evidence(track: LocalTrack, t_contact: float, clock: GraphClock, partner: L
 
 def _touching(event_id: str, rivals: Sequence[str], checks: Dict[Any, "_Evidence"],
               cfg: FusionConfig) -> Optional[str]:
-    """The only compatible track touching the recorder at the contact, all rivals clearly apart; else None."""
     def clearance(track_id: str) -> Optional[float]:
         return checks[(event_id, track_id)].clearance_at_contact
     touching = [t for t in rivals if clearance(t) is not None and clearance(t) <= cfg.touching_clearance_m]
@@ -192,7 +150,6 @@ def _partner(event: Dict[str, Any], owner: str) -> str:
 
 
 def recorder_contacts(owner: str, alignment: Alignment) -> List[Dict[str, Any]]:
-    """The matched collisions of one recorder whose graphs are all aligned, in its local time order."""
     return sorted((event for event in alignment.matched_events if owner in event["graphs"]
                    and all(alignment.graphs[graph].status == "ALIGNED" for graph in event["graphs"])),
                   key=lambda event: event["t_local"][owner])
@@ -200,22 +157,6 @@ def recorder_contacts(owner: str, alignment: Alignment) -> List[Dict[str, Any]]:
 
 def associate_tracks(locals_: Sequence[LocalReconstruction], alignment: Alignment,
                      cfg: FusionConfig, radial_speed_std_mps: float = 0.3) -> List[Association]:
-    """One decision per anonymous local track, in a fixed order.
-
-    Every matched collision of a recorder names a partner: the other recorder
-    of that contact.  Per contact, a track is compatible with the partner when
-    it is persistent, observed up to the contact (no TRACK_LOST before the
-    contact window), approaching, and moving at the partner's own speed; the
-    clearance at the contact only weighs the confidence.  A track is named after a
-    partner when it is its recorder's only compatible track for a contact with
-    that partner and is compatible with no other partner.  Two or more
-    compatible tracks for one contact are an ambiguity, unless exactly one of
-    them touches the recorder at the contact (observed within one sample of it,
-    within ``touching_clearance_m``) while every rival is at least
-    ``rival_clearance_m`` away: a body in contact is at the recorder's skin.  One
-    track compatible with two partners is a conflict.  Ambiguous and conflicting
-    tracks stay anonymous.  Ground truth is never used.
-    """
     by_owner = {local.owner: local for local in locals_}
     associations = []
     for local in sorted(locals_, key=lambda item: item.owner):
@@ -262,8 +203,6 @@ def associate_tracks(locals_: Sequence[LocalReconstruction], alignment: Alignmen
             partners = sorted({_partner(event, owner) for event in fits})
             unique = [event for event in fits if compatible[event["event_id"]] == [track.track_id]
                       or touching.get(event["event_id"]) == track.track_id]
-            # The contact the decision rests on: one where the track is the only compatible
-            # one, else a compatible one, else the contact with the fewest failed checks.
             if unique:
                 basis = max(unique, key=lambda event: event["confidence"])
             elif fits:
@@ -272,7 +211,6 @@ def associate_tracks(locals_: Sequence[LocalReconstruction], alignment: Alignmen
                 basis = min(contacts, key=lambda event: len(checks[(event["event_id"], track.track_id)].blocking))
             item = checks[(basis["event_id"], track.track_id)]
             lines = [header(basis)] + item.lines
-            # The recorder's other contacts, in one line each.
             others = ["{0} with {1} at {2:.2f} s: {3}".format(
                 event["event_id"], _partner(event, owner), event["t_local"][owner],
                 "also compatible" if not checks[(event["event_id"], track.track_id)].blocking
@@ -309,7 +247,6 @@ def associate_tracks(locals_: Sequence[LocalReconstruction], alignment: Alignmen
                                      for t in rivals)))
                 else:
                     lines.append("the only track of {0} compatible with the contact".format(owner))
-                # Confidence: collision match, reduced by speed disagreement and by a long clearance at the contact.
                 confidence = (basis["confidence"] * math.exp(-0.5 * (item.rmse / cfg.speed_consistency_mps) ** 2)
                               * (_range_factor(item.range_at_contact, cfg) if item.range_at_contact is not None
                                  else 1.0))
@@ -326,19 +263,11 @@ def _global_subject(owner: str, subject: Optional[str], names: Dict[Any, str]) -
 
 
 def aggregate_entity_events(nodes: Sequence[GlobalNode], track_ends: Dict[Any, Tuple[float, float]]) -> List[GlobalNode]:
-    """Union source timelines per observer/entity/state, retaining every local node.
-
-    track_ends maps (observer, local track) to (last global sample, sampling
-    period). Visibility is continuous across adjoining source sample cells;
-    an actual gap still produces loss/reappearance. Unknown state after loss
-    does not fabricate a semantic END.
-    """
     families = {'CLOSING_START': ('CLOSING', True), 'CLOSING_END': ('CLOSING', False),
                 'CRITICAL_TTC_START': ('CRITICAL_TTC', True), 'CRITICAL_TTC_END': ('CRITICAL_TTC', False),
                 'EGO_PATH_ENTRY': ('IN_EGO_PATH', True), 'EGO_PATH_EXIT': ('IN_EGO_PATH', False),
                 'CUT_IN_FROM_LEFT_START': ('CUT_IN_FROM_LEFT', True), 'CUT_IN_FROM_LEFT_END': ('CUT_IN_FROM_LEFT', False),
                 'CUT_IN_FROM_RIGHT_START': ('CUT_IN_FROM_RIGHT', True), 'CUT_IN_FROM_RIGHT_END': ('CUT_IN_FROM_RIGHT', False)}
-    # Preserve silent initial support even when the source never emits an EXIT.
     nodes = list(nodes)
     for appearance in list(nodes):
         if (appearance.t_global is not None and appearance.event_type.startswith('TRACK_APPEARED_')
@@ -372,8 +301,6 @@ def aggregate_entity_events(nodes: Sequence[GlobalNode], track_ends: Dict[Any, T
                     intervals.append([opened.t_global, node.t_global, [opened, node], node, track])
                     opened = None
                 else:
-                    # First-seen active state has no fabricated START (path).
-                    # Its END still contributes to the entity timeline.
                     appeared = [n for n in nodes if n.actor_id == observer and n.subject_id == entity
                                 and n.attributes.get('source_track') == track
                                 and n.event_type.startswith('TRACK_APPEARED_') and n.t_global is not None]
@@ -388,7 +315,7 @@ def aggregate_entity_events(nodes: Sequence[GlobalNode], track_ends: Dict[Any, T
                         keep.append(node)
             if opened is not None:
                 last_sample, period = track_ends.get((observer, track), (float('inf'), 0.0))
-                end = last_sample + period # active last sample owns its sampling cell
+                end = last_sample + period
                 intervals.append([opened.t_global, end, [opened], None, track])
         united = []
         for span in sorted(intervals, key=lambda x: x[0]):
@@ -428,13 +355,6 @@ def aggregate_entity_events(nodes: Sequence[GlobalNode], track_ends: Dict[Any, T
 def post_contact_episodes(locals_: Sequence[LocalReconstruction], alignment: Alignment,
                           names: Dict[Tuple[str, str], Optional[str]], merged_events: Sequence[Dict[str, Any]],
                           touching_clearance_m: float) -> set:
-    """(owner, node id) of the CRITICAL_TTC_START/END nodes of an episode that recorder X starts, after its
-    matched collision with recorder Y, on a local track the fusion identified as Y while X and Y are still in
-    contact: some track of X identified as Y has its near surface within ``touching_clearance_m`` of X at that
-    instant.  The pair is then in a post-impact state, not facing a new pre-collision threat (local.critical_
-    intervals holds the partner track itself; a second track of Y -- another face, re-acquired at the impact --
-    is only known to be Y after the fusion).  The local graphs keep the events; the global graph does not
-    assert them."""
     drop = set()
     for local in locals_:
         clock = alignment.graphs[local.owner]
@@ -473,10 +393,6 @@ def post_contact_episodes(locals_: Sequence[LocalReconstruction], alignment: Ali
 
 
 def close_at_contact(drafts: List[GlobalNode]) -> Tuple[List[GlobalNode], set]:
-    """CRITICAL_TTC is the pre-collision threat: an episode of recorder X about Y still open at a collision of
-    X and Y ends there.  A CRITICAL_TTC_END of X about Y is added at the collision (source: the matched
-    collision reports) and a later end of that same episode is no longer asserted; returns the drafts and the
-    (graph, local node) of the dropped ends.  The local graphs keep every event."""
     collisions = sorted((node.t_global, node) for node in drafts
                         if node.event_type == "COLLISION" and node.t_global is not None and len(node.participants) >= 2)
     dropped_nodes, dropped_local = set(), set()
@@ -517,12 +433,8 @@ def close_at_contact(drafts: List[GlobalNode]) -> Tuple[List[GlobalNode], set]:
 def group_recontacts(contacts: Sequence[Any], pair_of: Callable[[Any], Any], time_of: Callable[[Any], float],
                      separation: Callable[[Any, float, float], Optional[float]], max_pause_s: float,
                      max_separation_m: float) -> List[Tuple[Any, List[Any]]]:
-    """(collision, its recontacts) in time order.  A contact of a pair less than ``max_pause_s`` after the previous
-    contact of that pair is a recontact of the same collision when ``separation(pair, t_previous, t)`` -- the
-    largest gap between the two bodies in between -- is known and at most ``max_separation_m``; otherwise it starts
-    a new collision (FusionConfig.recontact_max_pause_s)."""
     groups: List[Tuple[Any, List[Any]]] = []
-    last: Dict[Any, Tuple[int, float]] = {}  # pair -> (its current group, time of its latest contact)
+    last: Dict[Any, Tuple[int, float]] = {}
     for contact in sorted(contacts, key=time_of):
         pair, t = pair_of(contact), time_of(contact)
         previous = last.get(pair)
@@ -541,9 +453,6 @@ def fuse_graphs(locals_: Sequence[LocalReconstruction], alignment: Alignment,
                 associations: Sequence[Association], touching_clearance_m: float = 1.0,
                 separation: Optional[Callable[[Any, float, float], Optional[float]]] = None,
                 recontact_max_pause_s: float = 2.0, recontact_max_separation_m: float = 1.0) -> GlobalGraph:
-    """Local graphs + alignment + associations -> one global event graph.  ``separation(pair, t1, t2)``: the
-    largest gap between the two recorders' bodies between two global times (their pose streams), used to keep a
-    recontact in the collision it follows (``group_recontacts``); without it every contact is its own collision."""
     names = {(item.local_graph, item.local_track): item.global_entity for item in associations}
     recorders = sorted(local.owner for local in locals_)
     merged_events = [event for event in alignment.matched_events
@@ -590,7 +499,7 @@ def fuse_graphs(locals_: Sequence[LocalReconstruction], alignment: Alignment,
             source="collision_sensor", confidence=event["confidence"],
             observations=[Observation(graph, event["nodes"][graph], event["t_local"][graph]) for graph in graphs]))
         collisions[-1].perceived_state_before = beliefs(collisions[-1].observations)
-    no_separation = lambda pair, t1, t2: None  # noqa: E731
+    no_separation = lambda pair, t1, t2: None
     for collision, recontacts in group_recontacts(collisions, lambda node: tuple(node.participants),
                                                   lambda node: node.t_global, separation or no_separation,
                                                   recontact_max_pause_s, recontact_max_separation_m):
@@ -622,7 +531,6 @@ def fuse_graphs(locals_: Sequence[LocalReconstruction], alignment: Alignment,
         node.node_id = "g{0:02d}".format(number)
 
     global_id = {obs.local_node: node.node_id for node in nodes for obs in node.observations}
-    # Nodes at the same global time are simultaneous at this resolution: no PRECEDES between them.
     edges = precedes_edges(aligned, lambda node: node.t_global, lambda node: node.node_id)
     for local in sorted(locals_, key=lambda item: item.owner):
         for edge in local.graph.edges:
@@ -638,8 +546,6 @@ def fuse_graphs(locals_: Sequence[LocalReconstruction], alignment: Alignment,
                    if item.status == ASSOCIATED and item.global_entity == owner]
         entities.append({"entity_id": owner, "kind": "recorder",
                          "clock": alignment.graphs[owner].status, "observed_as": aliases})
-    # One entry per anonymous road user (U1, U2, ...: possibly several tracks of several observers), or per
-    # track of a recorder without a global clock (A:track_001).
     anonymous: Dict[str, List[Association]] = {}
     for item in associations:
         if item.status == ANONYMOUS:
@@ -659,13 +565,10 @@ def fuse_graphs(locals_: Sequence[LocalReconstruction], alignment: Alignment,
 
 def global_temporal_relations(locals_: Sequence[LocalReconstruction], alignment: Alignment,
                               associations: Sequence[Association]) -> List[Dict[str, Any]]:
-    """``checks.temporal_safety_relations`` of every local graph, with the track's
-    identity decision and global times; temporal properties only, no causality."""
     names = {(item.local_graph, item.local_track): (item.global_entity, item.status) for item in associations}
     out = []
     for local in sorted(locals_, key=lambda item: item.owner):
         clock = alignment.graphs[local.owner]
-        # An identified track's collision is the recorder's collision with that entity.
         with_entity: Dict[str, List[float]] = {}
         for event in recorder_contacts(local.owner, alignment):
             with_entity.setdefault(_partner(event, local.owner), []).append(event["t_local"][local.owner])
@@ -685,7 +588,6 @@ def global_temporal_relations(locals_: Sequence[LocalReconstruction], alignment:
 
 
 def short_label(node: GlobalNode) -> str:
-    """COLLISION(A,B), BRAKE_START(B), CLOSING_START(A,B), TRACK_APPEARED_LEFT(A,A:track_002)."""
     if node.actor_id is None:
         return "{0}({1})".format(node.event_type, ",".join(node.participants))
     names = [node.actor_id] + ([node.subject_id] if node.subject_id else [])
@@ -693,7 +595,6 @@ def short_label(node: GlobalNode) -> str:
 
 
 def global_trace(graph: GlobalGraph) -> List[Dict[str, Any]]:
-    """({(event, id, attributes), ...}, t_global) rows; simultaneous events share a row."""
     rows: Dict[float, List[GlobalNode]] = {}
     for node in graph.nodes:
         if node.t_global is not None:

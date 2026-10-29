@@ -1,4 +1,3 @@
-"""Per-vehicle raw sensor and control logging."""
 
 from __future__ import annotations
 
@@ -17,7 +16,6 @@ def _json(value: Any) -> str:
 
 
 def _without_privileged_ids(value: Any) -> Any:
-    """Drop simulator identity fields from every vehicle-local record."""
     if isinstance(value, dict):
         return {k: _without_privileged_ids(v) for k, v in value.items()
                 if k not in {"actor_id", "other_actor_id", "other_type_id"}}
@@ -40,14 +38,12 @@ class _Jsonl:
 
 
 class VehicleLogger:
-    """Write only observations available to one vehicle."""
 
     def __init__(self, root: Path, participant_id: str, metadata: Dict[str, Any]) -> None:
         self.root = Path(root) / "vehicles" / str(participant_id)
         self.root.mkdir(parents=True, exist_ok=True)
         self.state = _Jsonl(self.root / "ego.jsonl")
         self.controls = _Jsonl(self.root / "controls.jsonl")
-        # The vehicle's own light state per frame (VehicleLightState bits; the turn indicators decoded).
         self.lights = _Jsonl(self.root / "lights.jsonl")
         self.collisions = _Jsonl(self.root / "collisions.jsonl")
         self.traffic_signs = _Jsonl(self.root / "traffic_signs.jsonl")
@@ -68,9 +64,6 @@ class VehicleLogger:
                     "sensor_id": sensor_id,
                     "schema_version": 1,
                     "columns": ["depth_m", "azimuth_rad", "altitude_rad", "radial_velocity_mps"],
-                    # Where this radar sits on the body (vehicle frame: x forward, y right,
-                    # z up from the vehicle origin on the ground), resolved from the
-                    # vehicle's own bounding box: every return is measured from here.
                     "sensor_transform": dict(radar.get("sensor_transform") or {
                         "x": float(radar.get("mount_x", 0.0)), "y": float(radar.get("mount_y", 0.0)),
                         "z": float(radar.get("mount_z", 0.0)), "yaw_deg": float(radar.get("mount_yaw_deg", 0.0)),
@@ -84,8 +77,6 @@ class VehicleLogger:
                     "frame": "azimuth and altitude in this radar's own frame; returns beyond range_m (radial) "
                              "dropped",
                     "radial_velocity_status": "measured",
-                    # CARLA's native value is the range rate: negative while the
-                    # target approaches (compact_observations.closing_speed).
                     "radial_velocity_sign": "positive_away_from_sensor",
                     "radial_velocity_definition": "carla_range_rate",
                 },
@@ -103,7 +94,6 @@ class VehicleLogger:
         }
         (self.root / "camera" / "metadata.json").write_text(_json(self._camera_metadata), encoding="utf-8")
         sign_cfg = dict(metadata.get("traffic_signs") or {})
-        # Bearings of detections need the camera's own horizontal FOV.
         sign_cfg.setdefault("camera_fov_deg", (metadata.get("camera") or {}).get("fov_deg", 110.0))
         self._sign_detector = SignDetector(sign_cfg)
         self._sign_tracker = SignTracker(sign_cfg)
@@ -151,7 +141,6 @@ class VehicleLogger:
 
     def log_lights(self, record: Dict[str, Any]) -> None: self.lights.write(_without_privileged_ids(record))
     def log_collision(self, record: Dict[str, Any]) -> None:
-        # Never accept simulator actor identity in a vehicle-local file.
         self.collisions.write(_without_privileged_ids(record))
     def log_radar(self, record: Dict[str, Any]) -> None:
         sensor_id = str(record.get("sensor_id", "front"))
@@ -160,7 +149,6 @@ class VehicleLogger:
             raise KeyError("unknown radar sensor ID: {0}".format(sensor_id))
         writer.append(record["frame"], record["timestamp"], record.get("detections", []))
     def log_camera(self, record: Dict[str, Any], data: bytes) -> None:
-        # CARLA supplies BGRA.  Convert only in memory; no image writer is used.
         width, height = int(record["width"]), int(record["height"])
         bgra = np.frombuffer(data, dtype=np.uint8).reshape((height, width, 4))
         rgb = bgra[..., [2, 1, 0]]

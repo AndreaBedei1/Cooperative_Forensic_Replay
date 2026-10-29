@@ -1,4 +1,3 @@
-"""Planar geometry helpers for fixed CARLA routes and controllers."""
 
 from __future__ import annotations
 
@@ -8,7 +7,6 @@ __all__ = ["angle_diff_deg", "distance"]
 
 
 def angle_diff_deg(a: float, b: float) -> float:
-    """Return the signed shortest difference ``a-b`` in degrees."""
     return (float(a) - float(b) + 180.0) % 360.0 - 180.0
 
 

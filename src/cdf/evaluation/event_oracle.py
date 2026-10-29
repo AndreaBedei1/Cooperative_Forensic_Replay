@@ -1,41 +1,3 @@
-"""Ground-truth event oracle (privileged: evaluation only).
-
-What each recorder's core perception events would have been with perfect perception, computed from the
-simulator's ground truth through the reconstruction's own event definitions, and how the reconstruction's
-events compare.  For every recorder R and every other vehicle V of the run an ideal radar track of V is
-built from ``ground_truth/states.jsonl`` at R's radar sweep times, in R's own frame and clock
-(``TrackSample``): V's true near surface (the point of its true box nearest to R's footprint), its true
-velocity and acceleration, its clearance, closing speed and line-of-sight time to contact, and an estimate
-uncertainty of IDEAL_STD; the conflict model gets V's true length and width instead of the nominal box the
-radar has to assume.  Two oracles:
-
-* PERFECT: the ideal track over the whole run (an all-seeing sensor);
-* COVERAGE: the ideal track only at the sweeps where V lies inside the field of view and range of one of
-  R's radars with a clear line of sight (``cdf.evaluation.visibility``), split where V stays out of view
-  longer than the tracker's gap (``tracking.max_track_gap_s``); pieces with fewer sweeps than
-  ``tracking.min_track_frames`` are dropped, as the tracker drops them;
-* COVERAGE_TRACKED: COVERAGE with the point a radar track reports instead of the true nearest point: the
-  median of V's outline points facing one of R's radars (the visible faces), as the median of a track's
-  returns is. All three oracles carry the same true oriented body estimate, so body-based PATH and
-  CUT_IN no longer depend on the representative-point convention.
-
-Each ideal track goes through ``cdf.reconstruction.local.track_events`` with R's own ego trajectory and
-footprint; R's true contacts with V end its CRITICAL_TTC episode, as R's collision sensor does in the
-reconstruction.  The oracles share the definitions (corridor, cut-in criteria, collision course and braking
-model, safe following distance, release rules) and isolate what perception costs: COVERAGE against PERFECT
-is the sensors' coverage, the reconstruction against COVERAGE is sensing, tracking and estimation.  They do
-not validate the definitions themselves: their thresholds are documented with their sources or as
-engineering assumptions in ``configs/reconstruction.yaml``.
-
-The reconstruction's events are R's local events (``reconstruction/<R>/local_graph.json``, R's own clock:
-the alignment plays no part), their subject the true identity of the track (``evaluation.json``: the
-majority true vehicle).  Events of one type, one recorder and one true subject are matched one to one,
-nearest first, within MATCH_WINDOW_S; the three TRACK_APPEARED sides count as one type (the side is compared
-separately), and a vehicle in view from the recorder's first sweep has no appearance to compare.  Two windows:
-the whole recording, and the PRE_CONTACT window before the recorder's first true contact with anything (the
-pre-crash phase a forensic analysis is about; after it come post-impact dynamics).  Privileged assumptions as in ``cdf.evaluation.reconstruction``: the recorders' raw clocks are
-simulator time; a vehicle's box is centred on its origin in the horizontal plane.
-"""
 
 from __future__ import annotations
 
@@ -61,9 +23,9 @@ ORACLES = ("PERFECT", "COVERAGE", "COVERAGE_TRACKED")
 COMPARISONS = (("RECONSTRUCTION", "COVERAGE"), ("RECONSTRUCTION", "COVERAGE_TRACKED"), ("RECONSTRUCTION", "PERFECT"),
                ("COVERAGE_TRACKED", "COVERAGE"), ("COVERAGE", "PERFECT"))
 MATCH_WINDOW_S = 2.0
-IDEAL_STD = 0.05  # m, m/s: the ideal track's declared uncertainty (a known estimate)
+IDEAL_STD = 0.05
 OUTLINE_STEP_M = 0.05
-CONTACT_GAP_S = 0.5  # callbacks further apart start a new contact (as collision.merge_gap_s)
+CONTACT_GAP_S = 0.5
 
 
 def _type(event_type: str) -> Optional[str]:
@@ -73,8 +35,6 @@ def _type(event_type: str) -> Optional[str]:
 
 
 def _outline(centre: np.ndarray, heading: float, half: Tuple[float, float]) -> Tuple[np.ndarray, np.ndarray]:
-    """Points along a box's outline, every OUTLINE_STEP_M, and the outward normal of the face of each
-    (box frame: x along the heading, y to its right)."""
     hx, hy = half
     xs = np.arange(-hx, hx + 1e-9, OUTLINE_STEP_M)
     ys = np.arange(-hy, hy + 1e-9, OUTLINE_STEP_M)
@@ -98,16 +58,15 @@ def _rect_distance(points: np.ndarray, fp: EgoFootprint) -> np.ndarray:
 
 @dataclasses.dataclass
 class RecorderTruth:
-    """One recorder's own frame and clock, and its sweeps matched to ground-truth frames."""
 
     owner: str
     clock_origin: float
-    origin: Tuple[float, float, float]  # first ego pose: x, y, yaw (rad)
+    origin: Tuple[float, float, float]
     ego: EgoTrajectory
     footprint: EgoFootprint
-    radars: List[Any]  # RadarView
-    sweeps: List[Tuple[int, float]]  # (ground-truth frame, t_local) of every radar sweep
-    road: Optional[Any] = None  # the reconstruction's road model of this recorder (``reconstruction.road``)
+    radars: List[Any]
+    sweeps: List[Tuple[int, float]]
+    road: Optional[Any] = None
 
 
 def recorder_truth(run_dir: Path, owner: str, frames: Mapping[int, Mapping[str, Any]]) -> Optional[RecorderTruth]:
@@ -144,10 +103,6 @@ def _vector_local(rec: RecorderTruth, vx: float, vy: float) -> np.ndarray:
 
 def ideal_samples(rec: RecorderTruth, target: str, frames: Mapping[int, Mapping[str, Any]],
                   tracked: bool = False) -> List[TrackSample]:
-    """The ideal track of ``target`` at every sweep of ``rec`` where both exist in ground truth.  Its point is
-    the true nearest point of the target's body, or with ``tracked`` the median of the outline points facing
-    one of the recorder's radars (what the median of a radar track's returns stands for); the clearance is
-    always the nearest point's."""
     rows = []
     for frame, t in rec.sweeps:
         state = frames[frame].get(target)
@@ -213,7 +168,6 @@ def ideal_samples(rec: RecorderTruth, target: str, frames: Mapping[int, Mapping[
 
 
 def _contacts(rec: RecorderTruth, target_actors: set, collisions: Sequence[Mapping[str, Any]]) -> List[Tuple[float, float]]:
-    """(first, last) callbacks of the recorder's true contacts with the target, in its local time."""
     times = sorted(float(row["timestamp"]) - rec.clock_origin for row in collisions
                    if row["participant_id"] == rec.owner and row["other_actor_id"] in target_actors)
     out: List[List[float]] = []
@@ -258,7 +212,6 @@ def _pieces(samples: Sequence[TrackSample], visible: Sequence[bool], gap_s: floa
 
 def oracle_events(run_dir: Path, cfg: ReconstructionConfig,
                   truth: Optional[Dict[str, Any]] = None) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
-    """{oracle: {recorder: events}} of a run (``truth``: a cache of ``prepare_truth`` for repeated calls)."""
     truth = truth or prepare_truth(run_dir, cfg)
     out: Dict[str, Dict[str, List[Dict[str, Any]]]] = {name: {} for name in ORACLES}
     for owner, per_target in truth["ideal"].items():
@@ -267,7 +220,7 @@ def oracle_events(run_dir: Path, cfg: ReconstructionConfig,
             out[name].setdefault(owner, [])
         for target, item in per_target.items():
             semantics = dataclasses.replace(cfg.semantics, target_length_m=item["dims"][0], target_width_m=item["dims"][1])
-            impact = truth["first_contact"].get(owner)  # the recorder's own first contact, as its sensor reports
+            impact = truth["first_contact"].get(owner)
             perfect = [e for e in _events(rec, target, item["samples"], semantics, item["contacts"], target + "#all",
                                           impact) if e["type"] != "TRACK_APPEARED"]
             out["PERFECT"][owner] += perfect
@@ -280,8 +233,6 @@ def oracle_events(run_dir: Path, cfg: ReconstructionConfig,
 
 
 def prepare_truth(run_dir: Path, cfg: ReconstructionConfig) -> Dict[str, Any]:
-    """Ideal samples, coverage and true contacts of every (recorder, other vehicle) pair: independent of the
-    semantic thresholds, so a sensitivity study computes them once."""
     run_dir = Path(run_dir)
     states = read_jsonl(run_dir / "ground_truth" / "states.jsonl")
     collisions = read_jsonl(run_dir / "ground_truth" / "collisions.jsonl")
@@ -320,7 +271,6 @@ def prepare_truth(run_dir: Path, cfg: ReconstructionConfig) -> Dict[str, Any]:
             tracked = ideal_samples(rec, target, frames, tracked=True)
             ideal[owner][target] = {"samples": samples, "tracked": tracked, "visible": visible, "dims": dims,
                                     "contacts": _contacts(rec, actors[target], collisions)}
-    # Each recorder's first true contact with anything (another vehicle or a static object), local time.
     first_contact = {}
     for owner, rec in recorders.items():
         times = [float(row["timestamp"]) - rec.clock_origin for row in collisions if row["participant_id"] == owner]
@@ -330,7 +280,6 @@ def prepare_truth(run_dir: Path, cfg: ReconstructionConfig) -> Dict[str, Any]:
 
 
 def reconstruction_events(run_dir: Path) -> Dict[str, List[Dict[str, Any]]]:
-    """Each recorder's core local events, their subject the true identity of the track (privileged)."""
     run_dir = Path(run_dir)
     evaluation = json.loads((run_dir / "reconstruction" / "evaluation" / "evaluation.json").read_text(encoding="utf-8"))
     identity = {row["track"]: row.get("true_identity") for row in evaluation["tracks"]}
@@ -351,8 +300,6 @@ def reconstruction_events(run_dir: Path) -> Dict[str, List[Dict[str, Any]]]:
 
 def match(found: Sequence[Mapping[str, Any]], expected: Sequence[Mapping[str, Any]],
           window_s: float = MATCH_WINDOW_S) -> Tuple[List[Tuple[int, int]], List[int], List[int]]:
-    """One-to-one matching of events of the same type and subject, nearest first within the window:
-    (pairs (found index, expected index), unmatched found, unmatched expected)."""
     candidates = sorted((abs(f["t_local"] - e["t_local"]), i, j) for i, f in enumerate(found)
                         for j, e in enumerate(expected)
                         if f["type"] == e["type"] and f["subject"] == e["subject"] and f["subject"] is not None
@@ -368,15 +315,13 @@ def match(found: Sequence[Mapping[str, Any]], expected: Sequence[Mapping[str, An
 
 
 def compare(sets: Mapping[str, Mapping[str, Sequence[Mapping[str, Any]]]]) -> Dict[str, Any]:
-    """Per comparison (found, expected) and event type: counts, matches and time differences (found -
-    expected, s), pooled over the recorders of a run."""
     out: Dict[str, Any] = {}
     for found_name, expected_name in COMPARISONS:
         rows: Dict[str, Dict[str, Any]] = {t: {"found": 0, "expected": 0, "matched": 0, "deltas": [], "side_agree": 0,
                                                 "missed": [], "extra": []} for t in CORE_TYPES}
         for owner in sorted(set(sets[found_name]) | set(sets[expected_name])):
             found, expected = list(sets[found_name].get(owner, [])), list(sets[expected_name].get(owner, []))
-            if expected_name == "PERFECT":  # the all-seeing oracle has no appearance events
+            if expected_name == "PERFECT":
                 found = [e for e in found if e["type"] != "TRACK_APPEARED"]
             pairs, extra, missed = match(found, expected)
             for event in found:
@@ -415,9 +360,6 @@ def compare_run(run_dir: Path, cfg: ReconstructionConfig, truth: Optional[Dict[s
 
 
 def pooled(results: Sequence[Mapping[str, Any]], window: str = "comparison") -> Dict[str, Any]:
-    """Campaign numbers per comparison and event type: precision (matched / found), recall (matched /
-    expected), time differences (median, 5th and 95th percentile, median absolute).  ``window``:
-    "comparison" (whole recording) or "comparison_pre_contact"."""
     out: Dict[str, Any] = {}
     for found_name, expected_name in COMPARISONS:
         key = "{0} vs {1}".format(found_name, expected_name)

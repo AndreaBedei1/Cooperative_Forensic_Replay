@@ -1,34 +1,3 @@
-"""Graph-level time alignment from matched COLLISION nodes.
-
-Input: local graphs, each in its own local clock.  Output: an ``Alignment``
-that says, per graph, ``t_global = t_local + offset_to_global``.  The local
-graphs are only read; their timestamps are never changed.
-
-Two COLLISION nodes of different graphs are the same physical contact when
-their peak impulses agree: the two bodies of one contact receive equal and
-opposite impulses, so the test needs neither a common clock nor a common frame.
-When the recorders' pose streams are given (``consistent``), the two bodies must
-also touch: each recorder at its own report time, from its own pose stream, its
-footprint within ``contact_consistency_m`` (plus 3 sigma of the pose sources'
-declared accuracy) of the other's -- two single-vehicle contacts with similar
-impulses, far apart, are not one contact.
-Each match also fixes the clock offset between its two graphs, so the matches
-must agree in time: a match between two graphs that earlier matches already
-link (directly or through a third graph) must imply the same clock offset,
-within ``clock_tolerance_s``, or it is rejected.
-
-A report left unmatched may correspond to a burst that another recorder's
-collision sensor merged into one of its own contacts (a body struck again
-within that contact, by a third body: its sensor reports magnitudes only).
-Such a burst carries the same impulse; it is matched only between graphs that
-earlier matches already link, at their clock offset, and fixes no clock.
-
-The strongest matched contact is the reference event and only defines
-t_global = 0.  Every matched contact can align a graph: one that shares a
-contact with an aligned graph is aligned through it (multi-hop: A-B by one
-collision, B-C by another puts C on the same clock through B).  Graphs that no
-chain of matched contacts links to the reference stay UNALIGNED.
-"""
 
 from __future__ import annotations
 
@@ -43,14 +12,12 @@ UNALIGNED = "UNALIGNED"
 
 
 def impulse_similarity(first: GraphNode, second: GraphNode) -> float:
-    """1.0 for identical peak impulses, 0.0 when one of them is zero."""
     a = float(first.attributes["peak_impulse"])
     b = float(second.attributes["peak_impulse"])
     return 1.0 - abs(a - b) / max(a, b, 1e-9)
 
 
 def impulse_z(a: float, b: float, cfg: FusionConfig) -> float:
-    """Difference in combined declared standard deviations (independent reports)."""
     sigma = cfg.impulse_relative_std * math.hypot(a, b)
     return abs(a - b) / max(sigma, 1e-9)
 
@@ -64,15 +31,11 @@ def _impulse_pass(a: float, b: float, cfg: FusionConfig, has_geometry: bool) -> 
 
 
 class _Clocks:
-    """Clock offsets fixed by the accepted matches (a weighted union-find).
-
-    ``t_root = t_graph + shift`` for every graph of a linked group.
-    """
 
     def __init__(self, owners: Sequence[str]) -> None:
         self.parent = {owner: owner for owner in owners}
         self.shift = {owner: 0.0 for owner in owners}
-        self.event = {owner: None for owner in owners}  # the match that linked a graph to its parent
+        self.event = {owner: None for owner in owners}
 
     def root(self, owner: str) -> Tuple[str, float]:
         shift = 0.0
@@ -82,13 +45,11 @@ class _Clocks:
         return owner, shift
 
     def link(self, first: str, t_first: float, second: str, t_second: float) -> None:
-        """``t_first`` (first's clock) and ``t_second`` (second's clock) are the same instant."""
         (root_a, shift_a), (root_b, shift_b) = self.root(first), self.root(second)
         self.parent[root_b] = root_a
         self.shift[root_b] = (t_first + shift_a) - (t_second + shift_b)
 
     def residual(self, first: str, t_first: float, second: str, t_second: float) -> float:
-        """How far a match between two already linked graphs is from their known clock offset."""
         (_, shift_a), (_, shift_b) = self.root(first), self.root(second)
         return (t_first + shift_a) - (t_second + shift_b)
 
@@ -96,17 +57,10 @@ class _Clocks:
         return self.root(first)[0] == self.root(second)[0]
 
 
-# (first graph, its report time, second graph, its report time) -> (gap between the two bodies, tolerance)
 ContactCheck = Callable[[str, float, str, float], Optional[Tuple[float, float]]]
 
 
 def _forced_pairs(candidates, consistent, cfg, clocks, used) -> set:
-    """Edges in every maximum-cardinality feasible report assignment.
-
-    Equal coverage with different partners is ambiguous. Impulse magnitude does
-    not break that tie. The bounded search is for the small set of contact reports;
-    on search exhaustion no extra identity is asserted.
-    """
     import copy
     edges = [c for c in candidates if c[1] not in used and c[2] not in used
              and _apart(consistent, c[3], c[4].t_local, c[5], c[6].t_local)[0] is None]
@@ -145,7 +99,6 @@ def _forced_pairs(candidates, consistent, cfg, clocks, used) -> set:
 
 def _apart(consistent: Optional[ContactCheck], first: str, t_first: float, second: str,
            t_second: float) -> Tuple[Optional[str], Optional[str]]:
-    """(reason to reject, evidence) of the contact-consistency check."""
     measured = None if consistent is None else consistent(first, t_first, second, t_second)
     if measured is None:
         return None, None
@@ -160,15 +113,6 @@ def match_collisions(graphs: Sequence[LocalGraph], cfg: FusionConfig,
                      consistent: Optional[ContactCheck] = None,
                      clock_check: Optional[Callable[[str, float, str, float], Optional[bool]]] = None
                      ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-    """One-to-one, time-consistent matching of collision reports across graphs.
-
-    With contact geometry, declared independent impulse uncertainties gate candidates.
-    Without geometry the legacy relative tolerance applies. A candidate is accepted when neither report is matched yet, its two
-    bodies touch (``consistent``, when given), its approach agrees where observed,
-    and its clock offset agrees with the matches already accepted. Competing
-    anchors require a forced edge in every maximum feasible assignment, otherwise
-    remain unmatched. Returns (matched events, rejected candidates).
-    """
     reports = [(graph.owner, node) for graph in sorted(graphs, key=lambda item: item.owner)
                for node in graph.nodes if node.event_type == "COLLISION"]
     candidates = []
@@ -219,8 +163,6 @@ def match_collisions(graphs: Sequence[LocalGraph], cfg: FusionConfig,
                      "({2:+.3f} s, tolerance {3:.2f} s)".format(first_owner, second_owner, residual,
                                                                 cfg.clock_tolerance_s)
         else:
-            # Impulse uncertainty must not turn a competing contact into a guessed
-            # clock anchor. Only geometry-compatible, time-compatible rivals count.
             rivals = []
             if consistent is not None:
                 for rival in candidates:
@@ -263,7 +205,6 @@ def match_collisions(graphs: Sequence[LocalGraph], cfg: FusionConfig,
                         "impulse_z": round(z, 4),
                         "confidence": similarity, "evidence": evidence})
     matched += _match_merged_bursts(reports, used, clocks, cfg, consistent)
-    # Numbering needs no common clock: order by first graph, then its local time.
     matched.sort(key=lambda event: (event["graphs"][0], event["t_local"][event["graphs"][0]]))
     for number, event in enumerate(matched, 1):
         event["event_id"] = "collision_{0:03d}".format(number)
@@ -272,7 +213,6 @@ def match_collisions(graphs: Sequence[LocalGraph], cfg: FusionConfig,
 
 def _match_merged_bursts(reports, used, clocks: "_Clocks", cfg: FusionConfig,
                          consistent: Optional[ContactCheck] = None) -> List[Dict[str, Any]]:
-    """Unmatched reports against the bursts other recorders merged into their contacts (see module docstring)."""
     matched = []
     taken = set()
     for owner, node in reports:
@@ -323,8 +263,6 @@ def _strength(event: Dict[str, Any]) -> float:
 def align_graphs(graphs: Sequence[LocalGraph], cfg: FusionConfig,
                  consistent: Optional[ContactCheck] = None,
                  clock_check: Optional[Callable[[str, float, str, float], Optional[bool]]] = None) -> Alignment:
-    """t_global = 0 at the strongest matched collision; every match extends the common clock.  ``consistent``
-    (``common_frame.contact_check`` on the recorders' pose streams) rejects matches whose bodies do not touch."""
     matched, rejected = match_collisions(graphs, cfg, consistent, clock_check)
     clocks = {}
     for graph in graphs:
@@ -335,7 +273,6 @@ def align_graphs(graphs: Sequence[LocalGraph], cfg: FusionConfig,
     if not matched:
         return Alignment(reference_event=None, graphs=clocks, matched_events=[], rejected_matches=rejected)
 
-    # The strongest contact is the reference; on a tie the first one is kept.
     reference = matched[0]
     for event in matched[1:]:
         if _strength(event) > _strength(reference):
@@ -346,7 +283,6 @@ def align_graphs(graphs: Sequence[LocalGraph], cfg: FusionConfig,
                                    anchor_t_local=anchor, offset_to_global=round(-anchor, 4),
                                    reason="reported the reference collision " + reference["event_id"],
                                    chain=[reference["event_id"]], method="matched_collisions")
-    # Multi-hop: breadth first from the reference graphs, the strongest shared contact first.
     frontier = list(reference["graphs"])
     while frontier:
         reached = []

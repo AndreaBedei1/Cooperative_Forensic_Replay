@@ -1,14 +1,3 @@
-"""Privileged evaluation of a finished reconstruction.
-
-Runs only after ``<run>/reconstruction/`` has been written.  It reads those
-files plus ``<run>/ground_truth/`` and writes ``reconstruction/evaluation/``;
-it never changes the reconstruction.  ``cdf.reconstruction`` never imports
-this module.
-
-Privileged assumption used only here: in these CARLA recordings every
-recorder's raw clock is the simulator clock, so ``t_local + clock origin`` is
-simulator time and can be compared with ``ground_truth/``.
-"""
 
 from __future__ import annotations
 
@@ -26,16 +15,9 @@ from ..reconstruction.local import reconstruct_vehicle
 from ..reconstruction.pipeline import fuse_recorders, read_incident_context, run_title
 from ..reconstruction.render import write_json, write_text
 
-# A track "is" a vehicle when its median distance to that vehicle's box is below this.
 IDENTITY_MAX_BOX_DISTANCE_M = 1.5
-# The clock-robustness check makes one recorder's local clock read this much later.
 CLOCK_SHIFT_S = 0.73
-# Ground-truth callbacks of one pair closer than this are one true contact, and a
-# reconstructed COLLISION reproduces a true contact only if reported within this of it.
 TRUTH_CONTACT_GAP_S = 0.5
-# A later contact of the same pair is a recontact of the true collision it follows (one collision, not two) when
-# it starts at most RECONTACT_MAX_PAUSE_S after the previous one and the two true boxes never parted by more than
-# RECONTACT_MAX_SEPARATION_M in between: the reconstruction's rule (FusionConfig defaults) on the true geometry.
 RECONTACT_MAX_PAUSE_S = 2.0
 RECONTACT_MAX_SEPARATION_M = 1.0
 
@@ -52,7 +34,6 @@ def _read_jsonl(path: Path) -> List[Dict[str, Any]]:
 
 
 class TruthTrack:
-    """Ground-truth states of one participant, looked up by simulator time."""
 
     def __init__(self, states: Sequence[Dict[str, Any]]) -> None:
         self.states = sorted(states, key=lambda state: state["timestamp"])
@@ -66,13 +47,11 @@ class TruthTrack:
 
 
 def _box_distance(point: Tuple[float, float], state: Dict[str, Any]) -> float:
-    """2-D distance from a point to the vehicle's oriented bounding box (0 inside)."""
     along, across, extent = _in_box_frame(point, state)
     return math.hypot(max(abs(along) - extent["x"], 0.0), max(abs(across) - extent["y"], 0.0))
 
 
 def _surface_distance(point: Tuple[float, float], state: Dict[str, Any]) -> float:
-    """2-D distance from a point to the box outline: what a radar return lies on."""
     along, across, extent = _in_box_frame(point, state)
     outside = _box_distance(point, state)
     if outside > 0.0:
@@ -89,7 +68,6 @@ def _in_box_frame(point: Tuple[float, float], state: Dict[str, Any]) -> Tuple[fl
 
 
 def _outline(state: Dict[str, Any], step: float = 0.1) -> List[Tuple[float, float]]:
-    """Points every ``step`` metres along a vehicle box's 2-D outline (world frame)."""
     transform = state["transform"]
     extent = state.get("bbox_extent") or {"x": 2.4, "y": 1.0}
     yaw = math.radians(transform["yaw_deg"])
@@ -101,7 +79,6 @@ def _outline(state: Dict[str, Any], step: float = 0.1) -> List[Tuple[float, floa
 
 
 def box_gap(first: Dict[str, Any], second: Dict[str, Any]) -> float:
-    """2-D distance between two vehicles' boxes (0 when they touch or overlap), to about 0.05 m."""
     return min(min(_box_distance(point, first) for point in _outline(second)),
                min(_box_distance(point, second) for point in _outline(first)))
 
@@ -115,20 +92,12 @@ def _rmse(values: Sequence[float]) -> Optional[float]:
 
 
 def _to_world(first_pose: Dict[str, Any], x: float, y: float) -> Tuple[float, float]:
-    """Local frame of a recorder -> CARLA world (evaluation only).
-
-    ``first_pose`` is the recorder's TRUE first pose (``ego.jsonl``, G0), also when the reconstruction ran on a
-    perturbed GNSS/INS: which vehicle a radar track followed is a physical fact, so a recorder's own pose error must
-    not turn a real vehicle into a phantom or into another vehicle.  The error of the positions the reconstruction
-    gives its road users is measured separately, on its own pose streams (``fusion_metrics`` state errors)."""
     yaw = math.radians(first_pose["yaw_deg"])
     return (first_pose["x"] + math.cos(yaw) * x - math.sin(yaw) * y,
             first_pose["y"] + math.sin(yaw) * x + math.cos(yaw) * y)
 
 
 def truth_separation(states: Sequence[Dict[str, Any]]) -> Callable[[Sequence[str], float, float], Optional[float]]:
-    """``separation(pair, t1, t2)`` on the ground truth (``fusion.group_recontacts``): the largest gap between the
-    two true boxes between two simulator times; None for a static object or a vehicle without states."""
     frames: Dict[str, Dict[int, Dict[str, Any]]] = defaultdict(dict)
     for state in states:
         frames[state["participant_id"]][state["frame"]] = state
@@ -146,13 +115,6 @@ def truth_separation(states: Sequence[Dict[str, Any]]) -> Callable[[Sequence[str
 def _truth_contacts(collisions: Sequence[Dict[str, Any]], actor_to_participant: Dict[int, str],
                     separation: Optional[Callable[[Sequence[str], float, float], Optional[float]]] = None
                     ) -> List[Dict[str, Any]]:
-    """Ground-truth contacts between participants, first callback per pair and episode.
-
-    ``actor_to_participant`` may include participants that are not recorders
-    (``record: false``); their contacts can only be reported by the recorder
-    involved.  With ``separation`` (``truth_separation``), a recontact is kept in the
-    contact it follows (``recontacts``: its start and peak impulse) instead of being a
-    contact of its own."""
     contacts: List[Dict[str, Any]] = []
     for record in sorted(collisions, key=lambda item: item["timestamp"]):
         other = actor_to_participant.get(record.get("other_actor_id"))
@@ -180,15 +142,6 @@ def _truth_contacts(collisions: Sequence[Dict[str, Any]], actor_to_participant: 
 def match_collisions(contacts: Sequence[Dict[str, Any]], collision_nodes: Sequence[Dict[str, Any]],
                      recorders: Sequence[str], origins: Mapping[str, float]
                      ) -> Tuple[List[Dict[str, Any]], set]:
-    """Each true collision against the reconstruction's COLLISION nodes, every node used once: (rows, used nodes).
-
-    1. IDENTIFIED: the node naming exactly the collision's recorders (a collision with a static object or with a
-       vehicle that records nothing is reported by the recorders involved only) that every observer reported
-       within ``TRUTH_CONTACT_GAP_S`` of it, the closest one;
-    2. else DETECTED with the wrong participants: a node that one of the collision's own recorders reported within
-       ``TRUTH_CONTACT_GAP_S`` of it (its collision sensor felt it), whatever participants the node names;
-    3. else MISSED.
-    Every collision gets its exact match before any is matched the second way."""
     def report_error(node: Dict[str, Any], contact: Dict[str, Any]) -> float:
         return max(abs(obs["t_local"] + origins[obs["graph"]] - contact["sim_time"]) for obs in node["observations"])
 
@@ -230,11 +183,6 @@ def match_collisions(contacts: Sequence[Dict[str, Any]], collision_nodes: Sequen
 
 def _clock_shift_check(run_dir: Path, graph: Dict[str, Any], alignment: Dict[str, Any],
                        config: ReconstructionConfig) -> Dict[str, Any]:
-    """Would the global graph change if one recorder's clock had started differently?
-
-    The last recorder is rebuilt with its local clock reading ``CLOCK_SHIFT_S``
-    later, then alignment and fusion are rerun in memory.  Uses no ground truth.
-    """
     locals_ = []
     context = read_incident_context(run_dir)
     shifted = sorted(alignment["graphs"])[-1]
@@ -272,7 +220,6 @@ def evaluate_run(run_dir: Path, clock_shift_check: bool = True) -> Dict[str, Any
     origins = {name: local_graphs[name]["recorder"]["clock"]["origin_source_timestamp"] for name in recorders}
     first_poses = {name: _read_jsonl(run_dir / "vehicles" / name / "ego.jsonl")[0] for name in recorders}
 
-    # Privileged inputs.
     states = _read_jsonl(run_dir / "ground_truth" / "states.jsonl")
     truth = {name: TruthTrack([s for s in states if s["participant_id"] == name])
              for name in sorted({s["participant_id"] for s in states})}
@@ -282,8 +229,6 @@ def evaluate_run(run_dir: Path, clock_shift_check: bool = True) -> Dict[str, Any
     recontacts = [{"participants": c["participants"], "sim_time": r["sim_time"]}
                   for c in contacts for r in c["recontacts"]]
     collision_nodes = [node for node in graph["nodes"] if node["event_type"] == "COLLISION"]
-    # The true contact (or recontact) behind the reference collision, the matched collision that defines
-    # t_global = 0.
     reference = next((event for event in alignment["matched_events"]
                       if event["event_id"] == alignment["reference_event"]), None)
     reference_truth = None
@@ -293,9 +238,6 @@ def evaluate_run(run_dir: Path, clock_shift_check: bool = True) -> Dict[str, Any
         candidates = [c for c in contacts + recontacts if c["participants"] == sorted(reference["graphs"])]
         if candidates:
             reference_truth = min(candidates, key=lambda c: abs(c["sim_time"] - reported_at))
-    # Simulator time of the true t_global = 0: the true contact behind the reference collision node or,
-    # when no collision was matched (a near miss), the reference recorder's own clock origin (its clock is
-    # the global one by definition); None when nothing is on a global clock.
     reference_recorder = next((name for name in recorders
                                if alignment["graphs"][name].get("method") == "reference_recorder"), None)
     if reference_truth is not None:
@@ -305,14 +247,10 @@ def evaluate_run(run_dir: Path, clock_shift_check: bool = True) -> Dict[str, Any
     else:
         zero_sim = None
 
-    # 1. Collisions: each true collision identified, detected with the wrong participants, or missed
-    #    (match_collisions); every node is used once.
     def report_error(node: Dict[str, Any], contact: Dict[str, Any]) -> float:
         return max(abs(obs["t_local"] + origins[obs["graph"]] - contact["sim_time"]) for obs in node["observations"])
 
     collision_rows, used = match_collisions(contacts, collision_nodes, recorders, origins)
-    # Reconstructed collisions that reproduce no true contact (e.g. one contact split in two); ``true_recontact``
-    # when the node is a true recontact reported as a collision of its own.
     def is_recontact(node: Dict[str, Any]) -> bool:
         return any(sorted(node["participants"]) == sorted(name for name in r["participants"] if name in recorders)
                    and report_error(node, r) <= TRUTH_CONTACT_GAP_S for r in recontacts)
@@ -321,8 +259,6 @@ def evaluate_run(run_dir: Path, clock_shift_check: bool = True) -> Dict[str, Any
                          "true_recontact": is_recontact(node)}
                         for node in collision_nodes if node["node_id"] not in used]
 
-    # 2. Alignment accuracy: per recorder, the local time at which t_global = 0 (-offset_to_global)
-    #    against the true local time of the reference contact, whatever chain aligned it.
     alignment_rows = []
     for name in recorders:
         clock = alignment["graphs"][name]
@@ -340,7 +276,6 @@ def evaluate_run(run_dir: Path, clock_shift_check: bool = True) -> Dict[str, Any
         relative.append({"pair": name, "estimated_s": estimated, "true_s": true_offset,
                          "error_s": round(estimated - true_offset, 4)})
 
-    # 3. Global event times and order.
     timed = [node for node in graph["nodes"] if node["t_global"] is not None]
     time_errors = []
     true_times = []
@@ -358,7 +293,6 @@ def evaluate_run(run_dir: Path, clock_shift_check: bool = True) -> Dict[str, Any
             total += 1
             concordant += (timed[i]["t_global"] < timed[j]["t_global"]) == (true_times[i] < true_times[j])
 
-    # 4-5. Track identities and trajectory accuracy.
     track_rows = []
     for item in associations:
         owner, track_id = item["local_graph"], item["local_track"]
@@ -390,14 +324,13 @@ def evaluate_run(run_dir: Path, clock_shift_check: bool = True) -> Dict[str, Any
                 state = truth[identity].at(sample["t_local"] + origins[owner])
                 if state is None or not sample["measured"]:
                     previous = None
-                    continue  # compare raw and smoothed on the same sweeps
+                    continue
                 point = _to_world(first_poses[owner], sample["x_m"], sample["y_m"])
                 measured = _to_world(first_poses[owner], sample["meas_x_m"], sample["meas_y_m"])
                 smooth.append(_surface_distance(point, state))
                 raw.append(_surface_distance(measured, state))
                 centre.append(math.hypot(point[0] - state["transform"]["x"], point[1] - state["transform"]["y"]))
                 speed.append(sample["speed_mps"] - _speed(state))
-                # Speed from consecutive raw returns: what one gets without the filter.
                 if previous is not None and sample["t_local"] - previous[0] < 0.11:
                     dt = sample["t_local"] - previous[0]
                     raw_speed.append(math.hypot(measured[0] - previous[1][0], measured[1] - previous[1][1]) / dt
@@ -408,9 +341,6 @@ def evaluate_run(run_dir: Path, clock_shift_check: bool = True) -> Dict[str, Any
                         "raw_difference_speed_rmse_mps": _rmse(raw_speed), "speed_rmse_mps": _rmse(speed)})
         track_rows.append(row)
 
-    # 6. Clearance at each true vehicle contact: per recorder, its track lying on the partner
-    #    (tracked point within IDENTITY_MAX_BOX_DISTANCE_M of the partner's box) at the last 10 Hz
-    #    sample at or before the contact, against the true gap between the two boxes then.
     samples_of: Dict[str, List[Dict[str, Any]]] = {}
     for name in recorders:
         for sample in _read_jsonl(rec / name / "local_tracks.jsonl"):
@@ -421,7 +351,7 @@ def evaluate_run(run_dir: Path, clock_shift_check: bool = True) -> Dict[str, Any
             continue
         for owner in contact["participants"]:
             if owner not in recorders:
-                continue  # a vehicle that records nothing has no tracks
+                continue
             partner = next(name for name in contact["participants"] if name != owner)
             t_contact = contact["sim_time"] - origins[owner]
             best = None

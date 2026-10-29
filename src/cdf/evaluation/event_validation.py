@@ -1,9 +1,3 @@
-"""Post-hoc validation of a reconstructed run against its ground truth: the conflict
-events and their intervals, the relevance of the timeline to each collision, the proximity of the reconstructed road
-users at each impact, the recovery of the tracks that approach a collision partner, and the phantoms.
-
-Privileged: ground truth is read here only, never by the reconstruction.  The reused pieces keep their definitions:
-``event_oracle`` (oracles, one-to-one ``match``, 2.0 s window), the 1.5 m identity rule, the 8 s warning window."""
 
 from __future__ import annotations
 
@@ -29,21 +23,18 @@ FAMILIES = {"CRITICAL_TTC": ("CRITICAL_TTC_START", "CRITICAL_TTC_END"),
             "CUT_IN_RIGHT": ("CUT_IN_FROM_RIGHT_START", "CUT_IN_FROM_RIGHT_END")}
 START_OF = {start: family for family, (start, _) in FAMILIES.items()}
 END_OF = {end: family for family, (_, end) in FAMILIES.items()}
-MATCH_WINDOW_S = eo.MATCH_WINDOW_S  # 2.0 s
-IDENTITY_M = IDENTITY_MAX_BOX_DISTANCE_M  # 1.5 m
-STATE_GAP_S = 0.15  # a track state this close to an instant stands for it
-SUPPORT_S, SUPPORT_GAP_S = 0.25, 0.15  # established support: >= 0.25 s of support, gaps <= 0.15 s
-IMMEDIATE_S = 1.0  # "immediately before the contact"
+MATCH_WINDOW_S = eo.MATCH_WINDOW_S
+IDENTITY_M = IDENTITY_MAX_BOX_DISTANCE_M
+STATE_GAP_S = 0.15
+SUPPORT_S, SUPPORT_GAP_S = 0.25, 0.15
+IMMEDIATE_S = 1.0
 GRID_S = 0.05
-ENTITY_AT_S = 0.051  # an entity state within this of the impact (10 Hz output)
+ENTITY_AT_S = 0.051
 BINS = (("<=2 m", 2.0), ("(2,4] m", 4.0), ("(4,5] m", 5.0), (">5 m", math.inf))
 ZONES_M = (5.0, 4.0, 2.0)
 CLASSES = ("correct", "wrong vehicle", "unsupported", "duplicate", "not evaluable")
 
 
-# ----------------------------------------------------------------------------------------------------------------
-# geometry
-# ----------------------------------------------------------------------------------------------------------------
 
 def _corners(cx: float, cy: float, yaw: float, hx: float, hy: float) -> np.ndarray:
     c, s = math.cos(yaw), math.sin(yaw)
@@ -69,8 +60,6 @@ def _point_segment(p: np.ndarray, a: np.ndarray, b: np.ndarray) -> float:
 
 
 def rect_gap(a: Tuple[float, float, float, float, float], b: Tuple[float, float, float, float, float]) -> float:
-    """Exact 2-D distance between two oriented rectangles (cx, cy, yaw rad, half length, half width); 0 when they
-    touch or overlap."""
     ca, cb = _corners(*a), _corners(*b)
     if not _separated(ca, cb):
         return 0.0
@@ -106,14 +95,9 @@ def bin_of(distance: Optional[float]) -> str:
     return BINS[-1][0]
 
 
-# ----------------------------------------------------------------------------------------------------------------
-# intervals
-# ----------------------------------------------------------------------------------------------------------------
 
 def intervals_from_events(events: Iterable[Tuple[str, float]], last_t: float, recorder: str, subject: Optional[str],
                           track: str) -> List[Dict[str, Any]]:
-    """START/END events of one track -> intervals per family; an interval without END closes at ``last_t`` and is
-    marked open."""
     out, opened = [], {}
     for event_type, t in sorted(events, key=lambda e: e[1]):
         if event_type in START_OF:
@@ -139,9 +123,6 @@ def _track_event_list(rec: Any, samples: Sequence[Any], semantics: Any, contacts
 
 
 def truth_intervals(run_dir: Path, cfg: Any = None) -> Dict[str, Any]:
-    """The true intervals of every recorder: PERFECT (the true state of every vehicle) and COVERAGE (while a radar
-    of the recorder could see it), START and END kept for every family (``event_oracle`` keeps only the starts of
-    the path and cut-in events)."""
     from ..reconstruction.config import load_config
     cfg = cfg or load_config()
     truth = eo.prepare_truth(Path(run_dir), cfg)
@@ -166,9 +147,6 @@ def truth_intervals(run_dir: Path, cfg: Any = None) -> Dict[str, Any]:
     return {"PERFECT": dict(out["PERFECT"]), "COVERAGE": dict(out["COVERAGE"]), "recorders": recorders}
 
 
-# ----------------------------------------------------------------------------------------------------------------
-# a reconstructed run
-# ----------------------------------------------------------------------------------------------------------------
 
 def _read_json(path: Path) -> Any:
     return json.loads(Path(path).read_text(encoding="utf-8"))
@@ -180,7 +158,6 @@ def _read_jsonl(path: Path) -> List[Dict[str, Any]]:
 
 
 class RunData:
-    """The reconstruction of one run (canonical or a campaign job) with what the analysis needs of its truth."""
 
     def __init__(self, run_dir: Path) -> None:
         run_dir = Path(run_dir)
@@ -220,7 +197,6 @@ class RunData:
             rows.sort(key=lambda row: row["t_local"])
         self._times = {key: np.array([row["t_local"] for row in rows]) for key, rows in self.samples.items()}
 
-    # truth lookups
     def true_state(self, vehicle: str, sim: float) -> Optional[Dict[str, Any]]:
         track = self.truth.get(vehicle)
         return None if track is None else track.at(sim)
@@ -251,8 +227,6 @@ class RunData:
         return rows[-1] if rows else None
 
     def subject_at(self, owner: str, track: str, t_local: float) -> Dict[str, Any]:
-        """The vehicle a track's event is about (module docstring of the doc): its identity, else the vehicle within
-        1.5 m at the event, else none; with the position error of the track at the event."""
         key = "{0}:{1}".format(owner, track)
         row = self.state_near(key, t_local)
         identity = self.track_identity.get(key)
@@ -268,7 +242,6 @@ class RunData:
                 "measured": None if row is None else bool(row["measured"])}
 
     def contacts(self) -> List[Dict[str, Any]]:
-        """True contacts (later impacts of a chain included), with each recorder's local contact time."""
         out = []
         for k, c in enumerate(self.collisions):
             sim = float(c["sim_time"])
@@ -295,15 +268,9 @@ def reconstruction_intervals(data: RunData) -> Dict[str, List[Dict[str, Any]]]:
     return out
 
 
-# ----------------------------------------------------------------------------------------------------------------
-# 1. events: classes and counts
-# ----------------------------------------------------------------------------------------------------------------
 
 def classify(predictions: List[Dict[str, Any]], truths: List[Dict[str, Any]],
              window: float = MATCH_WINDOW_S) -> None:
-    """Sets ``class`` (and the matched truth) on every evaluable prediction and ``matched`` on every truth, in
-    place.  Predictions and truths: dicts with ``type``, ``subject``, ``t_local``; a prediction already carrying a
-    ``class`` (not evaluable) is left out."""
     evaluable = [p for p in predictions if "class" not in p]
     pairs, unmatched_f, unmatched_e = eo.match(evaluable, truths, window)
     matched = set()
@@ -371,7 +338,7 @@ def event_rows(data: RunData, truth_iv: Mapping[str, Any], recon_iv: Mapping[str
             t["observable"] = any(c["family"] == t["family"] and c["subject"] == t["subject"]
                                   and abs(c["start"] - t["t_local"]) <= MATCH_WINDOW_S for c in coverage)
         classify(predictions, truths)
-        for p in predictions:  # durations of the matched events
+        for p in predictions:
             if p["class"] != "correct":
                 continue
             t = next(t for t in truths if t["type"] == p["type"] and t["subject"] == p["subject"]
@@ -388,9 +355,6 @@ def event_rows(data: RunData, truth_iv: Mapping[str, Any], recon_iv: Mapping[str
     return predictions_all, truths_all
 
 
-# ----------------------------------------------------------------------------------------------------------------
-# 2. active states and saved states
-# ----------------------------------------------------------------------------------------------------------------
 
 def _active(intervals: Iterable[Tuple[float, float]], grid: np.ndarray) -> np.ndarray:
     mask = np.zeros(len(grid), dtype=bool)
@@ -401,8 +365,6 @@ def _active(intervals: Iterable[Tuple[float, float]], grid: np.ndarray) -> np.nd
 
 def active_states(data: RunData, truth_iv: Mapping[str, Any], predictions: Sequence[Mapping[str, Any]],
                   contacts: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
-    """Per recorder, on a 0.05 s grid: time with a spurious active condition (reconstruction, not true), with a
-    missing one (true and observable, not reconstructed), and the 1.0 s before each of its contacts."""
     out: Dict[str, Any] = {"recorders": {}, "before_contact": []}
     for r in data.recorders:
         meta = truth_iv["recorders"].get(r)
@@ -422,7 +384,7 @@ def active_states(data: RunData, truth_iv: Mapping[str, Any], predictions: Seque
             cover[(iv["family"], iv["subject"])].append((iv["start"], iv["end"]))
         spurious = np.zeros(len(grid), dtype=bool)
         spurious_phantom = np.zeros(len(grid), dtype=bool)
-        for k, ivs in recon.items():  # merged per (family, subject): duplicates do not count twice
+        for k, ivs in recon.items():
             extra = _active(ivs, grid) & ~_active(perfect.get(k, []), grid)
             spurious |= extra
             if k[1].startswith("phantom:"):
@@ -443,8 +405,6 @@ def active_states(data: RunData, truth_iv: Mapping[str, Any], predictions: Seque
             tc = c["t_local"][r]
             window = (grid >= tc - IMMEDIATE_S - 1e-9) & (grid < tc)
             last = np.where(grid < tc)[0]
-            # Incorrect context: a wrong-vehicle or unsupported event active in the second before the contact
-            # (an event of the right vehicle raised a little early is a timing error, counted in the grid only).
             wrong = [p for p in predictions if p["recorder"] == r and p["class"] in ("wrong vehicle", "unsupported")
                      and p["t_local"] < tc and p["end"] >= tc - IMMEDIATE_S]
             out["before_contact"].append({
@@ -459,8 +419,6 @@ def active_states(data: RunData, truth_iv: Mapping[str, Any], predictions: Seque
 
 
 def saved_state_errors(data: RunData) -> Dict[str, np.ndarray]:
-    """Every saved state against the truth: local track samples (distance of the track point to its vehicle's true
-    box) and global road-user states (centre error), measured and predicted apart."""
     track = {"measured": [], "predicted": []}
     for key, rows in data.samples.items():
         owner = key.split(":", 1)[0]
@@ -488,9 +446,6 @@ def saved_state_errors(data: RunData) -> Dict[str, np.ndarray]:
     return out
 
 
-# ----------------------------------------------------------------------------------------------------------------
-# 3. relevance per collision
-# ----------------------------------------------------------------------------------------------------------------
 
 def relevance(data: RunData, contacts: Sequence[Mapping[str, Any]], predictions: Sequence[Mapping[str, Any]],
               truths: Sequence[Mapping[str, Any]] = ()) -> List[Dict[str, Any]]:
@@ -545,9 +500,6 @@ def _round(value: Optional[float], digits: int = 3) -> Optional[float]:
     return None if value is None else round(float(value), digits)
 
 
-# ----------------------------------------------------------------------------------------------------------------
-# 4. proximity at impact, 6. phantoms
-# ----------------------------------------------------------------------------------------------------------------
 
 def proximity(data: RunData, contacts: Sequence[Mapping[str, Any]],
               predictions: Sequence[Mapping[str, Any]]) -> List[Dict[str, Any]]:
@@ -597,14 +549,9 @@ def proximity(data: RunData, contacts: Sequence[Mapping[str, Any]],
     return out
 
 
-# ----------------------------------------------------------------------------------------------------------------
-# 5. recovery
-# ----------------------------------------------------------------------------------------------------------------
 
 def runs_of(times: Sequence[float], flags: Sequence[bool], min_s: float = SUPPORT_S,
             max_gap_s: float = SUPPORT_GAP_S) -> List[Tuple[float, float, float]]:
-    """Runs of True samples (a gap above ``max_gap_s`` or a False sample breaks a run) lasting at least ``min_s``:
-    (start, established, end), ``established`` = start + min_s."""
     out, start, prev = [], None, None
     for t, flag in zip(times, flags):
         if flag and start is not None and t - prev <= max_gap_s + 1e-9:
@@ -619,9 +566,6 @@ def runs_of(times: Sequence[float], flags: Sequence[bool], min_s: float = SUPPOR
 
 
 def zone_entries(data: RunData, pair: Sequence[str], sim_c: float, step: float = 0.05) -> Dict[float, Optional[float]]:
-    """Per zone, the simulator time at which the final approach enters it: the start of the last continuous stay of
-    the colliding pair's true box gap within the zone that ends at the contact (the recording's first instant when
-    the pair is within it from the start; see ``zone_from_start``)."""
     a, b = (data.truth.get(v) for v in pair)
     out: Dict[float, Optional[float]] = {z: None for z in ZONES_M}
     if a is None or b is None:
@@ -662,17 +606,17 @@ def recovery(data: RunData, contacts: Sequence[Mapping[str, Any]]) -> List[Dict[
                     continue
                 times = [row["sim"] for row in rows]
                 if times[0] >= c["sim"]:
-                    continue  # born after the impact: not an approach
+                    continue
                 distances = [data.distance_to(row, partner) for row in rows]
                 on = [d is not None and d <= IDENTITY_M for d in distances]
                 support = runs_of(times, on)
                 identity = data.track_identity.get(key)
                 if identity != partner and not (identity is None and any(s[1] <= c["sim"] for s in support)):
-                    continue  # a track of another vehicle (or of no vehicle that never held the partner)
+                    continue
                 off = [d is not None and d > IDENTITY_M for d in distances]
                 episodes = runs_of(times, off)
                 if not episodes:
-                    continue  # never a sustained unmatched episode
+                    continue
                 a = data.associations.get((observer, key.split(":", 1)[1]))
                 association = ("linked to the partner" if a and a["status"] == "ASSOCIATED" and a["global_entity"] == partner
                                else "linked to another" if a and a["status"] == "ASSOCIATED" else "not linked")
@@ -708,9 +652,6 @@ def _zone_class(entry: Optional[float], sim_c: float, support: Sequence[Tuple[fl
     return "never: still incorrect"
 
 
-# ----------------------------------------------------------------------------------------------------------------
-# a run
-# ----------------------------------------------------------------------------------------------------------------
 
 def analyse(run_dir: Path, truth_iv: Mapping[str, Any]) -> Dict[str, Any]:
     data = RunData(Path(run_dir))

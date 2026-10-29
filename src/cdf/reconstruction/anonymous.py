@@ -1,43 +1,3 @@
-"""Road users across observers in the common frame (reconstruction side, no ground truth).
-
-Runs after the collision-anchored alignment and the collision-based identity association, on the
-recorders' own data only: their pose streams (``common_frame.PoseSource``), their radar tracks and, in
-memory, the radar returns each track claimed.  Every gate scales with the tracker's own noise parameters
-(``tracking.measurement_std_m``, ``radial_speed_std_mps``, ``acceleration_std_mps2``) and the accuracy the
-pose sources declare; nothing depends on a scenario.
-
-1. OBSERVED ALIGNMENT (``align_by_observations``) of a recorder that no matched collision aligned: the
-   clock offset at which the near surfaces the aligned recorders observed lie on its own footprint
-   outline, or the near surfaces it observed lie on theirs.  Accepted only with a sharp, unique minimum:
-   a target at rest gives no time information and leaves the recorder unaligned.  When no collision was
-   matched at all (a near miss), the first recorder's own clock is the global one (t_global = its t_local)
-   and the others are aligned to it this way.
-2. RECORDER LINKS and 3. ANONYMOUS ROAD USERS: ``identity.fuse_corrected`` (see that module), on the
-   building blocks defined here.  An anonymous track whose observed near surface lies on another
-   recorder's own footprint outline, moving at that recorder's own velocity, is that recorder
-   (``RecorderLink``; one recorder per observer and instant, ``exclusive_recorder_links``; a short impact
-   segment between two named flanks, ``collision_continuity_links``).  Two anonymous tracks of different
-   observers are one road user when one rigid box (centre, half length, half width with priors, heading
-   from the motion) explains the faces both observers' returns show, and their velocities agree, over
-   most of their shared window (``pair_evidence``): radars at different places see different faces, so
-   their track points differ by up to a car length while the box they imply is one.  The same test joins
-   two simultaneous tracks of one observer that are faces of one body (a tracker splitting a road user).
-   Two tracks of one observer, the second starting shortly after the first ended where the first is
-   predicted to be, are one road user (``stitch_evidence``).  U1, U2, ... by first appearance.
-   When a pose source declares a position error (or with ``fusion.mutual_refinement``) the pose sources
-   are refined first (``mutual_offsets``): the tracks identified with a recorder show its surface where
-   its observers put it, against the faces of its box where its own pose stream puts it; the position
-   offsets this fixes (only along the faces' normals, with the declared accuracies as priors) are
-   removed and steps 2-4 are redone.
-
-4. FUSED STATE of each entity (``entity_trajectory``): one box fitted to the faces the returns of all its
-   observers show (``fit_box``: each visible face is a linear constraint on the centre and one half
-   dimension); when the returns fix no box at an instant (one face of one observer, no heading), the
-   observers' centre estimates are combined by covariance intersection, which assumes nothing about
-   their cross-correlation.
-
-A non-recording road user is never named after a participant: it is U1, U2, ...
-"""
 
 from __future__ import annotations
 
@@ -61,18 +21,13 @@ CROSS, SPLIT, STITCH = "cross_observer", "same_observer", "stitch"
 
 
 def chi2_2dof(probability: float) -> float:
-    """Quantile of the chi-square distribution with 2 degrees of freedom (closed form)."""
     return -2.0 * math.log(1.0 - probability)
 
 
-# --------------------------------------------------------------------------
-# Box geometry: the visible faces as linear constraints
-# --------------------------------------------------------------------------
 
 def _faces(heading: float) -> List[Tuple[np.ndarray, np.ndarray, int]]:
-    """(outward normal, tangent, half dimension: 0 = half length, 1 = half width) of front, rear, right, left."""
     f = np.array([math.cos(heading), math.sin(heading)])
-    r = np.array([-math.sin(heading), math.cos(heading)])  # to the right of the heading (CARLA axes)
+    r = np.array([-math.sin(heading), math.cos(heading)])
     return [(f, r, 0), (-f, r, 0), (r, f, 1), (-r, f, 1)]
 
 
@@ -80,34 +35,29 @@ def _faces(heading: float) -> List[Tuple[np.ndarray, np.ndarray, int]]:
 class FaceMeasurement:
     normal: np.ndarray
     tangent: np.ndarray
-    half: int  # 0: the face lies half a length from the centre, 1: half a width
-    offset: float  # median of normal . p over the face's returns
-    along: float  # median of tangent . p
-    extent: float  # spread of the returns along the face (5th to 95th percentile): a lower bound of its size
+    half: int
+    offset: float
+    along: float
+    extent: float
     count: int
     observer: str
-    pose_var: float  # what the observer's own pose adds (m^2)
+    pose_var: float
 
 
 def _initial_centre(sample: CommonSample, heading: Optional[float], halves: Tuple[float, float]) -> np.ndarray:
-    """The near surface pushed back along the line of sight to where that ray meets the centre of a box
-    of the prior size (the nominal box behind the near surface, for any viewing angle)."""
     line = sample.line_of_sight
     if heading is None:
         return sample.near + line * 0.5 * (halves[0] + halves[1])
     along = abs(line[0] * math.cos(heading) + line[1] * math.sin(heading))
     across = abs(-line[0] * math.sin(heading) + line[1] * math.cos(heading))
     depth = min(halves[0] / along if along > 1e-6 else math.inf, halves[1] / across if across > 1e-6 else math.inf)
-    if not math.isfinite(depth):  # no line of sight (the near surface on the observer's own outline)
+    if not math.isfinite(depth):
         depth = 0.5 * (halves[0] + halves[1])
     return sample.near + line * depth
 
 
 def face_measurements(sample: CommonSample, observer: str, heading: float, centre: np.ndarray,
                       halves: Tuple[float, float], min_returns: int = 3) -> List[FaceMeasurement]:
-    """The faces a sample's returns show: each return goes to the face visible from its own radar (outward
-    normal against the line of sight) nearest to it for the current box; a face needs ``min_returns``.
-    Without enough returns the observed near surface stands for one return."""
     faces = _faces(heading)
     if sample.returns is not None and sample.origins is not None and len(sample.returns) >= min_returns:
         points, origins = sample.returns, sample.origins
@@ -139,18 +89,14 @@ def face_measurements(sample: CommonSample, observer: str, heading: float, centr
 class BoxFit:
     centre: np.ndarray
     halves: Tuple[float, float]
-    covariance: np.ndarray  # 4 x 4: centre x, centre y, half length, half width
+    covariance: np.ndarray
     chi2: float
-    faces: int  # distinct faces observed
-    observers: int  # observers whose faces entered the fit
+    faces: int
+    observers: int
     measurements: List[FaceMeasurement] = field(default_factory=list, repr=False)
 
 
 def solve_box(measurements: Sequence[FaceMeasurement], cfg: ReconstructionConfig) -> BoxFit:
-    """Weighted least squares for (centre, half length, half width) with each face as two linear constraints:
-    normal . centre + half = offset (``fusion.box_face_std_m`` plus the observer's pose variance) and
-    tangent . centre = along (returns spread over the face: half its size / sqrt(3)), plus priors on the
-    dimensions (``semantics.target_length_m`` / ``target_width_m``, ``fusion.box_length_std_m`` / ``box_width_std_m``)."""
     fusion, semantics = cfg.fusion, cfg.semantics
     prior = (semantics.target_length_m / 2.0, semantics.target_width_m / 2.0)
     prior_std = (fusion.box_length_std_m / 2.0, fusion.box_width_std_m / 2.0)
@@ -177,8 +123,6 @@ def solve_box(measurements: Sequence[FaceMeasurement], cfg: ReconstructionConfig
 
 def fit_box(observations: Sequence[Tuple[str, CommonSample]], heading: float, cfg: ReconstructionConfig,
             start: Optional[np.ndarray] = None, iterations: int = 3) -> BoxFit:
-    """One box for the observations of one instant (``(observer, sample)`` pairs): the returns are
-    re-assigned to the faces of the current estimate a few times (an ICP-like iteration)."""
     prior = (cfg.semantics.target_length_m / 2.0, cfg.semantics.target_width_m / 2.0)
     centre = start if start is not None else np.mean(
         [_initial_centre(sample, heading, prior) for _, sample in observations], axis=0)
@@ -196,13 +140,8 @@ def fit_box(observations: Sequence[Tuple[str, CommonSample]], heading: float, cf
     return fit
 
 
-# --------------------------------------------------------------------------
-# Covariance intersection (fallback; no assumption on cross-correlation)
-# --------------------------------------------------------------------------
 
 def covariance_intersection(estimates: Sequence[Tuple[np.ndarray, np.ndarray]]) -> Tuple[np.ndarray, np.ndarray]:
-    """Sequential covariance intersection of (mean, covariance) pairs, each weight chosen to minimise the
-    trace of the fused covariance (golden-section search)."""
     mean, cov = np.asarray(estimates[0][0], float), np.asarray(estimates[0][1], float)
     for other_mean, other_cov in estimates[1:]:
         inv_a, inv_b = np.linalg.pinv(cov), np.linalg.pinv(np.asarray(other_cov, float))
@@ -225,13 +164,9 @@ def covariance_intersection(estimates: Sequence[Tuple[np.ndarray, np.ndarray]]) 
     return mean, cov
 
 
-# --------------------------------------------------------------------------
-# The recorders' tracks in the common frame
-# --------------------------------------------------------------------------
 
 @dataclass
 class CommonView:
-    """The aligned recorders' tracks and bodies in the common frame, on the global clock."""
 
     tracks: List[CommonTrack]
     bodies: Dict[str, RecorderBody]
@@ -262,29 +197,21 @@ def build_common_view(locals_: Sequence[Any], alignment: Alignment, associations
 
 
 def _position_sigma(cfg: ReconstructionConfig, sample: CommonSample, body_source: Optional[PoseSource] = None) -> float:
-    """Spread of an observed near surface around the true outline: the tracker's measurement noise, the
-    observer's pose and, when the outline is another recorder's, that recorder's pose."""
     other = body_source.position_std_m ** 2 if body_source is not None else 0.0
     return math.sqrt(cfg.tracking.measurement_std_m ** 2 + sample.pose_var + other)
 
 
 def _velocity_sigma(cfg: ReconstructionConfig, *stds: float) -> float:
-    """Per-axis spread of a velocity difference: the estimates' own uncertainties, none below the Doppler
-    measurement noise (``tracking.radial_speed_std_mps``)."""
     floor = cfg.tracking.radial_speed_std_mps
     return math.sqrt(sum(max(std, floor) ** 2 for std in stds))
 
 
-# --------------------------------------------------------------------------
-# 1. Observed alignment of recorders no collision aligned
-# --------------------------------------------------------------------------
 
 def _moving(track: CommonTrack, cfg: ReconstructionConfig) -> List[CommonSample]:
     return [s for s in track.samples if s.measured and s.speed >= cfg.fusion.observed_alignment_min_speed_mps]
 
 
 def _components(mask: np.ndarray) -> List[Tuple[int, int]]:
-    """(first, last) index of every run of True in a boolean array."""
     runs, start = [], None
     for index, value in enumerate(mask):
         if value and start is None:
@@ -299,29 +226,10 @@ def _components(mask: np.ndarray) -> List[Tuple[int, int]]:
 
 def align_by_observations(locals_: Sequence[Any], alignment: Alignment, associations: Sequence[Association],
                           poses: Dict[str, PoseSource], cfg: ReconstructionConfig) -> List[Dict[str, Any]]:
-    """Give each unaligned recorder the clock offset its observations fix, when they fix one.
-
-    Comparisons: every anonymous track of an aligned recorder against the recorder's own footprint (at
-    t_global - delta), and every own track of the recorder against an aligned recorder's footprint (at
-    t_local + delta), on samples of a target moving at least ``observed_alignment_min_speed_mps`` (only
-    motion fixes time).  Each observed near surface is compared with where its line of sight enters the
-    body at that offset (``entry_distances``: the surface that observer could see; a point that would lie
-    inside the body is off by its depth).  A comparison's curve is the median normalised distance
-    (``_position_sigma``) over its samples the two recordings both cover, defined where at least
-    ``observed_alignment_min_samples`` and half of its samples are covered.  The comparisons whose curve
-    reaches 2 sigma somewhere could be the same body; their samples are pooled, and the pooled median is
-    the score of each candidate offset (every ``observed_alignment_step_s``).  The best offset is accepted
-    when its score is within 2 sigma and the offsets scoring within ``max(uniqueness_ratio x best, 2)``
-    form one connected interval: a second interval is a second explanation (a target at rest, or moving
-    along its own outline, fixes no time) and leaves the recorder unaligned.  That interval is the
-    offset's uncertainty.  Accepted offsets are written into ``alignment`` (method
-    ``observed_trajectories``); every decision is returned and kept in ``alignment.observed``."""
     fusion = cfg.fusion
     by_owner = {local.owner: local for local in locals_}
     decisions: List[Dict[str, Any]] = []
     if alignment.graphs and not any(clock.status == "ALIGNED" for clock in alignment.graphs.values()):
-        # No matched collision anchors a global clock: the first recorder's own clock is it (its zero is
-        # arbitrary, as the reference collision's is), and the others are aligned to it by observation.
         reference = sorted(alignment.graphs)[0]
         alignment.graphs[reference] = GraphClock(
             graph=reference, status="ALIGNED", offset_to_global=0.0, method=REFERENCE,
@@ -337,12 +245,10 @@ def align_by_observations(locals_: Sequence[Any], alignment: Alignment, associat
             break
         for recorder in list(pending):
             local, source = by_owner[recorder], poses[recorder]
-            # (name, body pose source, its footprint, sample times, sign of delta, body clock offset, near surfaces,
-            #  their observers, sigma)
             comparisons = []
             for track in view.tracks:
                 if track.status == ASSOCIATED:
-                    continue  # already identified with another recorder
+                    continue
                 samples = _moving(track, cfg)
                 if len(samples) >= fusion.observed_alignment_min_samples:
                     comparisons.append((track.name, source, local.footprint, np.array([s.t_global for s in samples]),
@@ -390,7 +296,7 @@ def align_by_observations(locals_: Sequence[Any], alignment: Alignment, associat
                             other_intervals=len(others),
                             best_elsewhere_sigma=round(min(others), 3) if others else None,
                             candidates=len(grid))
-            if scores[k] <= 2.0 and not others:  # one sharp minimum within 2 sigma
+            if scores[k] <= 2.0 and not others:
                 decision["accepted"] = True
                 alignment.graphs[recorder] = GraphClock(
                     graph=recorder, status="ALIGNED", offset_to_global=round(float(grid[k]), 4) + 0.0, method=OBSERVED,
@@ -406,16 +312,12 @@ def align_by_observations(locals_: Sequence[Any], alignment: Alignment, associat
             decisions.append(decision)
             pending.remove(recorder)
             if progress:
-                break  # a newly aligned recorder may observe the remaining ones
+                break
     alignment.observed = decisions
     return [decision for decision in decisions if decision["method"] == OBSERVED]
 
 
 def offset_decision(scores: np.ndarray, uniqueness_ratio: float) -> Tuple[int, float, Tuple[int, int], List[float]]:
-    """The candidate clock offsets of one recorder against its pooled score (median normalised distance per
-    candidate): (best index, the threshold max(ratio x best, 2 sigma), the interval of candidates within it
-    around the best, the best score of every other such interval).  The offset is accepted only when the best
-    score is within 2 sigma and no other interval exists."""
     k = int(np.argmin(scores))
     threshold = max(uniqueness_ratio * float(scores[k]), 2.0)
     intervals = _components(scores <= threshold)
@@ -424,9 +326,6 @@ def offset_decision(scores: np.ndarray, uniqueness_ratio: float) -> Tuple[int, f
     return k, threshold, home, others
 
 
-# --------------------------------------------------------------------------
-# 2. Anonymous tracks that are recorders
-# --------------------------------------------------------------------------
 
 @dataclass
 class RecorderLink:
@@ -438,36 +337,30 @@ class RecorderLink:
     median_velocity_difference_mps: float
     fraction_within: float
     accepted: bool
-    until: Optional[float] = None  # the evidence stops at this contact with a third body (t_global)
+    until: Optional[float] = None
     refused: Optional[str] = None
     reacquired: bool = False
     collision_anchored: bool = False
 
 
 def _third_body_contact(observer: RecorderBody, target: RecorderBody) -> float:
-    """The target recorder's first collision report with another body than the observer: from then on the
-    observer's radar may see the target and that body as one return cluster (its contact with the
-    observer mixes nothing: an observer's own returns are dropped)."""
     return min((t for t, partners in target.contacts if observer.recorder not in partners), default=math.inf)
 
 
-# --------------------------------------------------------------------------
-# 3. Anonymous road users: pairs across observers, stitches within one
-# --------------------------------------------------------------------------
 
 @dataclass
 class PairEvidence:
     a: str
     b: str
-    kind: str  # CROSS, SPLIT (two simultaneous tracks of one observer) or STITCH
-    compared: int  # instants compared (1 for a stitch)
-    passed: float  # fraction of them passing both tests
+    kind: str
+    compared: int
+    passed: float
     median_box_chi2: Optional[float]
     median_velocity_chi2: Optional[float]
-    centre_gap_m: Optional[float]  # median distance between the two single-observer box centres (stitch: miss)
-    gap_s: Optional[float] = None  # stitch: time between the two tracks
+    centre_gap_m: Optional[float]
+    gap_s: Optional[float] = None
     accepted: bool = False
-    refused: Optional[str] = None  # why an otherwise acceptable link was refused
+    refused: Optional[str] = None
     lateral_chi2: Optional[float] = None
 
     @property
@@ -483,7 +376,6 @@ class PairEvidence:
 
 
 def _heading(samples: Sequence[CommonSample], cfg: ReconstructionConfig) -> Optional[float]:
-    """Direction of the inverse-variance weighted velocity, when it is clearly non-zero."""
     floor = cfg.tracking.radial_speed_std_mps
     weights = [1.0 / max(s.vel_std, floor) ** 2 for s in samples]
     v = sum(w * s.velocity for w, s in zip(weights, samples)) / sum(weights)
@@ -498,13 +390,6 @@ def _after_impact(track: CommonTrack, sample: CommonSample) -> bool:
 
 
 def pair_evidence(a: CommonTrack, b: CommonTrack, cfg: ReconstructionConfig) -> Optional[PairEvidence]:
-    """Same road user?  At each instant both observers measured a moving target: the box test (chi-square
-    of one box fitted to both observers' faces minus those of the two separate fits, 2 dof) and the
-    velocity test (difference against both uncertainties, 2 dof; not at instants after an observer's own
-    collision, whose impulse corrupts its velocity estimates), each within the gate of
-    ``anonymous_gate_probability``.  Two near surfaces farther apart than a box diagonal plus 6 sigma fail
-    without a fit.  Accepted when at least ``anonymous_min_shared_samples`` instants were compared and at
-    least ``anonymous_pass_fraction`` of them pass both."""
     fusion, semantics = cfg.fusion, cfg.semantics
     if a.identity_ambiguous or b.identity_ambiguous:
         return None
@@ -527,7 +412,7 @@ def pair_evidence(a: CommonTrack, b: CommonTrack, cfg: ReconstructionConfig) -> 
         dv = sa.velocity - sb.velocity
         d_vel = float(dv @ dv) / _velocity_sigma(cfg, sa.vel_std, sb.vel_std) ** 2
         if _after_impact(a, sa) or _after_impact(b, sb):
-            d_vel = 0.0  # an observer's velocity estimates after its own impact say nothing: geometry decides
+            d_vel = 0.0
         if float(np.hypot(*(sa.near - sb.near))) > reach:
             box.append(math.inf)
             velocity.append(d_vel)
@@ -558,8 +443,6 @@ def pair_evidence(a: CommonTrack, b: CommonTrack, cfg: ReconstructionConfig) -> 
 
 def _centre_estimate(observer: str, sample: CommonSample, heading: Optional[float],
                      cfg: ReconstructionConfig) -> Tuple[np.ndarray, np.ndarray]:
-    """One observer's centre estimate and covariance: its single-observer box fit, or without a heading the
-    near surface pushed back along the line of sight with a car-sized covariance."""
     prior = (cfg.semantics.target_length_m / 2.0, cfg.semantics.target_width_m / 2.0)
     if heading is not None:
         try:
@@ -571,20 +454,11 @@ def _centre_estimate(observer: str, sample: CommonSample, heading: Optional[floa
 
 
 def stitch_evidence(a: CommonTrack, b: CommonTrack, cfg: ReconstructionConfig) -> Optional[PairEvidence]:
-    """Same road user tracked again by the same observer?  ``b``'s first measured sample comes at most
-    ``stitch_max_gap_s`` after ``a``'s last one; ``a``'s centre and velocity there are carried to ``b``'s
-    first instant at constant velocity, the uncertainty growing with white acceleration
-    (``tracking.acceleration_std_mps2``); accepted when ``b``'s first centre and velocity both lie within
-    the 2-dof gate of ``anonymous_gate_probability``."""
     fusion = cfg.fusion
     if a.recorder != b.recorder:
         return None
     if (a.identity_ambiguous or b.identity_ambiguous
             or a.parent_track is not None or b.parent_track is not None):
-        # A segmented endpoint is a detected identity boundary, not an ordinary
-        # lost detection. Extrapolation alone cannot bridge that boundary to
-        # either its sibling or a different local track. Shared measured body
-        # support from another observer can still associate stable segments.
         return None
     last = next((s for s in reversed(a.samples) if s.measured), None)
     first = next((s for s in b.samples if s.measured), None)
@@ -600,10 +474,6 @@ def stitch_evidence(a: CommonTrack, b: CommonTrack, cfg: ReconstructionConfig) -
     covariance = pa + pb + np.eye(2) * ((sigma_a * gap ** 2 / 2.0) ** 2 + (last.vel_std * gap) ** 2)
     miss = cb - predicted
     d_pos = float(miss @ np.linalg.solve(covariance, miss))
-    # An unseen longitudinal acceleration is plausible; an unseen lateral body
-    # jump with parallel velocity on both sides is not positive identity evidence.
-    # Keep lateral uncertainty from the faces/velocity, without granting a lane
-    # change solely because the gap's isotropic acceleration allowance is large.
     heading = _heading([last, first], cfg)
     lateral_chi2 = 0.0
     if heading is not None:
@@ -624,17 +494,11 @@ def _overlap(a: CommonTrack, b: CommonTrack) -> bool:
 
 
 def _dominates(a: "RecorderLink", b: "RecorderLink") -> bool:
-    """``a``'s footprint evidence is better on every count: nearer (median sigma) and no less consistent."""
     return a.median_distance_sigma < b.median_distance_sigma and a.fraction_within >= b.fraction_within
 
 
 def on_recorder_together(a: CommonTrack, b: CommonTrack, body: Optional[RecorderBody],
                          cfg: ReconstructionConfig) -> bool:
-    """Both tracks lie on the recorder's own outline at the same instants, discriminatively: at each instant
-    both measured, each near surface within 3 sigma of the footprint (a point inside it is on it) with 3
-    sigma no wider than a body (``semantics.target_width_m``: the positions tell this recorder from a car
-    beside it).  Two points on one vehicle's body at once are that vehicle.  Accepted over at least
-    ``fusion.link_min_samples`` instants, ``fusion.link_min_fraction`` of them passing."""
     if body is None:
         return False
     times, pa, pb, sa, sb = [], [], [], [], []
@@ -661,15 +525,6 @@ def on_recorder_together(a: CommonTrack, b: CommonTrack, body: Optional[Recorder
 def exclusive_recorder_links(view: CommonView, links: Sequence["RecorderLink"], cfg: ReconstructionConfig,
                              same_body: Optional[Callable[[CommonTrack, CommonTrack, str], bool]] = None
                              ) -> Tuple[List["RecorderLink"], List[Dict[str, Any]]]:
-    """A recorder's identity is exclusive per observer at every instant.  Two tracks of ONE observer that
-    overlap in time may both carry recorder R only with explicit evidence that they are one vehicle: the
-    same-observer split test (``pair_evidence``: one box fitted to both, consistent velocities), or both
-    lying on R's own outline at the same instants with a position uncertainty that tells R from a neighbour
-    (``on_recorder_together``).  Otherwise they compete: a collision-decided association (made per contact,
-    exclusive) keeps R and the footprint link is refused; of two footprint links the one whose evidence
-    dominates (``_dominates``) keeps R; when neither dominates, both are refused (ambiguous: neither is
-    asserted).  A track that follows another after a gap never competes with it (a re-acquisition).
-    Returns the kept links and the refusals ({"track", "recorder", "rival", "reason"})."""
     if same_body is None:
         def same_body(a: CommonTrack, b: CommonTrack, recorder: str) -> bool:
             item = pair_evidence(a, b, cfg)
@@ -686,7 +541,7 @@ def exclusive_recorder_links(view: CommonView, links: Sequence["RecorderLink"], 
             if a == b or ra != rb or a.split(":", 1)[0] != b.split(":", 1)[0]:
                 continue
             if la is None and lb is None:
-                continue  # two collision decisions: each was decided by its own contact
+                continue
             ta, tb = by_name.get(a), by_name.get(b)
             if ta is None or tb is None or not _overlap(ta, tb) or same_body(ta, tb, ra):
                 continue
@@ -709,24 +564,9 @@ def exclusive_recorder_links(view: CommonView, links: Sequence["RecorderLink"], 
     return kept, refusals
 
 
-# --------------------------------------------------------------------------
-# 4. The fused state of an entity
-# --------------------------------------------------------------------------
 
 def smooth_entity_states(states: List[Dict[str, Any]], cfg: ReconstructionConfig,
                          boundaries: Sequence[float] = ()) -> List[Dict[str, Any]]:
-    """The fused states of one road user smoothed over time (forward Kalman filter, backward Rauch-Tung-Striebel;
-    constant velocity, ``tracking.acceleration_std_mps2``).
-
-    Each instant's fused position (box fit, or covariance intersection of the observers' centre estimates: two
-    estimators with different reference points) and velocity are a measurement with their own uncertainty; an
-    instant no observer measured (only predicted tracks) is a prediction step, never a measurement.  Without
-    this, a change of estimator from one instant to the next moves the body by a metre or more (S15).  The
-    smoother does not run across a gap longer than ``tracking.max_track_gap_s``, across the observers' own
-    impacts (``boundaries``, global time: their poses and Doppler compensation jump), nor across a velocity
-    change beyond 3 sigma of the two velocities and the process noise (the road user's own impact, which the
-    local tracker follows sweep by sweep).  Positions, velocities and their uncertainties are replaced; the
-    measuring observers and the method stay as they were (``position`` = "smoothed")."""
     if not states:
         return states
     tracking = cfg.tracking
@@ -748,9 +588,7 @@ def smooth_entity_states(states: List[Dict[str, Any]], cfg: ReconstructionConfig
     H = np.eye(4)
     for a, b in zip(edges, edges[1:]):
         if not any(measured[a:b]):
-            continue  # nothing measured in this stretch: the predicted states stay as they are
-        # A diffuse start at the stretch's first instant (its first measurement carried back there): every
-        # measured instant then updates the state exactly once.
+            continue
         first = next(k for k in range(a, b) if measured[k])
         s0, back = states[first], times[a] - times[first]
         x = np.array([s0["x"] + s0["vx"] * back, s0["y"] + s0["vy"] * back, s0["vx"], s0["vy"]], dtype=float)
@@ -784,8 +622,6 @@ def smooth_entity_states(states: List[Dict[str, Any]], cfg: ReconstructionConfig
 
 
 def entity_trajectory(group: Sequence[CommonTrack], cfg: ReconstructionConfig) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
-    """(fused states at ``entity_output_rate_hz``, footprint) of one entity: per instant the observers' samples
-    fused (box fit or covariance intersection), then smoothed over time (``smooth_entity_states``)."""
     fusion, semantics = cfg.fusion, cfg.semantics
     step = 1.0 / fusion.entity_output_rate_hz
     start, end = min(t.start for t in group), max(t.end for t in group)
@@ -838,8 +674,6 @@ def entity_trajectory(group: Sequence[CommonTrack], cfg: ReconstructionConfig) -
                        "measured_by": sorted({o for o, s in measured})})
 
     def dimension(fitted: List[float], bounds: List[float], prior: float, prior_spread: float) -> Dict[str, Any]:
-        # The returns' spread along a face is a lower bound of its size, unless it exceeds any body of the
-        # prior's class (3 sigma): then the face's returns came from two bodies and say nothing.
         bound = float(np.percentile(bounds, 90)) if len(bounds) >= 3 else None
         usable = bound is not None and bound <= prior + 3.0 * prior_spread
         value, source = (float(np.median(fitted)), "fitted") if fitted else (prior, "prior")
@@ -857,9 +691,6 @@ def entity_trajectory(group: Sequence[CommonTrack], cfg: ReconstructionConfig) -
     return states, {"length_m": length["value_m"], "width_m": width["value_m"], "length": length, "width": width}
 
 
-# --------------------------------------------------------------------------
-# The whole step
-# --------------------------------------------------------------------------
 
 FUSION_PARAMETERS = ("observed_alignment_step_s", "observed_alignment_min_samples", "observed_alignment_min_speed_mps",
                      "observed_alignment_uniqueness_ratio", "link_min_samples",
@@ -869,8 +700,6 @@ FUSION_PARAMETERS = ("observed_alignment_step_s", "observed_alignment_min_sample
 
 
 class OffsetPoseSource(PoseSource):
-    """A pose source moved by a constant translation (the mutual refinement's correction), declaring the
-    accuracy left after it."""
 
     def __init__(self, base: PoseSource, dx: float, dy: float, position_std_m: float) -> None:
         self.base, self.dx, self.dy = base, float(dx), float(dy)
@@ -896,18 +725,15 @@ class OffsetPoseSource(PoseSource):
         return x + self.dx, y + self.dy, yaw
 
 
-# Mutual refinement (``mutual_offsets``).
-MUTUAL_HEADING_BIN_RAD = math.radians(10.0)  # one equation per bin of a face's heading
-MUTUAL_DECORRELATION_S = 1.0  # depths within one second are not independent errors (engineering assumption)
-MUTUAL_SCAN_TRUNCATION_M = 1.0  # coarse scan: a return farther than this from the outline counts as this far
+MUTUAL_HEADING_BIN_RAD = math.radians(10.0)
+MUTUAL_DECORRELATION_S = 1.0
+MUTUAL_SCAN_TRUNCATION_M = 1.0
 MUTUAL_SCAN_STEP_M = 0.5
 MUTUAL_SCAN_MAX_HALF_WIDTH_M = 30.0
 MUTUAL_SCAN_MAX_POINTS = 2000
 
 
 def _body_faces(fp: Any) -> List[Tuple[np.ndarray, float, Tuple[float, float], str]]:
-    """(outward normal, plane offset n . l, extent along the face, name) of the faces of a footprint, in the
-    vehicle frame."""
     return [(np.array([1.0, 0.0]), fp.x_max, (fp.y_min, fp.y_max), "front"),
             (np.array([-1.0, 0.0]), -fp.x_min, (fp.y_min, fp.y_max), "rear"),
             (np.array([0.0, 1.0]), fp.y_max, (fp.x_min, fp.x_max), "right"),
@@ -915,18 +741,12 @@ def _body_faces(fp: Any) -> List[Tuple[np.ndarray, float, Tuple[float, float], s
 
 
 def _sample_returns(sample: CommonSample) -> Tuple[np.ndarray, np.ndarray]:
-    """A sample's claimed returns and their radars' positions; without returns its observed near surface."""
     if sample.returns is not None and sample.origins is not None and len(sample.returns):
         return sample.returns, sample.origins
     return sample.near[None, :], sample.observer[None, :]
 
 
 def face_depths(body: RecorderBody, sample: CommonSample) -> List[Tuple[str, np.ndarray, float, int]]:
-    """Where one observer's returns on a recorder lie against the recorder's own box (its pose stream and
-    footprint): each return goes to the nearest face (as a segment) among those its radar sees (the radar
-    on the outer side of the face's plane); per face (name, outward normal in the common frame, median
-    depth of the returns behind the face plane in m, returns).  With position errors b of the two pose
-    streams the depth is n . (b_recorder - b_observer), plus how far the body's surface lies inside its box."""
     pose, fp = body.pose_at_global(sample.t_global), body.footprint or DEFAULT_BODY
     points, origins = _sample_returns(sample)
     c, s = math.cos(pose.yaw), math.sin(pose.yaw)
@@ -936,7 +756,6 @@ def face_depths(body: RecorderBody, sample: CommonSample) -> List[Tuple[str, np.
         return np.column_stack([c * dx + s * dy, -s * dx + c * dy])
 
     lp, lo = local(points), local(origins)
-    # A radar inside the box (bodies in contact) sees no face from outside: its returns say nothing here.
     outside = ~((lo[:, 0] > fp.x_min) & (lo[:, 0] < fp.x_max) & (lo[:, 1] > fp.y_min) & (lo[:, 1] < fp.y_max))
     faces = _body_faces(fp)
     best, best_gap = np.full(len(lp), -1), np.full(len(lp), np.inf)
@@ -955,12 +774,6 @@ def face_depths(body: RecorderBody, sample: CommonSample) -> List[Tuple[str, np.
 
 
 def scan_relative_offset(body: RecorderBody, samples: Sequence[CommonSample], spread_m: float) -> np.ndarray:
-    """Coarse b_R - b_O from one observer's track of a recorder R (correlative scan matching): the
-    translation of R's box (its own footprint and pose stream) that puts the observer's returns on its
-    outline, searched over +-3 ``spread_m`` (the prior standard deviation of the relative offset) on a grid
-    refined twice; squared distances truncated at MUTUAL_SCAN_TRUNCATION_M, with a slight pull towards zero
-    so that along a direction no face fixes the search stays near it.  Only the starting point of
-    ``mutual_offsets``, so that returns are assigned to the faces of a box already near them."""
     fp = body.footprint or DEFAULT_BODY
     parts = []
     for sample in samples:
@@ -979,7 +792,6 @@ def scan_relative_offset(body: RecorderBody, samples: Sequence[CommonSample], sp
         out = np.empty(len(candidates))
         for first in range(0, len(candidates), 256):
             d = candidates[first:first + 256]
-            # b_R - b_O = d: the returns move by +d in R's frame.
             px = lx + cs * d[:, :1] + sn * d[:, 1:]
             py = ly - sn * d[:, :1] + cs * d[:, 1:]
             gx, gy = np.maximum(fp.x_min - px, px - fp.x_max), np.maximum(fp.y_min - py, py - fp.y_max)
@@ -1000,30 +812,6 @@ def scan_relative_offset(body: RecorderBody, samples: Sequence[CommonSample], sp
 
 def mutual_offsets(locals_: Sequence[Any], alignment: Alignment, associations: Sequence[Association],
                    poses: Dict[str, PoseSource], cfg: ReconstructionConfig) -> Dict[str, Any]:
-    """Position offsets of the recorders' pose sources from their observations of each other.
-
-    Every track of an observer O identified with a recorder R (by a matched collision or in the common
-    frame), on its measured samples before R's first contact with anything, shows R's surface where O's pose
-    stream puts it; the depth of those returns behind the faces of R's box, where R's own pose stream puts
-    it (``face_depths``), measures n . (b_R - b_O) along each face's outward normal n, b being the position
-    errors of the two streams.  A face says nothing along itself (a car seen alongside does not fix the
-    along-track offset) and the part of the errors common to all recorders is not observable, so the
-    offsets are the maximum a posteriori estimate with each source's declared position accuracy as a
-    zero-mean prior: what no face constrains stays uncorrected, and the posterior covariance says how well
-    each correction is known.  A source declaring no error is not corrected (it anchors the others).
-
-    The returns are assigned to the faces of boxes moved by the best guess of the offsets: first a coarse
-    scan match of each observer's returns on each recorder (``scan_relative_offset``; with errors larger
-    than half a car the nearest face is often the wrong one), then the estimate where the faces inform it
-    and the scan match where they do not.  Each depth is converted back to what the uncorrected streams
-    imply (it is linear in the offsets), so the estimate depends on that guess only through the assignment.
-    One equation per (observer, recorder, face, 10-degree bin of the face's heading): the median depth over
-    the samples, with variance ``fusion.box_face_std_m``^2 times the number of bins of that face (its
-    systematic part, the body's surface against its box, is shared by its bins) plus the squared spread of
-    the per-sample depths (1.4826 MAD) over the number of distinct seconds they cover.  The posterior
-    covariance is inflated by the reduced chi-square of the equations when it exceeds one (the equations
-    disagree more than their variances say).  The corrected source declares its marginal posterior accuracy
-    in its worst direction, never above what it declared before."""
     sigma = {name: float(getattr(source, "position_std_m", 0.0)) for name, source in poses.items()}
     unknown = sorted(name for name, value in sigma.items() if value > 1e-6)
     if not unknown:
@@ -1043,7 +831,6 @@ def mutual_offsets(locals_: Sequence[Any], alignment: Alignment, associations: S
             if track.recorder not in index and track.entity not in index:
                 continue
             body, observer = view.bodies[track.entity], view.bodies[track.recorder]
-            # Only the surface of a body not yet in contact with anything (in contact, the boxes overlap).
             cut = min([t for t, _ in body.contacts] + [t for t, partners in observer.contacts if body.recorder in partners]
                       + [math.inf])
             samples = [s for s in track.samples if s.measured and body.covers(s.t_global) and s.t_global < cut]
@@ -1059,7 +846,6 @@ def mutual_offsets(locals_: Sequence[Any], alignment: Alignment, associations: S
             row[index[observer]:index[observer] + 2] -= vector
         return row
 
-    # Coarse start: one scan match per (observer, recorder).
     view = build_common_view(locals_, alignment, associations, poses)
     pairs = identified(view)
     if not pairs:
@@ -1078,7 +864,6 @@ def mutual_offsets(locals_: Sequence[Any], alignment: Alignment, associations: S
     A, e = np.array(rows), np.array(values)
     scanned = np.linalg.solve(A.T @ A / MUTUAL_SCAN_STEP_M ** 2 + prior, A.T @ e / MUTUAL_SCAN_STEP_M ** 2)
 
-    # Fine: b (the errors; the correction is -b) from the face depths, the boxes moved by ``guess``.
     guess, estimate = scanned, np.zeros(size)
     equations: List[Dict[str, Any]] = []
     covariance, reduced, iterations = np.linalg.inv(prior), None, 0
@@ -1120,7 +905,6 @@ def mutual_offsets(locals_: Sequence[Any], alignment: Alignment, associations: S
         residual = e - A @ estimate
         dof = max(1, len(e) - int(np.linalg.matrix_rank(A)))
         reduced = float(np.sum(w * residual ** 2)) / dof
-        # The next assignment: the estimate where the faces inform it (share 1), the scan match where not (0).
         share = np.eye(size) - covariance @ prior
         following = scanned + share @ (estimate - scanned)
         if float(np.max(np.abs(following - guess))) < 1e-3:
@@ -1150,15 +934,14 @@ def mutual_offsets(locals_: Sequence[Any], alignment: Alignment, associations: S
 
 @dataclass
 class RoadUserFusion:
-    """What the fusion of road users decided (``global/anonymous_entities.json``)."""
 
     links: List[RecorderLink]
     evidence: List[PairEvidence]
     entities: List[Dict[str, Any]]
     pose_sources: Dict[str, str]
-    names: Dict[Tuple[str, str], str] = field(default_factory=dict)  # (recorder, local track) -> entity id
-    refinement: Optional[Dict[str, Any]] = None  # mutual refinement of the pose sources, when applied
-    poses: Dict[str, PoseSource] = field(default_factory=dict)  # the pose sources finally used (not serialised)
+    names: Dict[Tuple[str, str], str] = field(default_factory=dict)
+    refinement: Optional[Dict[str, Any]] = None
+    poses: Dict[str, PoseSource] = field(default_factory=dict)
 
     def to_dict(self, cfg: ReconstructionConfig, alignment: Alignment) -> Dict[str, Any]:
         return {"definition": "road users in the common frame of the recorders' own pose streams; a road user "
@@ -1182,16 +965,8 @@ class RoadUserFusion:
 
 def fuse_road_users(locals_: Sequence[Any], alignment: Alignment, associations: List[Association],
                     poses: Dict[str, PoseSource], cfg: ReconstructionConfig) -> RoadUserFusion:
-    """Steps 2-4 of the module docstring (step 1 runs before the collision-based association is redone).
-    ``associations`` are updated in place: recorder links become ASSOCIATED with the recorder, every other
-    anonymous track of an aligned recorder gets its entity's name (U1, U2, ...).  The association itself is
-    ``identity.fuse_corrected``.  When a pose source declares a position error (or with
-    ``fusion.mutual_refinement``) a first pass on a copy finds the recorder links, ``mutual_offsets`` corrects
-    the pose sources, and the fusion runs on the corrected ones."""
     from .identity import fuse_corrected
     refinement = None
-    # The recorders' relative pose is estimated from their views of each other whenever a pose source
-    # declares an error (the relative uncertainty the association needs).
     if cfg.fusion.mutual_refinement or any(getattr(s, "position_std_m", 0.0) > 0.0 for s in poses.values()):
         import copy as _copy
 
@@ -1200,9 +975,7 @@ def fuse_road_users(locals_: Sequence[Any], alignment: Alignment, associations: 
                 return poses
             return {name: OffsetPoseSource(source, *record["offsets_m"][name], record["declared_position_std_m"][name])
                     for name, source in poses.items()}
-        # Stage 1: the tracks a matched collision identified (independent of the pose sources).
         first = mutual_offsets(locals_, alignment, associations, poses, cfg)
-        # Stage 2: every track identified on the corrected poses (links are then less ambiguous).
         trial = _copy.deepcopy(list(associations))
         fuse_corrected(locals_, alignment, trial, corrected(first), cfg)
         refinement = mutual_offsets(locals_, alignment, trial, poses, cfg)
@@ -1218,12 +991,6 @@ def fuse_road_users(locals_: Sequence[Any], alignment: Alignment, associations: 
 def collision_continuity_links(view: CommonView, associations: Sequence[Association],
                                alignment: Alignment, links: Sequence[RecorderLink],
                                cfg: ReconstructionConfig) -> List[RecorderLink]:
-    """Bridge a short impact segment only with two named flanks and fresh body evidence.
-
-    Ambiguity remains inside the local tracker/semantic state; collision and
-    geometry can establish its recorder identity without claiming precise motion.
-    An actual switch or a competing recorder/track cannot inherit the name.
-    """
     known = {t.name: t.entity for t in view.tracks if t.status == ASSOCIATED}
     known.update({link.track: link.recorder for link in links})
     decisions = {a.local_graph + ':' + a.local_track: a for a in associations}

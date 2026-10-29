@@ -1,10 +1,3 @@
-"""Transparent temporal association for compact depth observations.
-
-The estimator deliberately has no knowledge of actors, world state, radar, or
-semantic labels.  It matches only adjacent compact geometric observations and
-derives the sensor-relative closing speed, (previous - current range) / dt:
-positive while the range shrinks, the opposite sign of a range rate.
-"""
 
 from __future__ import annotations
 
@@ -52,7 +45,6 @@ class DepthRadialVelocityConfig:
 
 
 def depth_radial_velocity_config_from_mapping(mapping: Mapping[str, Any]) -> DepthRadialVelocityConfig:
-    """Build config from YAML values without allowing malformed gates."""
     data = dict(mapping or {})
     jump = data.get("max_velocity_jump_mps", 20.0)
     return DepthRadialVelocityConfig(
@@ -96,7 +88,6 @@ class _PreviousFrame:
 
 
 class DepthRadialVelocityEstimator:
-    """Associate one ordered depth frame at a time and attach radial rates."""
 
     def __init__(self, config: Optional[Any] = None) -> None:
         if config is None:
@@ -129,7 +120,6 @@ class DepthRadialVelocityEstimator:
 
     @staticmethod
     def _set_velocity(detection: Dict[str, Any], velocity: float) -> None:
-        # Keep the acquisition dict schema used by the compact writer.
         detection["radial_velocity"] = float(velocity) if math.isfinite(velocity) else None
         if "radial_velocity_mps" in detection:
             detection["radial_velocity_mps"] = float(velocity) if math.isfinite(velocity) else None
@@ -184,7 +174,6 @@ class DepthRadialVelocityEstimator:
         return ordered[0]
 
     def process(self, frame: int, timestamp: float, detections: Iterable[Mapping[str, Any]]) -> List[Dict[str, Any]]:
-        """Return a new detection list; callers must provide timestamp order."""
         current = [self._copy_detection(detection) for detection in detections]
         for detection in current:
             self._set_velocity(detection, float("nan"))
@@ -200,7 +189,6 @@ class DepthRadialVelocityEstimator:
             return current
         dt = current_timestamp - self._previous.timestamp
         if dt <= 0.0:
-            # An out-of-order callback must not corrupt temporal state.
             self.stats.non_increasing_timestamp += len(current)
             return current
         if dt > self.config.max_dt_s:
@@ -219,7 +207,6 @@ class DepthRadialVelocityEstimator:
 
         for ci, candidates in enumerate(valid_by_current):
             if not candidates:
-                # Distinguish no angular/range candidate for aggregate diagnostics.
                 cr, caz, cal = self._geometry(current[ci])
                 if not (math.isfinite(cr) and math.isfinite(caz) and math.isfinite(cal)):
                     self.stats.invalid_range += 1

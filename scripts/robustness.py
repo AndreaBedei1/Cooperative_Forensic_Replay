@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import argparse
@@ -16,30 +15,23 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-# Condition families: name -> (levels, stochastic).  A level is a label and its parameter.
 FAMILIES: Dict[str, Tuple[List[Tuple[str, Any]], bool]] = {
-    "baseline": ([("none", None)], False),  # the copy unchanged: must reproduce the canonical reconstruction
+    "baseline": ([("none", None)], False),
     "radar": ([("low", "low"), ("nominal", "nominal"), ("high", "high")], True),
     "gnss": ([("rtk", "rtk"), ("degraded", "degraded")], True),
-    # The same GNSS errors with the mutual refinement of the pose sources (fusion.mutual_refinement).
     "gnss_refined": ([("rtk", "rtk"), ("degraded", "degraded")], True),
     "gnss_correlated": ([("degraded common 0.5", 0.5), ("degraded common 0.9", 0.9),
                           ("degraded common 1.0", 1.0)], True),
     "combined": ([("exact + 10%", ('ideal',0.0)), ("RTK + 10%", ('rtk',0.0)),
                    ("degraded independent + 10%", ('degraded',0.0)),
                    ("degraded common 0.9 + 10%", ('degraded',0.9))], True),
-    # GNSS and radar degraded together on the same copy; ideal GNSS is already covered by radar alone.
     "radar_gnss_combined": ([("gnss {0} + radar {1}".format(g, r), (g, r))
                              for g in ("rtk", "degraded") for r in ("low", "nominal", "high")], True),
     "impulse": ([("2%", 0.02), ("5%", 0.05), ("10%", 0.10), ("20%", 0.20)], True),
-    # Campaign v3: radar levels on every recorder, on recorder subsets (asymmetric: each
-    # recorder alone and, with three or more, all but each one; ``asym_subsets``), and GNSS x radar on every
-    # recorder.
     "radar_v3": ([("nominal", "nominal"), ("severe", "severe"), ("extreme", "extreme")], True),
     "radar_asym": ([("nominal", "nominal"), ("severe", "severe"), ("extreme", "extreme")], True),
     "radar_gnss_v3": ([("gnss {0} + radar {1}".format(g, r), (g, r))
                        for g in ("rtk", "degraded") for r in ("nominal", "severe")], True),
-    # The recorder subsets of ``radar_asym`` at the realistic radar levels, with G2 degraded GNSS on every recorder.
     "radar_asym_gnss": ([("gnss degraded + radar {0}".format(r), ("degraded", r)) for r in ("nominal", "severe")],
                         True),
     "clock": ([("offsets", None)], False),
@@ -48,11 +40,8 @@ FAMILIES: Dict[str, Tuple[List[Tuple[str, Any]], bool]] = {
     "outage": ([("1 s radar outage", 1.0)], False),
 }
 V3_FAMILIES = ("baseline", "gnss", "radar_v3", "radar_asym", "radar_gnss_v3", "radar_asym_gnss")
-# Pooled metrics and the standard error over seeds below which no further seed is drawn.
 TOLERANCES = {"association_accuracy": 0.02, "collision_recall": 0.02, "event_recall": 0.02,
               "fused_centre_error_m": 0.05, "runs_aligned": 0.02,
-              # campaign v3 headline numbers (scorecard): collisions with the right participants, observable
-              # vehicles represented
               "collisions_identified_rate": 0.02, "represented_rate": 0.02}
 
 
@@ -65,7 +54,6 @@ def _recorders(run_dir: Path) -> List[str]:
 
 
 def _first_collision_t_local(run_dir: Path, recorder: str) -> Optional[float]:
-    """The recorder's own first collision callback, in its local time (its own files only)."""
     ego = (run_dir / "vehicles" / recorder / "ego.jsonl").read_text(encoding="utf-8").splitlines()
     origin = json.loads(ego[0])["timestamp"]
     lines = [json.loads(line) for line in (run_dir / "vehicles" / recorder / "collisions.jsonl")
@@ -74,9 +62,6 @@ def _first_collision_t_local(run_dir: Path, recorder: str) -> Optional[float]:
 
 
 def asym_subsets(recorders: Sequence[str]) -> List[str]:
-    """The recorder subsets a ``radar_asym`` job degrades ("A", "A+B", ...; the other recorders keep the ideal
-    radar): each recorder alone and, with three or more recorders, all but each one (with three: every pair).
-    Every recorder degraded is the ``radar_v3`` job of the same level and seed."""
     recorders = sorted(recorders)
     if len(recorders) < 2:
         return []
@@ -140,7 +125,6 @@ def build(job: Dict[str, Any]):
     elif family == "impulse":
         perturbation = Perturbation(name, collisions=CollisionPerturbation(impulse_rel_std=parameter))
     elif family == "clock":
-        # Arbitrary, large, different offsets for every recorder (no drift).
         perturbation = Perturbation(name, clock_offsets_s=tuple((r, round(7.31 * (i + 1) * (-1) ** i, 2))
                                                                  for i, r in enumerate(recorders)))
     elif family == "downsample":
@@ -160,7 +144,6 @@ def build(job: Dict[str, Any]):
 
 
 def run_job(job: Dict[str, Any], work: str, keep: bool) -> Dict[str, Any]:
-    """One run under one condition: copy, reconstruct, evaluate, compare with the unperturbed reconstruction."""
     from cdf.evaluation.fusion_metrics import evaluate_fusion
     from cdf.evaluation.reconstruction import evaluate_run
     from cdf.evaluation.run_metrics import core_event_diff, graph_signature, run_metrics
@@ -174,7 +157,7 @@ def run_job(job: Dict[str, Any], work: str, keep: bool) -> Dict[str, Any]:
     if Path(work).resolve() not in resolved.parents or resolved == run_dir.resolve():
         raise ValueError('perturbed target must remain inside the dedicated work directory')
     if target.exists():
-        shutil.rmtree(str(target))  # a stale scratch copy of an interrupted job (never a recording)
+        shutil.rmtree(str(target))
     result = {k: v for k, v in job.items()}
     result["perturbation"] = perturbation.to_dict()
     result["configuration"] = "ablation_mutual_refinement" if job["family"] == "gnss_refined" else "frozen"
@@ -194,10 +177,8 @@ def run_job(job: Dict[str, Any], work: str, keep: bool) -> Dict[str, Any]:
         new = _read_json(target / "reconstruction" / "global" / "global_graph.json")
         keep_recorders = [r for r in _recorders(run_dir) if r not in perturbation.drop_recorders]
         result["events"] = core_event_diff(base, new, keep_recorders)
-        # The global graph identical to the unperturbed one (the baseline must reproduce it exactly).
         result["identical_graph"] = graph_signature(base) == graph_signature(new)
         if job["family"] != "clock":
-            # (clock: raw clocks shifted, the privileged truth mapping no longer holds; the claim is identity.)
             evaluation = evaluate_run(target, clock_shift_check=False)
             fusion = evaluate_fusion(target, write=True, pose_factory=pose)
             fusion_full = dict(fusion)
@@ -211,7 +192,6 @@ def run_job(job: Dict[str, Any], work: str, keep: bool) -> Dict[str, Any]:
             result.update(extra_evaluation(target, evaluation, fusion_full))
             result["road_user_errors_raw"] = raw_errors(fusion_full)
             if job["family"] in V3_FAMILIES:
-                # The study's headline metrics (cdf.evaluation.scorecard) on this copy, from the files above.
                 from cdf.evaluation.scorecard import scorecard
                 try:
                     card = scorecard(target, oracle=result.pop("_oracle_full", None))
@@ -223,7 +203,7 @@ def run_job(job: Dict[str, Any], work: str, keep: bool) -> Dict[str, Any]:
                     result.setdefault("evaluation_errors", {})["scorecard"] = traceback.format_exc()[-2000:]
             result.pop("_oracle_full", None)
         result["status"] = "complete"
-    except Exception as exc:  # recorded, the study goes on
+    except Exception as exc:
         import traceback
         result["status"] = "failed"
         result["error"] = repr(exc)
@@ -236,37 +216,27 @@ def run_job(job: Dict[str, Any], work: str, keep: bool) -> Dict[str, Any]:
 
 
 def raw_errors(fusion: Dict[str, Any]) -> Dict[str, List[float]]:
-    """The centre and speed errors of the road users that record nothing, one per compared state (recorder ghosts
-    excluded; ``fusion_metrics``), rounded to 0.1 mm: a condition's median, P95 and RMSE pool them over its runs."""
     raw = (fusion.get("_raw") or {}).get("road_user_errors") or {}
     return {key: [round(float(v), 4) for v in raw.get(key, [])] for key in ("centre_error_m", "speed_error_mps")}
 
 
 def _resources() -> Dict[str, Any]:
-    """The worker's memory: working set now and its peak over the worker's life so far (several jobs run in
-    one worker, so the peak is an upper bound for this job)."""
     import os
     try:
         import psutil
         info = psutil.Process().memory_info()
         return {"pid": os.getpid(), "rss_mb": round(info.rss / 2 ** 20, 1),
                 "peak_mb": round(getattr(info, "peak_wset", info.rss) / 2 ** 20, 1)}
-    except Exception:  # psutil missing: no resource record
+    except Exception:
         return {"pid": os.getpid()}
 
 
 def extra_evaluation(target: Path, evaluation: Dict[str, Any], fusion: Dict[str, Any]) -> Dict[str, Any]:
-    """The campaign's further measurements of one reconstructed copy, all from the existing evaluation code:
-    trajectory error distributions and their calibration (``fusion_metrics``), the distance-band and
-    incident breakdowns (``campaign_metrics``) and the ground-truth event oracle (``event_oracle``: counts and
-    time differences per event type, reconstruction against the ideal oracles)."""
     import traceback
     from cdf.evaluation.campaign_metrics import campaign_metrics
     from cdf.evaluation.event_oracle import compare_run
     from cdf.reconstruction.config import load_config
     out: Dict[str, Any] = {}
-    # Each further evaluation runs on its own; one that raises is recorded in ``evaluation_errors`` and leaves
-    # the job's other measurements in place.
     failures: Dict[str, str] = {}
     errors = fusion.get("state_errors", {})
     out["trajectory"] = {key: errors.get(key) for key in ("centre_error_m", "velocity_error_mps", "speed_error_mps",
@@ -295,7 +265,6 @@ def job_key(job: Dict[str, Any]) -> Tuple[Any, ...]:
 
 
 def latest_results(results: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """One result per job: its complete attempt if any, else its last failed attempt (file order)."""
     chosen: Dict[Tuple[Any, ...], Dict[str, Any]] = {}
     for r in results:
         k = job_key(r)
@@ -305,7 +274,6 @@ def latest_results(results: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 
 def pooled(results: Sequence[Dict[str, Any]]) -> Dict[str, Optional[float]]:
-    """Campaign-level numbers of one condition and seed, pooled over runs."""
     done = [r for r in results if r.get("status") == "complete"]
     with_metrics = [r["metrics"] for r in done if "metrics" in r]
 
@@ -324,8 +292,8 @@ def pooled(results: Sequence[Dict[str, Any]]) -> Dict[str, Optional[float]]:
         return None if not total else sum(c[num] for c in cards) / total
 
     return {"runs": len(done), "failed": len(results) - len(done),
-            "collisions_identified_rate": card_ratio("identified", "reportable"),  # a recorder involved
-            "represented_rate": card_ratio("represented", "observable"),  # road users that record nothing
+            "collisions_identified_rate": card_ratio("identified", "reportable"),
+            "represented_rate": card_ratio("represented", "observable"),
             "association_accuracy": ratio("associations_correct", "associations_decided"),
             'absolute_pose_rms_m': statistics.median([r['pose_errors']['absolute_position_m']['rms'] for r in done
                                    if r.get('pose_errors')]) if any(r.get('pose_errors') for r in done) else None,
@@ -390,8 +358,6 @@ def summarize(all_results: Sequence[Dict[str, Any]], results_dir: Path) -> Dict[
     (results_dir / "summary.md").write_text(markdown(record), encoding="utf-8")
     figures(record, results_dir / "figures")
     if any(r.get("scorecard") for r in all_results):
-        # Campaign v3: the scorecard per job (condition, seed, scenario, degraded recorders, paired change from the
-        # G0 baseline of the same run) and per condition.
         from cdf.evaluation.scorecard import campaign_markdown, campaign_rows, condition_table
         job_rows = campaign_rows([r for r in all_results if r["family"] in V3_FAMILIES])
         table = condition_table(job_rows)
@@ -407,7 +373,6 @@ def summarize(all_results: Sequence[Dict[str, Any]], results_dir: Path) -> Dict[
     return record
 
 
-# Columns of the summary table: (key, header, decimals).
 TABLE = [("association_accuracy", "assoc. acc.", 3), ("collision_recall", "coll. recall", 3),
          ("runs_aligned", "runs aligned", 3), ("event_recall", "event recall", 3), ("extra_events", "extra events", 1),
          ("event_time_delta_p95_s", "event dt p95 [s]", 3), ("fused_centre_error_m", "centre err. [m]", 3),
@@ -452,11 +417,9 @@ def markdown(record: Dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-# Families plotted against their level, the unperturbed baseline first (its label in that family).
 PLOTS = {"radar": "ideal", "gnss": "ideal", "impulse": "0%", "downsample": "20 Hz"}
 GENERAL = [("association_accuracy", "association accuracy"), ("event_recall", "core event recall"),
            ("fused_centre_error_m", "fused centre error [m]"), ("errors", "wrong links + false merges")]
-# The metrics each family degrades first.
 PANELS = {"radar": GENERAL, "gnss": GENERAL,
           "impulse": [("collision_recall", "collisions reconstructed"), ("runs_aligned", "runs fully aligned"),
                       ("event_recall", "core event recall"), ("fused_centre_error_m", "fused centre error [m]")],
@@ -466,7 +429,6 @@ RATIOS = ("association_accuracy", "event_recall", "collision_recall", "runs_alig
 
 
 def baseline_for_family(record: Dict[str, Any], family: str) -> Optional[Dict[str, Any]]:
-    """Use the baseline executed by the same version as the family's study."""
     baseline = next((r for r in record['rows'] if r['family'] == 'baseline'), None)
     versions = record.get('family_provenance', {})
     family_hash = versions.get(family, {}).get('code_sha256')
@@ -482,8 +444,6 @@ def baseline_for_family(record: Dict[str, Any], family: str) -> Optional[Dict[st
 
 
 def figures(record: Dict[str, Any], out_dir: Path) -> List[Path]:
-    """Metrics against the level of each family (SVG and PDF); the GNSS figure overlays the plain and the
-    mutually refined reconstruction."""
     from cdf.evaluation.figures import DOUBLE_COLUMN_IN, paper_style
     plt = paper_style()
     rows = record["rows"]
@@ -624,7 +584,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                         finished.add(key(result))
                     else:
                         print("FAILED", result["family"], result["level"], result["run"], result.get("error"), flush=True)
-            # A failed job does not stop the study: it is retried (up to --max-attempts) and otherwise counted.
     record = summarize(done, args.results)
     for row in record["rows"]:
         print("{0:10s} {1:16s} seeds {2} runs {3:3d} assoc {4} coll {5} aligned {6} events {7} centre {8} false merges {9}".format(

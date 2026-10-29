@@ -1,4 +1,3 @@
-"""One vehicle's controller and raw onboard recording."""
 
 from __future__ import annotations
 
@@ -22,14 +21,6 @@ from ..recording.depth_velocity import DepthRadialVelocityEstimator
 
 
 def cruise_gear(physics_control: Any, speed: float, margin: float = 0.85) -> int:
-    """The lowest forward gear whose engine speed at ``speed`` stays below ``margin`` x its up-shift point.
-
-    CARLA spawns a vehicle in neutral.  Given its scripted initial velocity directly, the automatic
-    gearbox then engages first gear at cruising speed, and the over-revving engine brakes the car at
-    10-20 m/s^2 for about half a second under full throttle (measured on audi.tt, nissan.patrol and
-    mercedes.sprinter; the single-gear model3 is not affected).  Starting in the gear the gearbox would
-    hold at that speed removes the artefact.
-    """
     gears = list(physics_control.forward_gears)
     wheel_rpm = float(speed) / (float(physics_control.wheels[0].radius) / 100.0) * 60.0 / (2.0 * math.pi)
     for index, gear in enumerate(gears, start=1):
@@ -40,8 +31,6 @@ def cruise_gear(physics_control: Any, speed: float, margin: float = 0.85) -> int
 
 
 def ego_footprint(vehicle: Any) -> dict:
-    """The vehicle's own bounding box in its own frame (x forward, y right, origin = vehicle origin at
-    ground level): the shape the reconstruction needs to turn radar ranges into clearances."""
     box = vehicle.bounding_box
     cx, cy, cz = float(box.location.x), float(box.location.y), float(box.location.z)
     ex, ey, ez = float(box.extent.x), float(box.extent.y), float(box.extent.z)
@@ -58,15 +47,12 @@ class RawVehicleAgent:
                  spawn_transform: Any, output_root: Any) -> None:
         self.world = scenario_world; self.cfg = cfg; self.spec = spec; self.controller = controller
         self.impact_reaction_ticks = int(cfg.get("simulation.impact_reaction_ticks", 1))
-        self._first_impact_frame = None  # frame of the vehicle's first collision callback
+        self._first_impact_frame = None
         self.late_impact_notifications = 0
         self._received_frame = None
         self.vehicle = scenario_world.spawn_vehicle(spec.blueprint, spawn_transform)
         self.record = bool(getattr(spec, "record", True))
         if not self.record:
-            # A physical vehicle that is not a recorder: no radar, no camera, nothing under
-            # vehicles/.  Its contacts still reach the privileged ground truth (and its own
-            # post-impact behaviour) through the collision sensor.
             self.radar, self.camera, self.depth_camera = [], None, None
             self._depth_executor, self._depth_futures = None, deque()
             self.collision_sensor = CollisionSensor(scenario_world, self.vehicle)
@@ -96,11 +82,6 @@ class RawVehicleAgent:
             "sensor_profile": str(spec.sensor_profile or cfg.get("sensors.profile", "")),
             "radar": [r.metadata() for r in self.radar],
             "ego_footprint": ego_footprint(self.vehicle),
-            # What ego.jsonl is: the output of a synthetic GNSS/INS with no added error (profile G0), sampled
-            # every tick from the simulated vehicle state.  It is a sensor stream the reconstruction may read;
-            # the truth it is evaluated against is ground_truth/states.jsonl.  Degraded receivers (G1 RTK,
-            # G2 degraded) add their errors to this stream (cdf.robustness.perturb) before the whole
-            # reconstruction, local path included, sees it.
             "pose_sensor": {"stream": "ego.jsonl", "model": "synthetic GNSS/INS", "profile": "G0",
                             "added_error": "none", "rate_hz": round(1.0 / float(cfg.get("simulation.fixed_delta_seconds", 0.05)), 3),
                             "fields": ["timestamp", "x", "y", "z", "roll_deg", "pitch_deg", "yaw_deg", "velocity",
@@ -122,9 +103,6 @@ class RawVehicleAgent:
                 "angular_velocity": {"x": float(ang.x), "y": float(ang.y), "z": float(ang.z)}}
 
     def hold_initial_velocity(self, speed: float, throttle: float, t: float = 0.0, dt: float = 0.05) -> None:
-        """One launch tick before the recording: the scripted initial velocity along the vehicle's
-        heading, in its cruising gear (:func:`cruise_gear`) at a nominal cruising throttle, steered
-        by its own controller along its route (``t`` < 0: no scripted action is active yet)."""
         carla = import_carla()
         if not hasattr(self, "_launch_gear"):
             self._launch_gear = cruise_gear(self.vehicle.get_physics_control(), speed)
@@ -138,7 +116,6 @@ class RawVehicleAgent:
             self.vehicle.id, carla.Vector3D(x=math.cos(yaw) * speed, y=math.sin(yaw) * speed, z=0)))
 
     def set_sensor_start_frame(self, frame: int) -> None:
-        """Exclude warm-up callbacks while retaining later delayed images."""
         if self.camera is not None:
             self.camera.set_minimum_frame(frame)
         if self.depth_camera is not None:
@@ -163,8 +140,6 @@ class RawVehicleAgent:
             item["detections"] = future.result()
             self._depth_futures.popleft()
             ready.append(item)
-        # Callbacks can arrive out of order; temporal state is updated only in
-        # increasing CARLA timestamp order (frame is a deterministic tie-breaker).
         ready.sort(key=lambda record: (float(record["timestamp"]), int(record["frame"])))
         for item in ready:
             item["detections"] = self._depth_estimator.process(
@@ -173,7 +148,6 @@ class RawVehicleAgent:
             self.logger.log_depth_observations(item)
 
     def step(self, t: float, frame: int, dt: float, recorded_timestamp: float = None) -> dict:
-        """Advance the scripted controller using ``t`` and log CARLA's raw time."""
         timestamp = float(t) if recorded_timestamp is None else float(recorded_timestamp)
         self.receive_sensors(frame)
         self._receive_impacts(frame)
@@ -196,7 +170,6 @@ class RawVehicleAgent:
             self.logger.log_control({"frame": int(frame), "timestamp": timestamp, "throttle": command.throttle,
                                      "brake": command.brake, "steer": command.steer,
                                      "hand_brake": command.hand_brake, "reverse": command.reverse})
-            # The light state CARLA reports for the vehicle (its own indicator switch, read back, not the request).
             light = int(self.vehicle.get_light_state())
             self.logger.log_lights({"frame": int(frame), "timestamp": timestamp, "light_state": light,
                                     "left_blinker": bool(light & left), "right_blinker": bool(light & right)})
@@ -213,11 +186,6 @@ class RawVehicleAgent:
                 "steer": command.steer, "hand_brake": command.hand_brake, "reverse": command.reverse}
 
     def receive_sensors(self, frame: int) -> None:
-        """Log this frame's radar sweeps, waiting for them (once per frame).
-
-        The runner calls it for every vehicle before any controller steps: a radar sweep of frame N is
-        sent after the collision callbacks of the earlier frames, so once it has arrived those callbacks
-        have too (``_receive_impacts`` counts any that has not)."""
         if self._received_frame == int(frame):
             return
         self._received_frame = int(frame)
@@ -226,13 +194,6 @@ class RawVehicleAgent:
             if item is not None: self.logger.log_radar(item)
 
     def _receive_impacts(self, frame: int) -> None:
-        """Deliver the vehicle's collisions to its controller at a tick fixed by the collision frame.
-
-        Collision callbacks arrive asynchronously; reacting when one happens to arrive made the
-        post-impact controls (and the whole post-impact dynamics) depend on network timing.  The
-        controller now reacts ``impact_reaction_ticks`` after the frame of the first callback.  A
-        callback that arrives after that tick is counted (``late_impact_notifications``): the run is
-        then not guaranteed to repeat and the metadata says so."""
         for collision in self.collision_sensor.drain_vehicle():
             if self.logger is not None:
                 self.logger.log_collision(collision)
@@ -245,8 +206,6 @@ class RawVehicleAgent:
             self.controller.notify_impact()
 
     def _update_indicator(self, t: float, left: int, right: int) -> None:
-        """Switch the turn indicator lights as the scripted ``indicator`` actions ask (``controllers``), keeping
-        every other light bit as it is; nothing else (steering, lane changes) touches them."""
         side = self.controller.indicator(t)
         if side == getattr(self, "_indicator_side", 0):
             return
@@ -257,7 +216,6 @@ class RawVehicleAgent:
         self._indicator_side = side
 
     def flush_sensor_queues(self, timeout_s: float = 2.0) -> None:
-        """Process already-delivered callbacks without advancing the world."""
         if self.logger is None:
             return
         deadline = time.monotonic() + float(timeout_s)

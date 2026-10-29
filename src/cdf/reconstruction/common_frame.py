@@ -1,18 +1,3 @@
-"""A common coordinate frame for the recorders' observations (reconstruction side, no ground truth).
-
-Every recorder logs its own pose stream (``ego.jsonl``: position and heading in the map frame, the
-recorded GNSS/INS pose; in the CARLA campaign it is exact, the robustness study perturbs it).  A
-``PoseSource`` gives a recorder's pose at an instant of its own clock.  A radar track sample is measured
-relative to the recorder's body (vehicle frame: longitudinal, lateral); it is placed in the common frame
-by composing that relative measurement with the recorder's pose at the same instant -- never through
-another recorder, the scenario or ground truth.  Times are put on the global clock with the recorder's
-``offset_to_global`` (``reconstruction/global/alignment.json``).
-
-What each sample carries (``CommonSample``): the track point (median of its returns), the observed near
-surface (the point moved back towards the recorder by its depth, as the CRITICAL_TTC model does), the
-ground velocity, its uncertainty, the line of sight from the recorder's body, and -- in memory only -- the
-radar returns the track claimed in that sweep, each with the position of the radar that produced it.
-"""
 
 from __future__ import annotations
 
@@ -27,12 +12,11 @@ import numpy as np
 from .tracking import EgoFootprint, EgoTrajectory, LocalTrack
 
 DEFAULT_BODY = EgoFootprint(-2.3, 2.3, -0.95, 0.95)
-HEADING_MIN_SPEED_MPS = 1.0  # below this a target's motion fixes no heading (conflict.HEADING_MIN_SPEED_MPS)
+HEADING_MIN_SPEED_MPS = 1.0
 
 
 @dataclass(frozen=True)
 class WorldPose:
-    """A recorder's pose in the common (map) frame: metres, radians, metres per second."""
 
     x: float
     y: float
@@ -51,39 +35,29 @@ class WorldPose:
 
 
 class PoseSource:
-    """Where a recorder was, by its own clock (t_local).  Subclasses: the recorded stream, a perturbed one.
-
-    ``position_std_m`` (per axis) and ``yaw_std_rad`` are the accuracy the source declares, as a GNSS/INS
-    receiver reports its own estimate: the association gates widen with them.  0 for an exact stream.
-    ``velocity_std_mps`` likewise for the recorded velocity."""
 
     name = "abstract"
     position_std_m = 0.0
     yaw_std_rad = 0.0
     velocity_std_mps = 0.0
 
-    def pose_at(self, t_local: float) -> WorldPose:  # pragma: no cover - interface
+    def pose_at(self, t_local: float) -> WorldPose:
         raise NotImplementedError
 
     def poses_at(self, times: Sequence[float]) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """(x, y, yaw) arrays at many instants of the recorder's clock (default: one by one)."""
         poses = [self.pose_at(float(t)) for t in times]
         return (np.array([p.x for p in poses]), np.array([p.y for p in poses]), np.array([p.yaw for p in poses]))
 
     @property
-    def start(self) -> float:  # pragma: no cover - interface
+    def start(self) -> float:
         raise NotImplementedError
 
     @property
-    def end(self) -> float:  # pragma: no cover - interface
+    def end(self) -> float:
         raise NotImplementedError
 
 
 class RecordedPoseSource(PoseSource):
-    """The recorder's own recorded pose stream (``ego.jsonl``), interpolated linearly (heading unwrapped).
-
-    Baseline of the campaign: CARLA writes the exact pose, so this is an ideal GNSS/INS; the robustness
-    study replaces it with a perturbed source (``PerturbedPoseSource``)."""
 
     name = "recorded"
 
@@ -123,20 +97,15 @@ class RecordedPoseSource(PoseSource):
         return np.interp(t, self.times, self.x), np.interp(t, self.times, self.y), np.interp(t, self.times, self.yaw)
 
 
-# The poses the reconstruction placed the recorders at, written to ``global/RECORDER_POSES_FILE`` when they are not
-# the recorded stream itself (a perturbed GNSS/INS, a mutual refinement): the RECONSTRUCTION viewer draws them.
 RECORDER_POSES_FILE = "recorder_poses.json"
 
 
 def is_recorded_stream(source: PoseSource) -> bool:
-    """True for the recorder's own recorded stream, unchanged (G0: ``ego.jsonl`` is the pose used)."""
     return type(source) is RecordedPoseSource
 
 
 def recorder_pose_record(poses: Mapping[str, PoseSource], origins: Mapping[str, float],
                          times: Mapping[str, Sequence[float]]) -> Dict[str, Any]:
-    """The content of ``RECORDER_POSES_FILE``: each recorder's pose source sampled at its own record instants
-    ``t_local`` (seconds after ``clock_origin``, its first record)."""
     recorders = {}
     for name in sorted(poses):
         source, t = poses[name], [float(v) for v in times[name]]
@@ -154,7 +123,6 @@ def recorder_pose_record(poses: Mapping[str, PoseSource], origins: Mapping[str, 
 
 
 class TabulatedPoseSource(PoseSource):
-    """A recorder's poses as written to ``RECORDER_POSES_FILE``, interpolated linearly."""
 
     def __init__(self, entry: Mapping[str, Any], clock_origin: float) -> None:
         self.name = str(entry.get("source", "tabulated"))
@@ -166,8 +134,6 @@ class TabulatedPoseSource(PoseSource):
 
     @classmethod
     def factory_for_run(cls, run_dir: Path) -> Optional[Any]:
-        """A ``pose_factory(vehicle_dir, clock_origin)`` reading the run's ``RECORDER_POSES_FILE``, or None
-        when the reconstruction used the recorded streams."""
         path = Path(run_dir) / "reconstruction" / "global" / RECORDER_POSES_FILE
         if not path.exists():
             return None
@@ -197,23 +163,20 @@ class TabulatedPoseSource(PoseSource):
 
 @dataclass
 class CommonSample:
-    """One radar track sample in the common frame (see the module docstring)."""
 
     t_local: float
     t_global: float
-    point: np.ndarray  # track point (median of its returns)
-    near: np.ndarray  # observed near surface
-    velocity: np.ndarray  # ground velocity
+    point: np.ndarray
+    near: np.ndarray
+    velocity: np.ndarray
     pos_std: float
     vel_std: float
-    observer: np.ndarray  # the recorder's body point nearest the target (line-of-sight origin)
+    observer: np.ndarray
     measured: bool
-    heading: Optional[float] = None  # direction of motion [rad] when the speed fixes it
-    # Variance (m^2 per axis) the observer's own pose adds to the sample: the pose source's declared
-    # position accuracy and its heading accuracy times the range.
+    heading: Optional[float] = None
     pose_var: float = 0.0
-    returns: Optional[np.ndarray] = field(default=None, repr=False)  # (N, 2) claimed returns, common frame
-    origins: Optional[np.ndarray] = field(default=None, repr=False)  # (N, 2) their radars' positions
+    returns: Optional[np.ndarray] = field(default=None, repr=False)
+    origins: Optional[np.ndarray] = field(default=None, repr=False)
 
     @property
     def speed(self) -> float:
@@ -227,17 +190,14 @@ class CommonSample:
 
 @dataclass
 class CommonTrack:
-    """A recorder's radar track in the common frame, on the global clock."""
 
     recorder: str
     track_id: str
     samples: List[CommonSample]
-    status: str = "ANONYMOUS"  # as the collision-based association left it
-    entity: Optional[str] = None  # the recorder it was associated with, if any
+    status: str = "ANONYMOUS"
+    entity: Optional[str] = None
     identity_ambiguous: bool = False
     parent_track: Optional[str] = None
-    # The observer's own first collision (global time): from then on its ego-motion compensation, hence its
-    # tracks' velocity estimates, are corrupted by the impulse.  None: no collision of its own.
     own_impact: Optional[float] = None
 
     @property
@@ -258,15 +218,11 @@ class CommonTrack:
         return self.samples[index] if abs(times[index] - t_global) <= tolerance else None
 
     def state_at(self, t_global: float, tolerance: float = 0.026) -> Optional[CommonSample]:
-        """The nearest sample within ``tolerance``, moved to ``t_global`` at its own velocity: two recorders'
-        radars need not sample at the same instants."""
         sample = self.at(t_global, tolerance)
         return None if sample is None else shifted(sample, t_global)
 
 
 def shifted(sample: CommonSample, t_global: float) -> CommonSample:
-    """A sample carried to a nearby instant at the target's own velocity (its observer point and the radar
-    positions stay: they only orient the lines of sight)."""
     dt = t_global - sample.t_global
     if abs(dt) < 1e-9:
         return sample
@@ -277,14 +233,11 @@ def shifted(sample: CommonSample, t_global: float) -> CommonSample:
 
 @dataclass
 class RecorderBody:
-    """A recorder's own body in the common frame: its pose source, footprint and clock offset."""
 
     recorder: str
     poses: PoseSource
     footprint: Optional[EgoFootprint]
     offset_to_global: float
-    # The recorder's own collision reports (its collision sensor, first callback): (t_global, the other
-    # recorders of the matched contact; empty when no other recorder reported it).
     contacts: Tuple[Tuple[float, Tuple[str, ...]], ...] = ()
 
     def pose_at_global(self, t_global: float) -> WorldPose:
@@ -295,20 +248,16 @@ class RecorderBody:
         return self.poses.start - 1e-6 <= t_local <= self.poses.end + 1e-6
 
     def polygon(self, t_global: float) -> np.ndarray:
-        """(4, 2) corners of the recorder's footprint in the common frame."""
         pose, fp = self.pose_at_global(t_global), self.footprint or DEFAULT_BODY
         return np.array([pose.to_world(x, y) for x, y in ((fp.x_max, fp.y_min), (fp.x_max, fp.y_max),
                                                            (fp.x_min, fp.y_max), (fp.x_min, fp.y_min))])
 
     def distance(self, t_global: float, point: Sequence[float]) -> float:
-        """Distance from a point to the recorder's footprint (0 inside)."""
         pose, fp = self.pose_at_global(t_global), self.footprint or DEFAULT_BODY
         x, y = pose.to_vehicle(point)
         return float(math.hypot(max(fp.x_min - x, 0.0, x - fp.x_max), max(fp.y_min - y, 0.0, y - fp.y_max)))
 
     def outline_distance(self, t_global: float, point: Sequence[float]) -> float:
-        """Distance from a point to the recorder's footprint outline: an observed near surface lies on it,
-        so a point inside the body is as far from it as from the nearest edge."""
         pose, fp = self.pose_at_global(t_global), self.footprint or DEFAULT_BODY
         x, y = pose.to_vehicle(point)
         if fp.x_min <= x <= fp.x_max and fp.y_min <= y <= fp.y_max:
@@ -338,7 +287,6 @@ def _rect_distance(points: np.ndarray, pose: WorldPose, footprint: EgoFootprint)
 
 def footprint_gap(pose_a: WorldPose, footprint_a: Optional[EgoFootprint], pose_b: WorldPose,
                   footprint_b: Optional[EgoFootprint]) -> float:
-    """Distance between two vehicles' footprints (0 when they touch or overlap), to about 0.05 m."""
     fa, fb = footprint_a or DEFAULT_BODY, footprint_b or DEFAULT_BODY
     return float(min(_rect_distance(_outline_points(pose_a, fa), pose_b, fb).min(),
                      _rect_distance(_outline_points(pose_b, fb), pose_a, fa).min()))
@@ -346,9 +294,6 @@ def footprint_gap(pose_a: WorldPose, footprint_a: Optional[EgoFootprint], pose_b
 
 def contact_check(poses: Mapping[str, "PoseSource"], footprints: Mapping[str, Optional[EgoFootprint]],
                   contact_consistency_m: float):
-    """For the collision matching (``alignment.match_collisions``): (gap, tolerance) between two recorders'
-    footprints, each at its own report time (its own clock) from its own pose stream; None when a recorder
-    has no pose stream.  The tolerance grows with the pose sources' declared accuracy."""
     def check(first: str, t_first: float, second: str, t_second: float) -> Optional[Tuple[float, float]]:
         if first not in poses or second not in poses:
             return None
@@ -361,9 +306,6 @@ def contact_check(poses: Mapping[str, "PoseSource"], footprints: Mapping[str, Op
 
 def outline_distances(poses: PoseSource, footprint: Optional[EgoFootprint], t_local: Sequence[float],
                       points: np.ndarray, inside_zero: bool = False) -> Tuple[np.ndarray, np.ndarray]:
-    """``RecorderBody.outline_distance`` for many (instant of the recorder's clock, point) pairs at once:
-    (distances, mask of the instants the pose source covers).  ``inside_zero``: a point inside the body is
-    at distance 0 (``RecorderBody.distance``)."""
     t = np.asarray(t_local, dtype=float)
     points = np.asarray(points, dtype=float).reshape(-1, 2)
     valid = (t >= poses.start - 1e-6) & (t <= poses.end + 1e-6)
@@ -382,14 +324,6 @@ def outline_distances(poses: PoseSource, footprint: Optional[EgoFootprint], t_lo
 
 def entry_distances(poses: PoseSource, footprint: Optional[EgoFootprint], t_local: Sequence[float],
                     points: np.ndarray, origins: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-    """How far an observed near surface lies from where its line of sight enters the recorder's body.
-
-    For each (instant of the recorder's clock, observed near surface ``points``, observing radar side
-    ``origins``): the ray from the origin through the point meets the body's footprint first at its entry
-    point -- the surface that observer can see; the distance is between the point and that entry point
-    (a point beyond it, inside the body, is that far off: the body would have hidden it).  A ray that
-    misses the body gives the point's distance to the footprint.  Returns (distances, mask of the instants
-    the pose source covers)."""
     t = np.asarray(t_local, dtype=float)
     points = np.asarray(points, dtype=float).reshape(-1, 2)
     origins = np.asarray(origins, dtype=float).reshape(-1, 2)
@@ -410,7 +344,6 @@ def entry_distances(poses: PoseSource, footprint: Optional[EgoFootprint], t_loca
     with np.errstate(divide="ignore", invalid="ignore"):
         tx1, tx2 = (fp.x_min - ox) / ux, (fp.x_max - ox) / ux
         ty1, ty2 = (fp.y_min - oy) / uy, (fp.y_max - oy) / uy
-    # A ray parallel to a pair of faces: inside that slab for every s, or never.
     inside_x = (ox >= fp.x_min) & (ox <= fp.x_max)
     inside_y = (oy >= fp.y_min) & (oy <= fp.y_max)
     tx_low = np.where(np.abs(ux) < 1e-12, np.where(inside_x, -np.inf, np.inf), np.minimum(tx1, tx2))
@@ -429,11 +362,6 @@ def entry_distances(poses: PoseSource, footprint: Optional[EgoFootprint], t_loca
 def common_track(track: LocalTrack, recorder: str, ego: EgoTrajectory, poses: PoseSource,
                  footprint: Optional[EgoFootprint], offset_to_global: float, status: str = "ANONYMOUS",
                  entity: Optional[str] = None) -> CommonTrack:
-    """One local track in the common frame.
-
-    The track's position relative to the recorder's body (longitudinal, lateral) and its ground velocity
-    expressed in the recorder's axes (through the recorder's own heading in its local frame) are composed
-    with the recorder's pose from ``poses``; so are its claimed returns."""
     fp = footprint or DEFAULT_BODY
     samples = []
     returns = track.returns or [None] * len(track.samples)
@@ -468,7 +396,6 @@ def common_track(track: LocalTrack, recorder: str, ego: EgoTrajectory, poses: Po
 
 
 def _local_to_world(points: np.ndarray, local: Any, pose: WorldPose) -> np.ndarray:
-    """Local-frame points of a recorder -> its vehicle frame (local pose) -> common frame (pose source)."""
     points = np.asarray(points, dtype=float).reshape(-1, 2)
     c, s = math.cos(local.heading), math.sin(local.heading)
     dx, dy = points[:, 0] - local.x, points[:, 1] - local.y

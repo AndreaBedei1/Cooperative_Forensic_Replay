@@ -1,17 +1,3 @@
-"""Orchestration: one run directory in, ``<run>/reconstruction/`` out.
-
-    RAW LOG -> LOCAL TRACE -> LOCAL GRAPH      (every recorder alone)
-            -> GRAPH-LEVEL ALIGNMENT           (collision anchors; else observed trajectories)
-            -> IDENTITY ASSOCIATION            (anonymous track -> recorder)
-            -> ROAD USERS                      (common frame of the recorders' own pose streams:
-                                                track -> recorder, anonymous road users U1, U2, ...)
-            -> GLOBAL GRAPH + GLOBAL TRACE
-
-Only ``<run>/vehicles/`` and the supplied ``<run>/incident_context.json`` are
-read.  ``ground_truth/`` and the run's ``metadata.json`` (scenario design) are
-never opened here; the privileged evaluation lives in ``cdf.evaluation`` and
-runs afterwards on the files this module wrote.
-"""
 
 from __future__ import annotations
 
@@ -46,19 +32,10 @@ class RunReconstruction:
     trace: List[Dict[str, Any]]
     road_users: Optional[RoadUserFusion] = None
 
-# A recorder's pose stream in the common frame from (vehicle directory, its clock origin): the recorded
-# GNSS-like stream by default; the robustness study substitutes a perturbed one.
 PoseFactory = Callable[[Path, float], PoseSource]
 
 
 def measured_ego_records(vehicle_dir: Path, pose_factory: Optional[PoseFactory]) -> Optional[List[Dict[str, Any]]]:
-    """The recorder's pose stream as its (possibly perturbed) GNSS/INS reports it, in ``ego.jsonl`` form.
-
-    None for the recorded source itself (the local path then reads ``ego.jsonl``).  Otherwise each record's
-    position, heading and velocity are those of ``pose_factory``'s source at the record time, so that the
-    local reconstruction (ego motion, map matching, speed checks) and the fusion use the same measured pose,
-    never the exact one under it.  Height, pitch and roll are kept as recorded (an INS attitude assumed
-    exact; documented limitation)."""
     if pose_factory is None:
         return None
     vehicle_dir = Path(vehicle_dir)
@@ -82,11 +59,6 @@ def run_title(run_dir: Path) -> str:
 
 
 def read_incident_context(run_dir: Path) -> Dict[str, Any]:
-    """The run's supplied incident context, e.g. the known speed limit; {} if none.
-
-    ``incident_context.json`` is the only run-level file the reconstruction
-    reads: it is known context, not perception and not ground truth.
-    """
     path = Path(run_dir) / "incident_context.json"
     if not path.exists():
         return {}
@@ -101,7 +73,6 @@ def read_incident_context(run_dir: Path) -> Dict[str, Any]:
 
 
 def incident_map(run_dir: Path) -> Optional[str]:
-    """The road map the run's supplied incident context names (the incident location), None when it names none."""
     return read_incident_context(run_dir).get("map")
 
 
@@ -111,7 +82,6 @@ def _on_trace_grid(t_local: float, trace_hz: float) -> bool:
 
 def write_local_outputs(directory: Path, local: LocalReconstruction, trace_hz: float) -> None:
     write_jsonl(directory / "local_trace.jsonl", (frame.to_dict() for frame in local.trace))
-    # Tracks are smoothed at the radar rate; the file keeps the readable trace rate.
     track_rows = []
     for track in local.tracks:
         for sample in track.samples:
@@ -126,8 +96,6 @@ def write_local_outputs(directory: Path, local: LocalReconstruction, trace_hz: f
 
 def body_separation(poses: Dict[str, PoseSource], footprints: Dict[str, Any], alignment: Alignment
                     ) -> Callable[[Tuple[str, ...], float, float], Optional[float]]:
-    """``separation(pair, t1, t2)``: the largest gap between the two recorders' bodies between two global times, from
-    their own pose streams, less 3 sigma of their declared position accuracy; None without a pose or a clock."""
     def separation(pair: Tuple[str, ...], t1: float, t2: float) -> Optional[float]:
         if len(pair) != 2 or any(name not in poses for name in pair):
             return None
@@ -149,16 +117,11 @@ def body_separation(poses: Dict[str, PoseSource], footprints: Dict[str, Any], al
 def fuse_recorders(run_dir: Path, locals_: List[LocalReconstruction], cfg: ReconstructionConfig,
                    pose_factory: Optional[PoseFactory] = None
                    ) -> Tuple[Alignment, List[Association], RoadUserFusion, GlobalGraph]:
-    """The cross-recorder steps on finished local reconstructions: alignment, identity association,
-    road users in the common frame, global graph (nothing is written)."""
     pose_factory = pose_factory or RecordedPoseSource.from_vehicle_dir
     poses = {local.owner: pose_factory(Path(run_dir) / "vehicles" / local.owner, local.clock_origin)
              for local in locals_}
-    # Matched collisions, each checked against the recorders' own pose streams (the two bodies must touch).
     geometry = contact_check(poses, {local.owner: local.footprint for local in locals_},
                              cfg.fusion.contact_consistency_m)
-    # Before fixing clocks, the pose streams only veto a pairing (bodies clearly apart, ``contact_check``);
-    # what supports or contradicts it is each recorder's own radar view of the contact (no GNSS involved).
     radar = radar_contact_evidence(locals_, cfg)
 
     def approach_check(a: str, ta: float, b: str, tb: float) -> Optional[bool]:
@@ -168,14 +131,10 @@ def fuse_recorders(run_dir: Path, locals_: List[LocalReconstruction], cfg: Recon
     for event in alignment.matched_events:
         event['evidence'].append("pre-contact radar view of each recorder checked against the candidate partner's own speed: not contradicted")
     associations = associate_tracks(locals_, alignment, cfg.fusion, cfg.tracking.radial_speed_std_mps)
-    # A recorder no matched collision aligned: the clock offset its observed trajectory fixes, if unique,
-    # in the common frame of the recorders' own pose streams (then the association is redone).
     align_by_observations(locals_, alignment, associations, poses, cfg)
     if alignment.observed:
         associations = associate_tracks(locals_, alignment, cfg.fusion, cfg.tracking.radial_speed_std_mps)
-    # Anonymous tracks that are recorders, and the road users that recorded nothing (U1, U2, ...).
     road_users = fuse_road_users(locals_, alignment, associations, poses, cfg)
-    # A recontact stays in the collision it follows when the two bodies never parted in between (their own poses).
     separation = body_separation(road_users.poses or poses, {local.owner: local.footprint for local in locals_}, alignment)
     return alignment, associations, road_users, fuse_graphs(
         locals_, alignment, associations, cfg.fusion.touching_clearance_m, separation=separation,
@@ -188,13 +147,10 @@ def reconstruct_run(run_dir: Path, cfg: Optional[ReconstructionConfig] = None,
     run_dir = Path(run_dir)
     cfg = cfg or load_config()
     output_dir = run_dir / "reconstruction"
-    # A previous privileged evaluation would describe an older reconstruction.
     for stale in (output_dir / "evaluation" / "evaluation.json", output_dir / "evaluation" / "evaluation.md"):
         if stale.exists():
             stale.unlink()
 
-    # 1-4. Every recorder alone: raw files (+ the supplied incident context)
-    #      -> local trace, anonymous tracks, local graph.
     context = read_incident_context(run_dir)
     vehicle_dirs = sorted(path for path in (run_dir / "vehicles").iterdir() if path.is_dir())
     locals_ = [reconstruct_vehicle(path, cfg, context=context, ego_records=measured_ego_records(path, pose_factory))
@@ -202,19 +158,16 @@ def reconstruct_run(run_dir: Path, cfg: Optional[ReconstructionConfig] = None,
     for local in locals_:
         write_local_outputs(output_dir / local.owner, local, cfg.trace_hz)
 
-    # 5-8. Only now look across recorders, and only at their graphs, tracks and pose streams.
     alignment, associations, road_users, graph = fuse_recorders(run_dir, locals_, cfg, pose_factory)
     trace = global_trace(graph)
     relations = global_temporal_relations(locals_, alignment, associations)
 
-    # 9. Human-readable files.
     title = run_title(run_dir)
     global_dir = output_dir / "global"
     write_json(global_dir / "alignment.json", alignment.to_dict())
     write_json(global_dir / "associations.json", [item.to_dict() for item in associations])
     road_user_record = road_users.to_dict(cfg, alignment)
     write_json(global_dir / "anonymous_entities.json", road_user_record)
-    # The recorders' poses the fusion used, when they are not their recorded streams (the viewer draws them).
     poses_path = global_dir / RECORDER_POSES_FILE
     if poses_path.exists():
         poses_path.unlink()

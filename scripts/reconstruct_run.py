@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import argparse
@@ -8,8 +7,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from cdf.reconstruction.config import load_config  # noqa: E402
-from cdf.reconstruction.pipeline import reconstruct_run  # noqa: E402
+from cdf.reconstruction.config import load_config
+from cdf.reconstruction.pipeline import reconstruct_run
 
 
 def main() -> int:
@@ -36,7 +35,6 @@ def main() -> int:
                                                      entity["fusion_method"]))
         print("  global: {0} nodes, {1} edges".format(len(result.graph.nodes), len(result.graph.edges)))
         if args.evaluate:
-            # Imported only here: ground truth enters after the reconstruction is on disk.
             from cdf.evaluation.reconstruction import evaluate_run
             evaluation = evaluate_run(run_dir)
             print("  evaluation: {0}".format(evaluation["headline"]))

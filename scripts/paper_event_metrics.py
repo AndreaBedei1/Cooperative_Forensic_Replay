@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 from __future__ import annotations
 
@@ -17,7 +16,7 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from cdf.evaluation import event_validation as ev  # noqa: E402
+from cdf.evaluation import event_validation as ev
 
 DERIVATION_VERSION = "paper-local-events-v1"
 JOB_FIELDS = ("job_family", "job_level", "job_recorder", "job_seed", "job_run")
@@ -29,7 +28,6 @@ ORDER = MANUSCRIPT_CONDITIONS
 
 
 def condition(row: Mapping[str, str]) -> str:
-    """Use recorder, rather than radar, for the unit of asymmetric corruption."""
     family, level = row["job_family"], row["job_level"]
     subset = row.get("job_recorder") or ""
     prefix = ("all but one recorder " if "+" in subset else "one recorder ") if subset else "radar "
@@ -56,7 +54,6 @@ def _bool(value: Any) -> bool:
 
 
 def _event(row: Mapping[str, Any]) -> Dict[str, Any]:
-    """Discard earlier classification and duration fields before re-matching."""
     out = {k: row[k] for k in ("recorder", "family", "type", "phase")}
     out.update(subject=row.get("subject") or None, t_local=float(row["t_local"]),
                end=float(row["end"]), open_end=_bool(row.get("open_end")))
@@ -70,11 +67,6 @@ def _event(row: Mapping[str, Any]) -> Dict[str, Any]:
 
 
 def rematch_before_contact(rows: Iterable[Mapping[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-    """Re-match ONE job/recorder's pre-contact events, ignoring stale matches.
-
-    Retaining witness ``no contact`` rows is intentional. Callers must never pool
-    recorders or jobs before matching, even if their event types and times agree.
-    """
     selected = [row for row in rows if row["phase"] != "after contact"]
     predictions = [_event(row) for row in selected if row["kind"] == "prediction"]
     truths = [_event(row) for row in selected if row["kind"] == "truth"]
@@ -134,11 +126,6 @@ def summarize(predictions: Sequence[Mapping[str, Any]], truths: Sequence[Mapping
 
 
 def incorrect_first_contact_intervals(predictions: Sequence[Mapping[str, Any]], contact: Optional[float]) -> int:
-    """Positive-duration overlap with [contact - 1, contact), never duplicates.
-
-    An interval ending at the window start or starting exactly at impact does not
-    occupy the pre-impact window. Zero-duration intervals are also excluded.
-    """
     if contact is None:
         return 0
     return sum(p["class"] in ("wrong vehicle", "unsupported")
@@ -147,7 +134,6 @@ def incorrect_first_contact_intervals(predictions: Sequence[Mapping[str, Any]], 
 
 
 def canonical_first_contacts(runs: Iterable[str]) -> Tuple[Dict[str, Dict[str, float]], Dict[str, str]]:
-    """The campaign changes radar/GNSS only, so canonical contact times apply."""
     result: Dict[str, Dict[str, float]] = {}
     hashes = {}
     for run in sorted(set(runs)):

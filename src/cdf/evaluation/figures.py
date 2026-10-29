@@ -1,5 +1,3 @@
-"""Figure style of the paper's plots (evaluation side): IEEE column widths, fonts embedded as TrueType in the
-PDF (no Type 3), text kept as text in the SVG, 8 pt text.  Checked by ``scripts/results_qa.py``."""
 
 from __future__ import annotations
 
@@ -11,7 +9,6 @@ FONT_PT = 8
 
 
 def paper_style() -> Any:
-    """matplotlib.pyplot with the paper's settings (Agg backend)."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt

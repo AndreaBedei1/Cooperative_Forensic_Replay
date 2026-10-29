@@ -1,23 +1,3 @@
-"""GROUND TRUTH viewer model: what CARLA simulated, for visual comparison with the reconstruction.
-
-PRIVILEGED.  Reads only ``<run>/ground_truth/`` (``states.jsonl``, ``collisions.jsonl``, ``metadata.json``):
-every vehicle of the run, recorder or not, on its true trajectory, and the physical contacts.  It never reads
-``reconstruction/`` or ``vehicles/``, so it cannot show (or be confused with) anything the algorithm estimated.
-
-The run is a :class:`cdf.replay.model.ReplayRun` so that the same viewer (``scripts/replay_run.py
---ground-truth``) draws it with the same camera, keys, speeds and timeline as the reconstruction:
-
-* replay time 0 is the first recorded frame (the recorders' first samples);
-* the displayed clock is ``t_contact``: seconds from the first true vehicle-vehicle contact (the instant the
-  reconstruction's global clock is anchored on when it aligns the recorders on that collision), and the scenario
-  time is shown beside it;
-* contacts are grouped into episodes per vehicle pair: callbacks of one pair less than ``CONTACT_GAP_S`` apart
-  are one episode (the evaluation's rule); each episode is a ``CONTACT_START`` / ``CONTACT_END`` pair in both
-  vehicles' panels and a COLLISION banner at its start.  An episode of the same pair that follows within
-  ``RECONTACT_MAX_PAUSE_S`` without the true boxes parting by more than ``RECONTACT_MAX_SEPARATION_M`` is a
-  recontact of that collision (the evaluation's and the reconstruction's rule): ``RECONTACT_START`` /
-  ``RECONTACT_END`` and no further banner.  Contacts with the static world are listed apart.
-"""
 
 from __future__ import annotations
 
@@ -46,7 +26,7 @@ def _jsonl(path: Path) -> List[Dict[str, Any]]:
 @dataclass(frozen=True)
 class ContactEpisode:
     pair: Tuple[str, str]
-    start: float  # replay time
+    start: float
     end: float
     callbacks: int
     peak_impulse: float
@@ -54,7 +34,6 @@ class ContactEpisode:
 
 def contact_episodes(collisions: List[Dict[str, Any]], actor_ids: Dict[int, str], start: float,
                      gap_s: float = CONTACT_GAP_S) -> Tuple[List[ContactEpisode], List[ContactEpisode]]:
-    """(vehicle-vehicle episodes, contacts with anything else) from the privileged collision log."""
     per_pair: Dict[Tuple[str, str], List[Tuple[float, float]]] = defaultdict(list)
     for c in collisions:
         other = actor_ids.get(int(c.get("other_actor_id", -1)))
@@ -75,7 +54,6 @@ def contact_episodes(collisions: List[Dict[str, Any]], actor_ids: Dict[int, str]
             last, peak, count = t, max(peak, impulse), count + 1
         (static if pair[0].startswith("static:") or pair[1].startswith("static:") else vehicles).append(
             ContactEpisode(pair, round(first, 6), round(last, 6), count, peak))
-    # Mutual callbacks are logged by both vehicles: a pair appears once (sorted), counted from both sides.
     return sorted(vehicles, key=lambda e: (e.start, e.pair)), sorted(static, key=lambda e: (e.start, e.pair))
 
 
@@ -87,9 +65,8 @@ def _footprint(extent: Optional[Dict[str, float]]) -> Optional[EgoFootprint]:
 
 
 class GroundTruthRun(ReplayRun):
-    """A ReplayRun built from ground truth only (module docstring)."""
 
-    contact_zero: float = 0.0  # replay time of the first vehicle-vehicle contact (0 when there is none)
+    contact_zero: float = 0.0
     episodes: List[ContactEpisode]
     static_contacts: List[ContactEpisode]
     map_name: Optional[str] = None
@@ -99,7 +76,6 @@ class GroundTruthRun(ReplayRun):
         return round(t - self.contact_zero, 6) + 0.0
 
     def recording_time(self, t: float) -> float:
-        """Replay time -> the simulator clock (cdf.replay.sync: the instant two viewers share)."""
         return self.start + t
 
     def replay_time_of(self, t_recording: float) -> float:
@@ -163,7 +139,6 @@ def load_ground_truth_run(run_dir: Path) -> GroundTruthRun:
         other = e.pair[0] if me == e.pair[1] else e.pair[1]
         events[me].append(ReplayEvent(e.start, me, "STATIC_CONTACT", other, "s{0}".format(i), {}))
     for p in participants:
-        # A one-callback contact starts and ends at the same instant: its START first.
         evs = sorted(events.get(p.participant_id, []),
                      key=lambda ev: (ev.time, ev.event_type.endswith("_END"), ev.node_id))
         run.local_events[p.participant_id] = LocalEvents(p.participant_id, start, evs, state_intervals(evs))

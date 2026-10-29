@@ -1,4 +1,3 @@
-"""Raw CARLA sensor adapters with frame-matched queues."""
 
 from __future__ import annotations
 
@@ -23,19 +22,6 @@ RADAR_ANCHORS = ("front", "left", "right", "rear", "vehicle")
 
 @dataclass
 class RadarSpec:
-    """One physical CARLA radar on the vehicle's body.
-
-    The mount is resolved from the vehicle's own bounding box when the radar is
-    spawned (``mount_transform``): ``anchor`` front / rear puts it on the box's
-    centre line just outside that face, left / right at the middle of that side
-    just outside it (``gap_m`` beyond the box), ``mount_z`` above the ground;
-    ``vehicle`` takes ``mount_x`` / ``mount_y`` as given.  CARLA's radar traces
-    its rays in a cone of half-width ``tan(horizontal_fov / 2) x range`` around
-    its axis, so a horizontal FOV of 180 degrees or more folds back (measured on
-    0.9.15: 200 -> +-80 deg, 360 -> a vertical slice ahead): every radar must
-    stay below 180.  Off its axis a ray also reaches beyond ``range_m`` (the
-    range bounds its forward component): returns beyond it radially are dropped.
-    """
 
     sensor_id: str = "front"
     blueprint: str = "sensor.other.radar"
@@ -60,7 +46,6 @@ class RadarSpec:
             raise ValueError("unknown radar anchor {0!r} (one of {1})".format(self.anchor, ", ".join(RADAR_ANCHORS)))
 
     def mount_transform(self, vehicle: Any = None) -> Dict[str, float]:
-        """Mount in the vehicle frame (x forward, y right, z up from the vehicle origin; degrees)."""
         if self.anchor == "vehicle" or vehicle is None:
             x, y = self.mount_x, self.mount_y
         else:
@@ -87,7 +72,7 @@ def radar_specs_from_config(cfg: Config) -> List[RadarSpec]:
             gap_m=float(m.get("gap_m", 0.05)), mount_x=float(m.get("x", 0.0)), mount_y=float(m.get("y", 0.0)),
             mount_z=float(m.get("z", 0.6)), mount_yaw_deg=float(m.get("yaw_deg", 0)),
             mount_pitch_deg=float(m.get("pitch_deg", 0)))
-        spec.validate()  # before anything is spawned
+        spec.validate()
         out.append(spec)
     ids = [spec.sensor_id for spec in out]
     if len(set(ids)) != len(ids):
@@ -96,26 +81,18 @@ def radar_specs_from_config(cfg: Config) -> List[RadarSpec]:
 
 
 def measurement_rows(measurement: Any) -> np.ndarray:
-    """CARLA radar measurement -> float array [depth, azimuth, altitude, radial velocity].
-
-    The raw buffer holds four float32 per detection: velocity, azimuth,
-    altitude, depth.  The velocity is kept native: the range rate, negative
-    while the target approaches.  Azimuth and altitude stay in the radar's own
-    frame: the reconstruction places every return from its own radar's mount.
-    """
     raw = np.frombuffer(measurement.raw_data, dtype=np.float32).reshape(-1, 4)
     return raw[:, [3, 1, 2, 0]].astype(np.float64)
 
 
 class RadarSensor:
-    """One physical CARLA radar with its frame-matched queue."""
 
     def __init__(self, scenario_world: Any, vehicle: Any, spec: RadarSpec, max_queue: int = 64) -> None:
         carla = import_carla()
         self.spec = spec
         self.mount = spec.mount_transform(vehicle)
         self._queue = queue.Queue(maxsize=max_queue)
-        self._pending: Optional[Any] = None  # a measurement of a later frame, kept for its own poll
+        self._pending: Optional[Any] = None
         self.dropped = self.received = self._delivered = self._missing = self._beyond_range = 0
         transform = carla.Transform(carla.Location(x=self.mount["x"], y=self.mount["y"], z=self.mount["z"]),
                                     carla.Rotation(pitch=self.mount["pitch_deg"], yaw=self.mount["yaw_deg"], roll=0.0))
@@ -133,7 +110,6 @@ class RadarSensor:
             self.dropped += 1
 
     def _take(self, frame: int, timeout_s: float) -> Optional[Any]:
-        """This radar's measurement of exactly ``frame`` (None if it has none)."""
         if self._pending is not None:
             if int(self._pending.frame) > int(frame):
                 return None
@@ -154,7 +130,6 @@ class RadarSensor:
         return None
 
     def metadata(self) -> Dict[str, Any]:
-        """What the vehicle logger records about this radar: its configuration and resolved mount."""
         out = dict(self.spec.__dict__)
         out["sensor_transform"] = dict(self.mount)
         return out
@@ -165,8 +140,6 @@ class RadarSensor:
             self._missing += 1
             return None
         rows = measurement_rows(m)
-        # Off its axis a CARLA radar reaches beyond its range (the range bounds the
-        # forward component only): keep a radial range.
         keep = rows[:, 0] <= self.spec.range_m
         self._beyond_range += int((~keep).sum())
         self._delivered += 1
@@ -199,9 +172,6 @@ class CameraSpec:
 
 
 def camera_spec_from_config(cfg: Config, vehicle_blueprint: Optional[str] = None) -> Optional[CameraSpec]:
-    """The RGB camera of a vehicle.  ``mounts`` maps a vehicle blueprint to its own
-    (x, y, z) mount (behind the windscreen at its top centre, checked visually per
-    blueprint); a blueprint without an entry uses ``mount_x`` / ``mount_y`` / ``mount_z``."""
     b = cfg.get("sensors.camera", None)
     if b is None or not bool(b.get("enabled", True)): return None
     mount = dict((b.get("mounts") or {}).get(vehicle_blueprint or "", {}) or {})
@@ -214,7 +184,6 @@ def camera_spec_from_config(cfg: Config, vehicle_blueprint: Optional[str] = None
 
 
 def depth_camera_spec_from_config(cfg: Config) -> Optional[CameraSpec]:
-    """Load the raw depth-camera installation, if enabled."""
     b = cfg.get("sensors.depth_camera", None)
     if b is None or not bool(b.get("enabled", True)): return None
     return CameraSpec(sensor_id=str(b.get("sensor_id", "front_depth")), blueprint=str(b.get("blueprint", "sensor.camera.depth")),
@@ -236,7 +205,6 @@ class DepthObservationSpec:
 
     @property
     def max_bins(self) -> int:
-        # After sparsification there is at most one return per azimuth bin.
         return int(math.ceil(self.horizontal_fov_deg / self.azimuth_bin_deg))
 
 
@@ -254,12 +222,10 @@ def depth_observation_spec_from_config(cfg: Config) -> DepthObservationSpec:
 
 
 def depth_radial_velocity_config_from_config(cfg: Config) -> DepthRadialVelocityConfig:
-    """Load the optional temporal depth velocity estimator configuration."""
     return depth_radial_velocity_config_from_mapping(cfg.get("depth_radial_velocity", {}) or {})
 
 
 def decode_carla_depth(raw_data: bytes, width: int, height: int) -> np.ndarray:
-    """Decode CARLA's BGRA 24-bit depth image to metres."""
     array = np.frombuffer(raw_data, dtype=np.uint8).reshape((int(height), int(width), 4))
     blue = array[..., 0].astype(np.float32)
     green = array[..., 1].astype(np.float32)
@@ -269,19 +235,12 @@ def decode_carla_depth(raw_data: bytes, width: int, height: int) -> np.ndarray:
 
 
 def camera_intrinsics(width: int, height: int, horizontal_fov_deg: float) -> tuple:
-    """Return pinhole ``fx, fy, cx, cy`` for CARLA's horizontal FOV."""
     fx = float(width) / (2.0 * math.tan(math.radians(float(horizontal_fov_deg)) / 2.0))
     return fx, fx, float(width) / 2.0, float(height) / 2.0
 
 
 def unproject_pixel(u: float, v: float, depth_m: float, width: int, height: int,
                     horizontal_fov_deg: float) -> tuple:
-    """Unproject a CARLA depth ray (x forward, y right, z up).
-
-    CARLA's raw depth converter yields camera-to-surface ray distance. The
-    normalized pinhole ray is therefore scaled so its Euclidean length remains
-    ``depth_m``.
-    """
     fx, fy, cx, cy = camera_intrinsics(width, height, horizontal_fov_deg)
     nx = (float(u) - cx) / fx
     ny = (cy - float(v)) / fy
@@ -297,7 +256,6 @@ def _camera_geometry(width: int, height: int, horizontal_fov_deg: float,
                      observation_horizontal_fov_deg: float,
                      observation_vertical_fov_deg: float,
                      azimuth_bin_deg: float, altitude_bin_deg: float) -> tuple:
-    """Cache static per-pixel angles and bin membership for repeated frames."""
     fx, fy, cx, cy = camera_intrinsics(width, height, horizontal_fov_deg)
     u, v = np.meshgrid(np.arange(width, dtype=np.float32), np.arange(height, dtype=np.float32))
     nx = (u - cx) / fx
@@ -326,12 +284,6 @@ def _camera_geometry(width: int, height: int, horizontal_fov_deg: float,
 
 def sparsify_depth_observations(detections: List[Dict[str, Any]],
                                 spec: DepthObservationSpec) -> List[Dict[str, Any]]:
-    """Keep one nearest non-ground return per horizontal azimuth bin.
-
-    The input is deliberately the existing 2-degree-by-2-degree extraction;
-    this second stage removes vertical duplicates without introducing semantic
-    object assumptions.  Ground rejection uses only camera-local geometry.
-    """
     n_az = int(math.ceil(spec.horizontal_fov_deg / spec.azimuth_bin_deg))
     half_h = math.radians(spec.horizontal_fov_deg / 2.0)
     selected: Dict[int, Dict[str, Any]] = {}
@@ -349,7 +301,6 @@ def sparsify_depth_observations(detections: List[Dict[str, Any]],
         bin_index = int(math.floor((azimuth + half_h) / math.radians(spec.azimuth_bin_deg)))
         bin_index = max(0, min(n_az - 1, bin_index))
         previous = selected.get(bin_index)
-        # Stable tie-breaks make the output reproducible for equal surfaces.
         key = (depth, abs(altitude), altitude)
         if previous is None or key < previous["_selection_key"]:
             kept = dict(detection)
@@ -366,7 +317,6 @@ def sparsify_depth_observations(detections: List[Dict[str, Any]],
 
 def depth_observations_from_depth(depth_m: np.ndarray, spec: DepthObservationSpec,
                                   horizontal_fov_deg: float) -> List[Dict[str, Any]]:
-    """Create sparse nearest-surface detections from the existing 2-D extraction."""
     if depth_m.ndim != 2:
         raise ValueError("depth array must be two-dimensional")
     height, width = depth_m.shape
@@ -392,16 +342,12 @@ def depth_observations_from_depth(depth_m: np.ndarray, spec: DepthObservationSpe
         nearest = np.partition(values, nearest_count - 1)[:nearest_count]
         representative = float(np.median(nearest))
         selected = indices[int(np.argmin(np.abs(values - representative)))]
-        # Convert before clipping so float32 input cannot round a boundary
-        # just outside the configured field of view.
         azimuth_value = min(max(float(azimuth[selected]), -half_h), half_h)
         altitude_value = min(max(float(altitude[selected]), -half_v), half_v)
         detections.append({
             "depth": float(flat_depth[selected]),
             "azimuth": azimuth_value,
             "altitude": altitude_value,
-            # Reserved for depth-derived temporal radial velocity estimation.
-            # It is deliberately not computed in this acquisition step.
             "radial_velocity": None,
         })
     return sparsify_depth_observations(detections, spec)
@@ -431,7 +377,6 @@ class CameraSensor:
     def dropped(self) -> int: return self._dropped
 
     def set_minimum_frame(self, frame: int) -> None:
-        """Ignore callback images produced before the recorded timeline."""
         self._minimum_frame = int(frame)
     def _record(self, image: Any) -> Dict[str, Any]:
         return {"frame": int(image.frame), "timestamp": float(image.timestamp), "width": int(image.width), "height": int(image.height), "data": bytes(image.raw_data),
@@ -440,7 +385,6 @@ class CameraSensor:
                 "pitch_deg": self.spec.mount_pitch_deg, "yaw_deg": self.spec.mount_yaw_deg, "roll_deg": self.spec.mount_roll_deg}}
 
     def drain_available(self) -> List[Dict[str, Any]]:
-        """Return all currently queued images without waiting for a future frame."""
         out = []
         while True:
             try:

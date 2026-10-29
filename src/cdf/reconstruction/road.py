@@ -1,15 +1,3 @@
-"""Road geometry for road-relative semantics (no run, scenario or ground-truth data).
-
-The driving lanes of the map the recorder drove on, from the public OpenDRIVE file shipped with the CARLA
-installation (``cdf.common.opendrive``): the map is the one whose driving lanes contain the recorder's own
-recorded positions (``ego.jsonl``, its GNSS-like pose).  Without a local installation, or when no map fits,
-there is no road model and the semantics fall back to the recorder-relative kinematics alone.
-
-``RoadFrame.lane_toward_speed``: a target's velocity across ITS OWN lane, signed toward the recorder (positive
-= moving toward the recorder's side of the road).  Two cars following one curved road keep their lanes: this
-speed stays near zero while their positions drift sideways in any fixed frame.  A car crossing into the
-recorder's lane has it positive, on a straight road or on a curve.
-"""
 
 from __future__ import annotations
 
@@ -23,15 +11,13 @@ import numpy as np
 from ..common.opendrive import LaneSample, best_map, lane_pieces_from_opendrive, lanes_from_opendrive
 
 OPENDRIVE_DIR = Path("CarlaUE4") / "Content" / "Carla" / "Maps" / "OpenDrive"
-MAP_MIN_FIT = 0.8  # share of the recorder's positions inside the map's driving lanes
-LANE_SEARCH_M = 4.0  # lane stretches within this distance of a point are candidates
-MIN_SPEED_MPS = 1.0  # below, a target has no direction of travel
-LANE_TRAVEL_DEG = 30.0  # a vehicle within this of its lane's direction travels along it (else it crosses or turns)
+MAP_MIN_FIT = 0.8
+LANE_SEARCH_M = 4.0
+MIN_SPEED_MPS = 1.0
+LANE_TRAVEL_DEG = 30.0
 
 
 class RoadLanes:
-    """Driving-lane stretches of one map with a spatial index, and its lane graph (``LaneGraph``, built from
-    ``pieces`` when given, else from the map's OpenDRIVE file on first use; None without one)."""
 
     def __init__(self, name: str, lanes: Sequence[LaneSample], pieces: Optional[Sequence[Any]] = None) -> None:
         from scipy.spatial import cKDTree
@@ -52,7 +38,6 @@ class RoadLanes:
         return self._graph
 
     def direction(self, x: float, y: float) -> Optional[float]:
-        """Heading [rad, world frame] of the driving lane containing (x, y), None off the driving lanes."""
         best: Optional[Tuple[float, float]] = None
         for index in self.tree.query_ball_point((x, y), LANE_SEARCH_M):
             lane = self.lanes[index]
@@ -77,7 +62,7 @@ def _opendrive_sources() -> Dict[str, str]:
             from ..common.config import load_run_config
             from ..common.installation import find_carla_root as find_root
             root = find_root(load_run_config().get("simulation.carla_root"))
-        except Exception:  # no configuration or installation: no road model
+        except Exception:
             root = None
         if root is not None:
             _SOURCES = {path.stem: path.read_text(encoding="utf-8", errors="replace")
@@ -86,8 +71,6 @@ def _opendrive_sources() -> Dict[str, str]:
 
 
 def road_for_positions(points: Sequence[Tuple[float, float]]) -> Optional[RoadLanes]:
-    """The driving lanes of the map that contains the given positions (no heading: any lane), None without one.
-    The recorders use ``road_for_trajectory``."""
     sources = _opendrive_sources()
     if not sources or not points:
         return None
@@ -98,7 +81,6 @@ def road_for_positions(points: Sequence[Tuple[float, float]]) -> Optional[RoadLa
 
 
 def road_named(name: str) -> Optional[RoadLanes]:
-    """The driving lanes of the named map (the supplied incident context), None without its OpenDRIVE file."""
     return _road(name) if name in _opendrive_sources() else None
 
 
@@ -110,12 +92,6 @@ def _road(name: str) -> RoadLanes:
 
 
 def road_for_trajectory(points: Sequence[Tuple[float, float]], headings: Sequence[float]) -> Optional[RoadLanes]:
-    """The map the recorder drove on, from its own poses (positions and headings, world frame): the one where
-    the largest share of its poses lie in a driving lane they travel along (``LaneGraph.candidates``: within the
-    lane plus a margin, heading within ``MATCH_HEADING_DEG`` of the lane's direction of travel), at least
-    ``MAP_MIN_FIT``; between maps that fit equally, the smaller mean lane misfit (offset and heading).  All the
-    CARLA towns share coordinates around the origin, so a short straight trajectory can lie on lanes of several
-    of them: position alone does not identify the map.  None without a fitting map."""
     sources = _opendrive_sources()
     if not sources or not len(points):
         return None
@@ -140,23 +116,17 @@ def road_for_trajectory(points: Sequence[Tuple[float, float]], headings: Sequenc
 
 @dataclass
 class RoadFrame:
-    """The road model with the transform of the recorder's local frame (anchored at its first pose) to the
-    world frame of the map."""
 
     road: RoadLanes
     x0: float
     y0: float
     yaw0: float
     _reference: Dict[int, Any] = field(default_factory=dict, repr=False, compare=False)
-    source: str = "own poses"  # where the map comes from: "incident context" or "own poses"
+    source: str = "own poses"
 
     @classmethod
     def from_ego_records(cls, records: Sequence[Mapping[str, Any]], step: int = 5,
                          map_name: Optional[str] = None) -> Optional["RoadFrame"]:
-        """The road frame of a recorder: the map of the supplied incident context (``map_name``) when its
-        OpenDRIVE file is installed, else the map its own poses fit (``road_for_trajectory``).  All the CARLA
-        towns share coordinates around the origin, so a recorder's poses alone can fit a lane of another town
-        (S06, recorder C: Town01 instead of Town05)."""
         if not records:
             return None
         road = road_named(map_name) if map_name else None
@@ -180,7 +150,6 @@ class RoadFrame:
         return c * vx - s * vy, s * vx + c * vy
 
     def reference(self, ego: Any) -> Optional["ReferencePath"]:
-        """The recorder's reference path over its whole trajectory ``ego`` (local frame), computed once."""
         key = id(ego)
         if key not in self._reference:
             graph = self.road.graph
@@ -194,8 +163,6 @@ class RoadFrame:
         return self._reference[key]
 
     def path_at(self, ego: Any, t: float) -> Optional[Tuple["LanePath", float, float]]:
-        """(the recorder's reference path at ``t``, its own arc length and lateral offset on it), None off the
-        lanes (``ReferencePath``: the same path for every sweep of one lane episode)."""
         reference = self.reference(ego)
         if reference is None:
             return None
@@ -207,8 +174,6 @@ class RoadFrame:
         return path, float(s0), float(l0)
 
     def to_path(self, ego: Any, t: float, local_xy: np.ndarray) -> Optional[np.ndarray]:
-        """Points of the recorder's local frame in its path frame at ``t``: (arc length ahead of the recorder,
-        lateral offset from its own line, + = right; path heading [rad, world])."""
         state = self.path_at(ego, t)
         if state is None:
             return None
@@ -220,8 +185,6 @@ class RoadFrame:
         return out
 
     def lane_headings(self, x: float, y: float) -> List[float]:
-        """Directions of travel [rad, local frame] of the driving lanes containing the local point (x, y) (within
-        the lane plus half a metre), nearest lane first; [] off the lanes or without a lane graph."""
         graph = self.road.graph
         if graph is None:
             return []
@@ -230,11 +193,6 @@ class RoadFrame:
         return [_wrap(h - self.yaw0) for _, h in found]
 
     def lane_curvature(self, x: float, y: float, vx: float, vy: float) -> Optional[float]:
-        """Curvature [1/m, + = turning right, local frame as CARLA's] of the driving lane the target at local
-        (x, y) travels in -- the lane containing it (within its width plus half a metre) whose direction of
-        travel is within ``LANE_TRAVEL_DEG`` of its velocity (vx, vy), the nearest such -- over 5 m either side
-        of it along the lane.  None off the lanes, without a direction of travel, or inside a junction (which of
-        its overlapping connectors a car follows is not known there)."""
         graph = self.road.graph
         speed = math.hypot(vx, vy)
         if graph is None or speed < MIN_SPEED_MPS:
@@ -257,10 +215,6 @@ class RoadFrame:
         return float((np.interp(s1, cumulative, headings) - np.interp(s0, cumulative, headings)) / (s1 - s0))
 
     def along_lane(self, x: float, y: float, vx: float, vy: float) -> Optional[Tuple[float, float]]:
-        """The target's (local position x, y and velocity vx, vy) velocity without its component across its own
-        lane, in the local frame: the null hypothesis that a car keeps its lane.  None off the map's driving
-        lanes, without a direction of travel, or more than ``LANE_TRAVEL_DEG`` off its lane's direction (a car
-        crossing or turning: no lane to keep)."""
         wx, wy = self.to_world(x, y)
         wvx, wvy = self.vector_to_world(vx, vy)
         speed = math.hypot(wvx, wvy)
@@ -279,9 +233,6 @@ class RoadFrame:
 
     def lane_toward_speed(self, x: float, y: float, vx: float, vy: float,
                           ego_x: float, ego_y: float) -> Optional[float]:
-        """The target's (local position x, y and velocity vx, vy) velocity across its own lane, signed toward
-        the recorder at (ego_x, ego_y) (all in the recorder's local frame); None off the map's driving lanes
-        or without a direction of travel."""
         wx, wy = self.to_world(x, y)
         wvx, wvy = self.vector_to_world(vx, vy)
         if math.hypot(wvx, wvy) < MIN_SPEED_MPS:
@@ -290,7 +241,7 @@ class RoadFrame:
         if heading is None:
             return None
         dx, dy = math.cos(heading), math.sin(heading)
-        if wvx * dx + wvy * dy < 0.0:  # the lane's direction of travel is the target's
+        if wvx * dx + wvy * dy < 0.0:
             dx, dy = -dx, -dy
         nx, ny = -dy, dx
         ex, ey = self.to_world(ego_x, ego_y)
@@ -300,20 +251,17 @@ class RoadFrame:
         return (wvx * nx + wvy * ny) * (1.0 if side > 0 else -1.0)
 
 
-# --------------------------------------------------------------------------
-# The recorder's reference path: lane graph and sequence-level map matching
-# --------------------------------------------------------------------------
 
-PATH_AHEAD_M = 80.0  # how far ahead the reference path is traced
-PATH_BEHIND_M = 10.0  # straight continuation behind the recorder (bodies level with it)
-CONTACT_M = 0.3  # connected lane pieces share their end points (OpenDRIVE contact points)
-CONTINUATION_DEG = 30.0  # ... and continue each other's heading
-MATCH_RADIUS_M = 6.0  # lane points searched around the recorder
-MATCH_EDGE_MARGIN_M = 1.0  # the recorder may be up to this beyond its lane's edge (a lane change, a wide turn)
-MATCH_HEADING_DEG = 45.0  # ... and turned by up to this from the lane's direction
-MATCH_HEADING_STD_DEG = 20.0  # heading misfit worth one emission unit (offset: half the lane width)
-LANE_CHANGE_COST = 3.0  # emission units for moving to a neighbouring lane: no flip-flop on the lane line
-JUMP_COST = 20.0  # moving between unconnected lanes (map gap): only when nothing else explains the positions
+PATH_AHEAD_M = 80.0
+PATH_BEHIND_M = 10.0
+CONTACT_M = 0.3
+CONTINUATION_DEG = 30.0
+MATCH_RADIUS_M = 6.0
+MATCH_EDGE_MARGIN_M = 1.0
+MATCH_HEADING_DEG = 45.0
+MATCH_HEADING_STD_DEG = 20.0
+LANE_CHANGE_COST = 3.0
+JUMP_COST = 20.0
 
 
 def _wrap(angle: float) -> float:
@@ -321,7 +269,6 @@ def _wrap(angle: float) -> float:
 
 
 class LanePath:
-    """A polyline in the world frame with arc length: the recorder's reference path."""
 
     def __init__(self, points: Sequence[Tuple[float, float]]) -> None:
         self.points = np.asarray(points, dtype=float)
@@ -331,8 +278,6 @@ class LanePath:
         self.cumulative = np.concatenate([[0.0], np.cumsum(self.lengths)])
 
     def project(self, xy: np.ndarray) -> np.ndarray:
-        """(N, 3): arc length, signed lateral offset (+ = right of the path, as the vehicle frame) and the path
-        heading [rad] at the foot of every point."""
         xy = np.atleast_2d(np.asarray(xy, dtype=float))
         a = self.points[:-1][None, :, :]
         d = (self.points[1:] - self.points[:-1])[None, :, :]
@@ -351,9 +296,6 @@ class LanePath:
 
 
 class LaneGraph:
-    """Driving-lane pieces (``opendrive.LanePiece``) with their connections: a piece's successors start where it
-    ends (within ``CONTACT_M``, heading within ``CONTINUATION_DEG``); its neighbours are the adjacent lanes of the
-    same lane section with the same direction of travel (where a lane change goes)."""
 
     def __init__(self, pieces: Sequence[Any]) -> None:
         from scipy.spatial import cKDTree
@@ -384,8 +326,6 @@ class LaneGraph:
         return float(self.paths[i].cumulative[-1])
 
     def nearby(self, xy: Tuple[float, float]) -> List[Tuple[int, float, float, float, float]]:
-        """(piece, arc length, lateral offset, lane width, lane heading [rad]) of every lane piece passing within
-        ``MATCH_RADIUS_M`` of the point."""
         out = []
         near: Dict[int, List[int]] = {}
         for flat in self.tree.query_ball_point(xy, MATCH_RADIUS_M):
@@ -403,7 +343,6 @@ class LaneGraph:
         return out
 
     def candidates(self, xy: Tuple[float, float], heading: float) -> List[Tuple[int, float, float, float]]:
-        """(piece, arc length, lateral offset, emission cost) of every lane the point can be in."""
         out = []
         for i, s, offset, width, h in self.nearby(xy):
             dh = abs(_wrap(h - heading))
@@ -414,8 +353,6 @@ class LaneGraph:
         return out
 
     def reachable(self, i: int) -> set:
-        """Pieces reachable from ``i`` along at most two successor steps (``i`` included): consecutive pose
-        samples are at most ~2 m apart, junction pieces can be shorter."""
         if i not in self._reach:
             seen, frontier = {i}, [i]
             for _ in range(2):
@@ -425,7 +362,6 @@ class LaneGraph:
         return self._reach[i]
 
     def transition(self, i: int, s_i: float, j: int, s_j: float) -> float:
-        """Cost of moving from piece ``i`` (arc length ``s_i``) to piece ``j`` between consecutive samples."""
         if i == j:
             return 0.0 if s_j >= s_i - 0.5 else 2.0
         reach = self.reachable(i)
@@ -437,9 +373,6 @@ class LaneGraph:
 
 
 def map_match(graph: LaneGraph, xy: np.ndarray, headings: np.ndarray) -> List[Optional[Tuple[int, float, float]]]:
-    """The recorder's lane at every sample of its trajectory (world positions and headings): the sequence of lane
-    pieces with the least total misfit (Viterbi over offset / heading emissions and lane connections), not an
-    independent nearest-lane decision per sample.  (piece, arc length, lateral offset); None off the lanes."""
     out: List[Optional[Tuple[int, float, float]]] = [None] * len(xy)
     k = 0
     while k < len(xy):
@@ -475,11 +408,6 @@ def map_match(graph: LaneGraph, xy: np.ndarray, headings: np.ndarray) -> List[Op
 
 
 def _chain(graph: LaneGraph, start: int, route: Sequence[int], future: np.ndarray, ahead: float) -> List[int]:
-    """The lane pieces ahead of ``start`` along its successors, ``ahead`` metres at least.  At a branch: the
-    successor the recorder's route takes next (``route``: the pieces it is matched to later, in order), else the
-    one whose centreline passes nearest the recorder's later positions (``future``: after a lane change of the
-    recorder the reference keeps the current lane, parallel to where it went), else, past the end of the
-    recording, the straightest one."""
     chain, length = [start], graph.length(start)
     pending = list(route)
     while length < ahead:
@@ -510,10 +438,6 @@ def _chain(graph: LaneGraph, start: int, route: Sequence[int], future: np.ndarra
 
 
 class ReferencePath:
-    """The recorder's reference path for its whole recording: its lane at every pose sample from the
-    sequence-level map matching (``map_match``) and, per run of samples on one lane piece (an episode), ONE
-    forward chain of lane pieces (``_chain``): consecutive radar sweeps share the same path, which changes only
-    when the recorder enters the next piece of its chain (the same geometry) or changes lane."""
 
     def __init__(self, graph: LaneGraph, times: np.ndarray, xy: np.ndarray, headings: np.ndarray) -> None:
         self.graph = graph
@@ -539,7 +463,6 @@ class ReferencePath:
                 self._start[e] = k
 
     def index(self, t: float) -> int:
-        """The pose sample nearest ``t``."""
         return int(np.clip(np.searchsorted(self.times, t - 1e-9), 0, len(self.times) - 1)) if len(self.times) else 0
 
     def lane_at(self, k: int) -> Optional[Tuple[str, int, int]]:

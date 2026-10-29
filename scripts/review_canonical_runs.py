@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import json
@@ -11,11 +10,10 @@ from typing import Dict, List, Optional, Sequence, Tuple
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from canonical import canonical_runs  # noqa: E402
+from canonical import canonical_runs
 
 
 def server_line(extra) -> str:
-    """The CARLA server the viewers will use: the ``--port`` passed on, else the configured one."""
     for k, arg in enumerate(extra):
         if arg == "--port" and k + 1 < len(extra):
             return "CARLA server at port {0}".format(extra[k + 1])
@@ -25,9 +23,6 @@ def server_line(extra) -> str:
 
 
 def clock_offset(run: Path) -> float:
-    """t_contact - t_global at one instant (PRIVILEGED: the menu is a review tool, neither viewer reads this):
-    t_contact = 0 at the first true vehicle-vehicle contact (GROUND TRUTH viewer), t_global = 0 at the
-    reconstruction's reference collision, its strongest matched contact (RECONSTRUCTION viewer)."""
     rec = Path(run) / "reconstruction"
     alignment = json.loads((rec / "global" / "alignment.json").read_text(encoding="utf-8"))
     reference = None
@@ -58,7 +53,6 @@ def clock_note(run: Path) -> Optional[str]:
 
 
 def _option(extra: List[str], name: str) -> Tuple[Optional[str], List[str]]:
-    """The value of ``name`` in the extra arguments (``--name V`` or ``--name=V``) and the arguments without it."""
     rest, value, skip = [], None, False
     for k, arg in enumerate(extra):
         if skip:
@@ -74,8 +68,6 @@ def _option(extra: List[str], name: str) -> Tuple[Optional[str], List[str]]:
 
 def side_by_side(run: Path, extra: Sequence[str], gt_port: int, rec_port: int, sync_port: int
                  ) -> List[Tuple[List[str], Dict[str, str]]]:
-    """The two viewer commands and environments: GROUND TRUTH leading on ``gt_port`` (left window), RECONSTRUCTION
-    following on ``rec_port`` (right window)."""
     _, rest = _option(list(extra), "--port")
     res, _ = _option(rest, "--res")
     width = int((res or "1280x720").lower().split("x")[0])

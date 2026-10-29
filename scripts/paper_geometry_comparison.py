@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import argparse
@@ -16,8 +15,8 @@ from typing import Any, Dict, List, Sequence
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from cdf.evaluation.fusion_metrics import evaluate_fusion  # noqa: E402
-from cdf.evaluation.gt_audit import stats  # noqa: E402
+from cdf.evaluation.fusion_metrics import evaluate_fusion
+from cdf.evaluation.gt_audit import stats
 
 
 def _hash(path: Path) -> str:

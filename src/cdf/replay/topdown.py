@@ -1,21 +1,3 @@
-"""Headless top-down rendering of a replay, for keyframe export and visual QA (reconstruction only).
-
-``render_frame`` draws what ``ReplayRun`` holds at one instant of the replay clock (t_global): the
-recorders at the poses of their pose source with their own footprints and a short trail; every anonymous
-road user of the fusion (U1, U2, ...) once, as a box of its fitted footprint at the fused position and
-heading (solid while measured, dashed while only predicted) with a dotted circle of twice its position
-uncertainty when that exceeds 0.3 m, and the radar points of the tracks it fuses as small dots in their
-observers' colours; a track the fusion associated with a recorder as a dot linked to its observer, never
-a second body; a track that is neither (none after the fusion) as a ghost box of the nominal size; the
-recorders' states of the paper's core view
-(CRITICAL_TTC red, CUT_IN orange, IN_EGO_PATH yellow, BRAKE), exact at event instants from the local
-graphs' START/END events; the reconstructed core events of the
-last half second and the collisions.  The driving lanes come from the public OpenDRIVE geometry of the
-recognised map when lanes are given (``lanes_from_map``), marked on their boundaries: dashed between
-adjacent lanes, solid at the road edge.
-
-The inputs are those of ``ReplayRun`` only: nothing privileged is read.
-"""
 
 from __future__ import annotations
 
@@ -30,18 +12,17 @@ from .model import DEFAULT_FOOTPRINT, HEADING_UNKNOWN, ReplayRun, rotate
 from .presentation import anonymous_row, subject_label
 
 RECORDER_COLOURS = ("#1f77b4", "#ff7f0e", "#2ca02c", "#9467bd", "#8c564b", "#e377c2", "#17becf", "#bcbd22")
-ROAD_USER_COLOUR = "#3a3a3a"  # an anonymous road user belongs to no observer
-UNCERTAINTY_MIN_M = 0.3  # the 2-sigma circle is drawn only when it says something
+ROAD_USER_COLOUR = "#3a3a3a"
+UNCERTAINTY_MIN_M = 0.3
 STATE_COLOURS = {"CRITICAL_TTC": "#d62728", "CUT_IN_FROM_LEFT": "#f4a100", "CUT_IN_FROM_RIGHT": "#f4a100",
                  "IN_EGO_PATH": "#e9c46a"}
 TRACK_HIGHLIGHTS = ("CRITICAL_TTC", "CUT_IN_FROM_LEFT", "CUT_IN_FROM_RIGHT", "IN_EGO_PATH")
-EVENT_WINDOW_S = 0.5  # core events shown: those of the last half second
-TRAIL_S = 2.0  # recorded path drawn behind each recorder
+EVENT_WINDOW_S = 0.5
+TRAIL_S = 2.0
 KEY_STARTS = ("CRITICAL_TTC_START", "CUT_IN_FROM_LEFT_START", "CUT_IN_FROM_RIGHT_START", "EGO_PATH_ENTRY")
 
 
 def lanes_from_map(carla_map: Any, spacing: float = 2.0) -> List[LaneSample]:
-    """Driving-lane stretches of a client-side ``carla.Map`` (the public OpenDRIVE geometry)."""
     lanes = []
     for waypoint in carla_map.generate_waypoints(spacing):
         transform = waypoint.transform
@@ -53,14 +34,11 @@ def lanes_from_map(carla_map: Any, spacing: float = 2.0) -> List[LaneSample]:
 @dataclass(frozen=True)
 class Keyframe:
     label: str
-    time: float  # replay time
+    time: float
 
 
 def keyframes(run: ReplayRun, lead_s: float = 3.0, after_s: float = 0.5, before_s: float = 0.2,
               merge_s: float = 0.01) -> List[Keyframe]:
-    """Instants worth looking at, from the reconstructed events only: a few seconds before the first
-    important event, every CRITICAL_TTC / CUT_IN start and end and EGO_PATH_ENTRY up to one second after
-    the last collision, and each collision just before, at and just after it."""
     collisions = sorted(run.collisions, key=lambda mark: mark.time)
     horizon = collisions[-1].time + 1.0 if collisions else run.duration
     marks: List[Tuple[str, float]] = []
@@ -108,9 +86,6 @@ def _box(centre: Tuple[float, float], yaw: float, length: float, width: float) -
 
 def lane_markings(lanes: Sequence[LaneSample], line_width: float = 0.12,
                   dash: float = 0.5) -> Tuple[List[List[Tuple[float, float]]], List[List[Tuple[float, float]]]]:
-    """White markings on the lane boundaries, not the centres: (dashed between adjacent lanes, solid road edges).
-
-    A boundary is shared when another lane's centre lies one lane width beyond it on that side."""
     dashed, solid = [], []
     for lane in lanes:
         for side in (1.0, -1.0):
@@ -127,8 +102,6 @@ def lane_markings(lanes: Sequence[LaneSample], line_width: float = 0.12,
 
 
 def states_at(run: ReplayRun, recorder: str, t: float) -> Tuple[List[str], Dict[str, List[str]]]:
-    """(own states, track id -> states) of a recorder active at ``t``, from the START/END (ENTRY/EXIT)
-    events of its local graph: exact at event instants, where the 10 Hz perceived-state trace is not."""
     own: List[str] = []
     tracks: Dict[str, List[str]] = {}
     for interval in run.active_states(recorder, t):
@@ -141,11 +114,10 @@ def states_at(run: ReplayRun, recorder: str, t: float) -> Tuple[List[str], Dict[
 
 
 def frame_items(run: ReplayRun, t: float) -> Dict[str, Any]:
-    """What a frame at ``t`` shows, as plain data (also used by the QA checks)."""
     recorders, ghosts, associated, members, entities = [], [], [], [], []
     for index, participant in enumerate(run.participants):
         pid = participant.participant_id
-        pose = participant.trajectory.pose_at(run.start + t)  # trajectories run on the clock, t is replay time
+        pose = participant.trajectory.pose_at(run.start + t)
         own, external = states_at(run, pid, t)
         recorders.append({"id": pid, "colour": RECORDER_COLOURS[index % len(RECORDER_COLOURS)], "pose": pose,
                           "body": _footprint_world(pose, participant.footprint), "states": own})
@@ -157,7 +129,7 @@ def frame_items(run: ReplayRun, t: float) -> Dict[str, Any]:
             item = {"observer": pid, "track": track, "point": point, "states": flags,
                     "colour": RECORDER_COLOURS[index % len(RECORDER_COLOURS)]}
             if track.road_user is not None:
-                members.append(item)  # drawn through its road user's single box
+                members.append(item)
             elif track.ghost:
                 item["box"] = _box(point.centre, point.yaw, run.geometry.length, run.geometry.width)
                 ghosts.append(item)
@@ -168,7 +140,7 @@ def frame_items(run: ReplayRun, t: float) -> Dict[str, Any]:
         own = [m for m in members if m["track"].road_user == entity.entity_id]
         flags = [name for name in TRACK_HIGHLIGHTS if any(name in m["states"] for m in own)]
         yaw = state.yaw
-        if yaw is None:  # no heading known: parallel to its first observer, as the CRITICAL_TTC model takes it
+        if yaw is None:
             yaw = next((poses[o].yaw for o in state.observers if o in poses), 0.0)
         entities.append({"entity": entity, "state": state, "yaw": yaw, "states": flags,
                          "box": _box(state.centre, yaw, entity.length, entity.width),
@@ -189,7 +161,6 @@ def _extent(items: Dict[str, Any], minimum: float = 22.0, margin: float = 10.0) 
 
 def render_frame(run: ReplayRun, t: float, path: Path, lanes: Optional[Sequence[LaneSample]] = None,
                  label: str = "", extent: Optional[Tuple[float, float, float]] = None, dpi: int = 100) -> Dict[str, Any]:
-    """Draw the replay at replay time ``t`` into ``path`` (PNG, SVG or PDF by suffix); returns the items."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -272,7 +243,7 @@ def render_frame(run: ReplayRun, t: float, path: Path, lanes: Optional[Sequence[
     ax.plot([cx - half + 3, cx - half + 13], [cy + half - 3, cy + half - 3], color="black", lw=2.5, zorder=9)
     ax.text(cx - half + 8, cy + half - 4.2, "10 m", ha="center", fontsize=8, zorder=9)
     ax.set_xlim(cx - half, cx + half)
-    ax.set_ylim(cy + half, cy - half)  # CARLA's y points to the right of x: drawn downwards
+    ax.set_ylim(cy + half, cy - half)
     ax.set_aspect("equal")
     ax.set_xticks([])
     ax.set_yticks([])
@@ -339,7 +310,6 @@ def _wrap(text: str, width: int) -> List[str]:
 
 def export_keyframes(run: ReplayRun, directory: Path, lanes: Optional[Sequence[LaneSample]] = None,
                      times: Optional[Sequence[Tuple[str, float]]] = None, suffix: str = ".png") -> List[Dict[str, Any]]:
-    """Render ``times`` ((label, replay time) pairs; by default ``keyframes``) into ``directory``."""
     frames = [Keyframe(label, time) for label, time in times] if times is not None else keyframes(run)
     out = []
     for index, frame in enumerate(frames, 1):

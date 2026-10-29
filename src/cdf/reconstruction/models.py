@@ -1,24 +1,3 @@
-"""Plain data model shared by every reconstruction stage.
-
-Everything is a small dataclass with ``to_dict``/``from_dict`` for JSON.
-Event types are plain strings, so a new event type needs a new extractor, not a
-new class.  Kinds are ACTION (the recorder did something), FACT (a state of the
-world or of the recorder), PERCEPTION (the recorder sensed something external)
-and OUTCOME (a consequence such as a collision).
-
-Graph events are semantic transitions, mostly NAME_START / NAME_END pairs (or
-EGO_PATH_ENTRY / EGO_PATH_EXIT).  Quantitative evidence (speeds, pedal values,
-ranges, TTC, ...) stays in the trace facts; ``attributes`` holds only what an
-event genuinely needs, such as a collision's peak impulse used by alignment.
-A START at the first observation (recording start, or a track's first sample)
-has ``{"active_at_first_observation": true}``: the state was already active and
-its real beginning was not observed.  A state still active when observation
-ends has no END.
-
-Every event also carries ``perceived_state_before``: the recorder's own
-semantic state just before the event's timestamp (see ``world_state``), shared
-by all events at that timestamp.  States are true, false or "UNKNOWN".
-"""
 
 from __future__ import annotations
 
@@ -31,22 +10,9 @@ FACT = "FACT"
 PERCEPTION = "PERCEPTION"
 OUTCOME = "OUTCOME"
 
-# The two edge relations.  PRECEDES links an event to every event at the next
-# later timestamp; events that share a timestamp are simultaneous at the
-# recorder's resolution and are never linked by PRECEDES.  SAME_TRACK links a
-# track's TRACK_APPEARED_* to every other event whose subject is that same local
-# track: it is exactly "same subject_id", made explicit as graph structure for
-# graph queries.  It groups events, carries no temporal meaning, and its
-# direction (from the appearance) implies no order.
 PRECEDES = "PRECEDES"
 SAME_TRACK = "SAME_TRACK"
 
-# Display and serialisation order of events that share a timestamp.  It only
-# makes files stable and readable (a collision first, then state ends from the
-# innermost state outwards, then state starts from the outermost inwards, and
-# a lost track last, as the last thing known about it); it never creates a
-# PRECEDES edge.  Unknown types come last.  ``display_order`` applies it,
-# keeping a zero-length state's START before its own END.
 SAME_TIME_ORDER = (
     "COLLISION",
     "CUT_IN_FROM_LEFT_END", "CUT_IN_FROM_RIGHT_END",
@@ -65,8 +31,6 @@ SAME_TIME_ORDER = (
 )
 
 
-# The paper's core view: the events evaluated and shown by default.  The other events stay in the
-# graphs (they are part of the software), but the paper's evaluation and figures use only these.
 PAPER_CORE_EVENTS = (
     "COLLISION",
     "BRAKE_START", "BRAKE_END",
@@ -75,12 +39,10 @@ PAPER_CORE_EVENTS = (
     "CRITICAL_TTC_START", "CRITICAL_TTC_END",
     "TRACK_APPEARED_FRONT", "TRACK_APPEARED_LEFT", "TRACK_APPEARED_RIGHT", "TRACK_LOST",
 )
-# Their state names in a recorder's perceived state (``world_state``).
 PAPER_CORE_STATES = ("BRAKE", "CRITICAL_TTC", "CUT_IN_FROM_LEFT", "CUT_IN_FROM_RIGHT", "IN_EGO_PATH")
 
 
 def is_core_event(event_type: str) -> bool:
-    """Whether an event belongs to the paper's core view (``PAPER_CORE_EVENTS``)."""
     return event_type in PAPER_CORE_EVENTS
 
 
@@ -90,12 +52,10 @@ def same_time_rank(event_type: str) -> int:
     return len(SAME_TIME_ORDER)
 
 
-# Transition pairs that are not named NAME_START / NAME_END.
 TRANSITION_PAIRS = {"EGO_PATH_ENTRY": ("EGO_PATH", True), "EGO_PATH_EXIT": ("EGO_PATH", False)}
 
 
 def transition_of(event_type: str) -> Optional[Tuple[str, bool]]:
-    """(state name, True for a start / False for an end), or None for instantaneous events."""
     if event_type in TRANSITION_PAIRS:
         return TRANSITION_PAIRS[event_type]
     if event_type.endswith("_START"):
@@ -107,8 +67,6 @@ def transition_of(event_type: str) -> Optional[Tuple[str, bool]]:
 
 def display_order(items: Sequence[Any], time_of: Callable[[Any], float], type_of: Callable[[Any], str],
                   actor_of: Callable[[Any], Optional[str]], subject_of: Callable[[Any], Optional[str]]) -> List[Any]:
-    """Sort by time, then SAME_TIME_ORDER.  A state that starts and ends at the
-    same time (e.g. a sign seen for a single confirmation) keeps START before END."""
     def state_key(item: Any) -> Tuple[Any, ...]:
         return (transition_of(type_of(item))[0], actor_of(item), subject_of(item), round(time_of(item), 6))
 
@@ -126,11 +84,6 @@ def display_order(items: Sequence[Any], time_of: Callable[[Any], float], type_of
 
 def precedes_edges(ordered: Sequence[Any], time_of: Callable[[Any], float],
                    id_of: Callable[[Any], str]) -> List["GraphEdge"]:
-    """PRECEDES from every item to every item at the next later timestamp.
-
-    ``ordered`` is sorted by time.  Items with equal times form one
-    simultaneous group and get no PRECEDES among themselves.
-    """
     groups: List[List[Any]] = []
     for item in ordered:
         if groups and abs(time_of(item) - time_of(groups[-1][0])) < 1e-6:
@@ -147,11 +100,6 @@ def _drop_none(values: Dict[str, Any]) -> Dict[str, Any]:
 
 @dataclass
 class SemanticEvent:
-    """One fact or event, stamped with the recorder's own local time.
-
-    ``actor_id`` is who performs or reports it (the recorder, e.g. ``A``).
-    ``subject_id`` is the external thing it is about (e.g. ``track_001``).
-    """
 
     type: str
     kind: str
@@ -162,7 +110,6 @@ class SemanticEvent:
     source: str = ""
     confidence: Optional[float] = None
     event_id: Optional[str] = None
-    # The recorder's semantic state just before t_local (graph events only).
     perceived_state_before: Optional[Dict[str, Any]] = None
 
     def to_dict(self) -> Dict[str, Any]:
@@ -186,12 +133,10 @@ class SemanticEvent:
 
 @dataclass
 class TraceFrame:
-    """What one recorder knows at one instant of its own clock."""
 
     t_local: float
     facts: List[SemanticEvent] = field(default_factory=list)
     events: List[SemanticEvent] = field(default_factory=list)
-    # The recorder's semantic state at t_local, after the transitions at t_local.
     perceived_state: Optional[Dict[str, Any]] = None
 
     def to_dict(self) -> Dict[str, Any]:
@@ -205,7 +150,6 @@ class TraceFrame:
 
 @dataclass
 class GraphNode:
-    """A semantic event promoted to a node of a local event graph."""
 
     node_id: str
     event_type: str
@@ -262,11 +206,6 @@ class GraphEdge:
 
 @dataclass
 class LocalGraph:
-    """The sparse event graph of one recorder, entirely in its local time.
-
-    ``tracks`` summarises the anonymous radar tracks the nodes refer to and
-    ``recorder`` documents the local clock and frame conventions.
-    """
 
     owner: str
     nodes: List[GraphNode] = field(default_factory=list)
@@ -297,8 +236,6 @@ class LocalGraph:
 
 
 def is_anonymous_entity(name: Optional[str]) -> bool:
-    """A global name that identifies no recorder: an anonymous road user (U1, U2, ...) or, for a recorder
-    without a global clock, the local track name (A:track_001)."""
     if not name:
         return False
     return ":" in name or (name[0] == "U" and name[1:].isdigit())
@@ -306,23 +243,14 @@ def is_anonymous_entity(name: Optional[str]) -> bool:
 
 @dataclass
 class GraphClock:
-    """How one local graph's clock maps to global graph time.
-
-    ``t_global = t_local + offset_to_global``.  The local graph itself is never
-    changed; this object is the only place where the mapping lives.  The
-    anchor is the graph's own collision node that aligned it, and ``chain``
-    the matched collisions that link it to the reference one (one entry when
-    it reported the reference collision itself, more for multi-hop alignment).
-    """
 
     graph: str
-    status: str  # ALIGNED or UNALIGNED
+    status: str
     anchor_node: Optional[str] = None
     anchor_t_local: Optional[float] = None
     offset_to_global: Optional[float] = None
     reason: str = ""
     chain: List[str] = field(default_factory=list)
-    # How the offset was fixed: "matched_collisions" or "observed_trajectories" (None while unaligned).
     method: Optional[str] = None
 
     def to_global(self, t_local: float) -> Optional[float]:
@@ -342,10 +270,7 @@ class Alignment:
     reference_event: Optional[str]
     graphs: Dict[str, GraphClock]
     matched_events: List[Dict[str, Any]] = field(default_factory=list)
-    # Impulse-compatible report pairs refused because their clock offset
-    # contradicts the matches already accepted.
     rejected_matches: List[Dict[str, Any]] = field(default_factory=list)
-    # Recorders without a matched collision: the observed-trajectory alignment's decisions (anonymous.py).
     observed: List[Dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -354,7 +279,6 @@ class Alignment:
         for first in aligned:
             for second in aligned:
                 if first < second:
-                    # How far the second clock reads ahead of the first one.
                     relative[second + " - " + first] = round(
                         self.graphs[first].offset_to_global - self.graphs[second].offset_to_global, 4)
         methods = sorted({clock.method for clock in self.graphs.values() if clock.method})
@@ -373,22 +297,17 @@ class Alignment:
 
 @dataclass
 class Association:
-    """Fusion-stage decision about what one anonymous local track is."""
 
     local_graph: str
     local_track: str
     global_entity: str
-    status: str  # ASSOCIATED or ANONYMOUS
-    confidence: Optional[float]  # None when no identity is claimed
+    status: str
+    confidence: Optional[float]
     evidence: List[str] = field(default_factory=list)
     source_graphs: List[str] = field(default_factory=list)
     candidate: Optional[str] = None
-    # The failed checks that keep the track anonymous (empty when associated).
     blocking: List[str] = field(default_factory=list)
-    # The matched collision the decision rests on (the candidate's contact).
     collision_event: Optional[str] = None
-    # Identity association (absent from the record when not set): the association score of the identity,
-    # and for an identity resolved from later evidence the global time that evidence starts.
     identity_confidence: Optional[float] = None
     identity_resolved_from: Optional[float] = None
     retrospective: bool = False
@@ -410,7 +329,6 @@ class Association:
 
 @dataclass
 class Observation:
-    """Provenance: which local node a global node came from."""
 
     graph: str
     local_node: str
@@ -433,8 +351,6 @@ class GlobalNode:
     source: str
     confidence: Optional[float]
     observations: List[Observation]
-    # Local beliefs just before the event, per observing recorder, in that
-    # recorder's own local names (track_001, ...): never rewritten by fusion.
     perceived_state_before: Dict[str, Dict[str, Any]] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -452,8 +368,6 @@ class GlobalGraph:
     entities: List[Dict[str, Any]]
     nodes: List[GlobalNode]
     edges: List[GraphEdge]
-    # Local nodes the global graph deliberately does not assert ({"graph", "local_node", "reason"}): their
-    # evidence stays in the local graph, the global trace and the standard replay leave them out.
     suppressed_local_nodes: List[Dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:

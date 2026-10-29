@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import logging
@@ -9,8 +8,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from cdf.replay.ground_truth import load_ground_truth_run  # noqa: E402
-import replay_run  # noqa: E402
+from cdf.replay.ground_truth import load_ground_truth_run
+import replay_run
 
 
 def main(argv=None) -> int:

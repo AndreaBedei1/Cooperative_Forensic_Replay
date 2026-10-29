@@ -1,4 +1,3 @@
-"""Compact, source-agnostic storage for variable-length sensor detections."""
 
 from __future__ import annotations
 
@@ -17,16 +16,10 @@ OBSERVATION_COLUMNS = (
     "radial_velocity_mps",
 )
 
-# The radial-velocity column keeps each source's own sign, in files and in the
-# loader.  Radar stores CARLA's native RadarDetection.velocity, which is the
-# range rate: negative while the range shrinks (verified on recordings, although
-# CARLA documents it as velocity towards the sensor).  Depth stores the locally
-# estimated closing speed: positive while the range shrinks.
 CLOSING_SPEED_SIGN = {"radar": -1.0, "depth": 1.0}
 
 
 def closing_speed(values: Any, source: str) -> Any:
-    """Radial velocities of ``source`` as closing speed: positive = approaching."""
     return CLOSING_SPEED_SIGN[str(source).lower()] * values
 
 
@@ -35,7 +28,6 @@ def _json(value: Any) -> str:
 
 
 def _detection_row(detection: Any) -> np.ndarray:
-    """Convert either the radar/depth dict schema or a numeric row to float32."""
     if isinstance(detection, Mapping):
         depth = detection.get("depth_m", detection.get("depth"))
         azimuth = detection.get("azimuth_rad", detection.get("azimuth"))
@@ -54,7 +46,6 @@ def _detection_row(detection: Any) -> np.ndarray:
 
 @dataclass(frozen=True)
 class CompactObservations:
-    """Loaded variable-length observations with common radar/depth columns."""
 
     frames: np.ndarray
     timestamps: np.ndarray
@@ -66,7 +57,6 @@ class CompactObservations:
         return self.detections[self.offsets[index]:self.offsets[index + 1]]
 
     def __iter__(self) -> Iterator[Dict[str, Any]]:
-        """Iterate frames through the same logical radar/depth interface."""
         for index, (frame, timestamp) in enumerate(zip(self.frames, self.timestamps)):
             yield {
                 "frame": int(frame),
@@ -76,7 +66,6 @@ class CompactObservations:
 
 
 def load_observations(path: Path) -> CompactObservations:
-    """Load a radar or depth NPZ without permitting object/pickle arrays."""
     with np.load(Path(path), allow_pickle=False) as data:
         required = {"frames", "timestamps", "offsets", "detections"}
         missing = required.difference(data.files)
@@ -127,7 +116,6 @@ COMMON_REGION = {
 
 
 def _filter_common_region(observations: CompactObservations) -> CompactObservations:
-    """Return a view with the radar/depth overlap while preserving all frames."""
     az_limit = np.deg2rad(45.0)
     al_limit = np.deg2rad(5.0)
     rows = []
@@ -135,7 +123,6 @@ def _filter_common_region(observations: CompactObservations) -> CompactObservati
     for index in range(len(observations.frames)):
         detections = observations.frame_detections(index)
         if len(detections):
-            # Preserve NaN velocity rows: only geometry defines the region.
             valid = (
                 np.isfinite(detections[:, 0])
                 & (detections[:, 0] >= 0.0) & (detections[:, 0] <= 90.0)
@@ -154,12 +141,6 @@ def _filter_common_region(observations: CompactObservations) -> CompactObservati
 
 
 def load_radar_observations(vehicle_dir: Path) -> List[CompactObservations]:
-    """Every radar of a vehicle, each with its own metadata (sensor id, mount), sorted by sensor id.
-
-    A vehicle with several radars stores them under ``radar/<sensor_id>/``; a
-    single one directly under ``radar/``.  The sensor id defaults to the folder
-    name when the metadata does not state it.
-    """
     root = Path(vehicle_dir) / "radar"
     out = []
     if (root / "observations.npz").exists():
@@ -178,13 +159,6 @@ def load_radar_observations(vehicle_dir: Path) -> List[CompactObservations]:
 
 def load_observation_stream(vehicle_dir: Path, source: str = "radar", common_region: bool = False,
                             sensor_id: Optional[str] = None) -> CompactObservations:
-    """Load either native radar or depth through one source-agnostic API.
-
-    ``common_region=True`` filters only the returned view; native NPZ files are
-    never modified, so radar observations outside the overlap remain available.
-    A vehicle with several radars (``radar/<sensor_id>/``) needs ``sensor_id``
-    (``load_radar_observations`` returns them all).
-    """
     root = Path(vehicle_dir)
     source_name = str(source).lower()
     if source_name == "depth":
@@ -208,7 +182,6 @@ def load_observation_stream(vehicle_dir: Path, source: str = "radar", common_reg
 
 
 class CompactObservationWriter:
-    """Accumulate compact numeric rows and emit one compressed NPZ at close."""
 
     def __init__(self, path: Path, metadata: Mapping[str, Any]) -> None:
         self.path = Path(path)
@@ -218,7 +191,7 @@ class CompactObservationWriter:
         self._frames = []
         self._timestamps = []
         self._offsets = [0]
-        self._detections = []  # one (n, 4) float32 block per frame with returns
+        self._detections = []
         self._count = 0
         self._closed = False
 

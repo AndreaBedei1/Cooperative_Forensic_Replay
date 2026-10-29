@@ -1,20 +1,3 @@
-"""Privileged ground-truth audit of a reconstructed run (evaluation only).
-
-Reads the reconstruction outputs (local tracks, traces, graphs, the replay model built from them) and
-``ground_truth/``; never changes the reconstruction, and ``cdf.reconstruction`` never imports it.
-
-Per local radar track, at every sample: the true vehicle nearest to the track's point (its observed near
-surface) is the sample's identity; the track's identity is the majority one, its purity the share of
-samples with it, its switches the number of changes.  Errors, at every sample, against that sample's
-identity: centre error (the reconstruction's nominal box centre vs the true vehicle origin), surface error
-(track point vs the true box outline), velocity and speed error, heading error (the box heading when the
-velocity fixes it).  At every CRITICAL_TTC_START and CUT_IN_*_START the reconstructed geometry (TRACK_STATE
-facts) is compared with the true one.  All errors are in physical units and reported as distributions.
-
-Privileged assumptions: the recorders' raw clocks are the simulator clock (``t_local + clock origin`` is
-simulator time) and a vehicle's bounding box is centred on its origin in the horizontal plane (CARLA
-offsets of a few centimetres are ignored).
-"""
 
 from __future__ import annotations
 
@@ -27,8 +10,8 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 from ..replay.model import ReplayRun
 from .reconstruction import TruthTrack, _box_distance, _surface_distance, _to_world, box_gap
 
-CORRIDOR_HALF_WIDTH_M = 1.5  # semantics.path_half_width_m
-IDENTITY_MAX_DISTANCE_M = 3.0  # farther from every true vehicle: the sample has no identity (clutter)
+CORRIDOR_HALF_WIDTH_M = 1.5
+IDENTITY_MAX_DISTANCE_M = 3.0
 HEADING_MIN_SPEED_MPS = 2.0
 ERROR_KEYS = ("centre_error_m", "surface_error_m", "speed_error_mps", "velocity_error_mps", "heading_error_deg")
 
@@ -46,7 +29,6 @@ def _read_jsonl(path: Path) -> List[Dict[str, Any]]:
 
 
 def stats(values: Iterable[float]) -> Dict[str, Optional[float]]:
-    """n, median, quartiles, IQR, p90, p95, max, mean and root mean square of a sample of values."""
     data = sorted(float(v) for v in values if v is not None and not math.isnan(float(v)))
     if not data:
         return {"n": 0, "median": None, "q25": None, "q75": None, "iqr": None, "p90": None, "p95": None,
@@ -64,7 +46,6 @@ def stats(values: Iterable[float]) -> Dict[str, Optional[float]]:
 
 
 def truth_of(run_dir: Path) -> Tuple[Dict[str, TruthTrack], Dict[int, str]]:
-    """Per participant, its ground-truth states; and the CARLA actor id -> participant map."""
     by_participant: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
     actors: Dict[int, str] = {}
     for state in _read_jsonl(Path(run_dir) / "ground_truth" / "states.jsonl"):
@@ -93,8 +74,6 @@ def _corners(state: Dict[str, Any]) -> List[Tuple[float, float]]:
 
 
 def true_forward_geometry(observer: Dict[str, Any], target: Dict[str, Any]) -> Dict[str, float]:
-    """The true clearance from the observer's front face to the target box's rear face along the observer's
-    heading, and the target box's lateral gap to the observer's path corridor (+-1.5 m)."""
     front = (observer.get("bbox_extent") or {"x": 2.4})["x"]
     points = [_vehicle_frame(observer, corner) for corner in _corners(target)]
     xs, ys = [p[0] for p in points], [p[1] for p in points]
@@ -112,7 +91,6 @@ def _identity(point: Tuple[float, float], states: Dict[str, Dict[str, Any]]) -> 
 
 
 def audit_tracks(run_dir: Path, truth: Dict[str, TruthTrack]) -> List[Dict[str, Any]]:
-    """Per local track: identity, purity, switches and error distributions against ground truth."""
     run = ReplayRun.load(run_dir)
     out = []
     for participant in run.participants:
@@ -167,7 +145,6 @@ def audit_tracks(run_dir: Path, truth: Dict[str, TruthTrack]) -> List[Dict[str, 
 
 
 def _fact_at(trace: Sequence[Dict[str, Any]], t_local: float, subject: str) -> Optional[Dict[str, Any]]:
-    """The TRACK_STATE fact of ``subject`` in the latest trace frame at or before ``t_local``."""
     best = None
     for frame in trace:
         if frame["t_local"] > t_local + 1e-6:
@@ -179,7 +156,6 @@ def _fact_at(trace: Sequence[Dict[str, Any]], t_local: float, subject: str) -> O
 
 
 def audit_events(run_dir: Path, truth: Dict[str, TruthTrack], tracks: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
-    """Reconstructed vs true geometry at every CRITICAL_TTC_START and CUT_IN_*_START."""
     identity = {item["track"]: item["identity"] for item in tracks}
     critical, cut_ins = [], []
     for graph_path in sorted((Path(run_dir) / "reconstruction").glob("*/local_graph.json")):

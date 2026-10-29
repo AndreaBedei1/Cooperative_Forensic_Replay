@@ -1,7 +1,3 @@
-"""Human-readable output: JSON, JSONL, Markdown and DOT (SVG only if Graphviz exists).
-
-Rendering never changes a graph; it only describes it.
-"""
 
 from __future__ import annotations
 
@@ -20,12 +16,8 @@ from .world_state import TRACK_STATES, compact_state
 
 KIND_COLOURS = {"ACTION": "#fde68a", "PERCEPTION": "#bfdbfe", "FACT": "#e5e7eb", "OUTCOME": "#fca5a5"}
 
-# --------------------------------------------------------------------------
-# Files
-# --------------------------------------------------------------------------
 
 def _plain(value: Any) -> Any:
-    """Strict JSON: numpy scalars become Python numbers, NaN/inf become null."""
     if isinstance(value, dict):
         return {str(key): _plain(item) for key, item in value.items()}
     if isinstance(value, (list, tuple)):
@@ -55,7 +47,6 @@ def write_text(path: Path, text: str) -> None:
 
 
 def render_svg(dot_path: Path) -> Optional[Path]:
-    """Render DOT to SVG when the ``dot`` executable is installed; else do nothing."""
     executable = shutil.which("dot")
     if executable is None:
         return None
@@ -64,21 +55,17 @@ def render_svg(dot_path: Path) -> Optional[Path]:
     return svg_path
 
 
-# --------------------------------------------------------------------------
-# Plain language
-# --------------------------------------------------------------------------
 
 def _object(subject: Optional[str]) -> str:
     if subject is None:
         return "an unknown object"
-    if ":" in subject:  # a track of a recorder without a global clock, such as A:track_001
+    if ":" in subject:
         return "unidentified object " + subject
-    if is_anonymous_entity(subject):  # a road user that recorded nothing: U1, U2, ...
+    if is_anonymous_entity(subject):
         return "anonymous road user " + subject
     return subject
 
 
-# One short sentence per event type; quantities stay in the trace facts.
 SENTENCES = {
     "BRAKE_START": "{actor} started braking",
     "BRAKE_END": "{actor} released the brake",
@@ -121,10 +108,9 @@ SENTENCES = {
 
 def sentence(event_type: str, actor: Optional[str], subject: Optional[str],
              attributes: Dict[str, Any], participants: Sequence[str] = ()) -> str:
-    """One plain sentence per event; says only what the event itself records."""
     if event_type == "COLLISION":
         peaks = attributes["peak_impulse"]
-        if actor is None:  # merged global collision
+        if actor is None:
             return "{0} both recorded this same collision (peak impulses {1} N*s)".format(
                 " and ".join(participants),
                 ", ".join("{0}: {1:.0f}".format(name, value) for name, value in sorted(peaks.items())))
@@ -158,9 +144,6 @@ def global_sentence(node: GlobalNode) -> str:
     return "{0}, {1}.".format(_when(node.t_global), text)
 
 
-# --------------------------------------------------------------------------
-# Markdown tables
-# --------------------------------------------------------------------------
 
 def _cell(value: Any) -> str:
     if value is None:
@@ -171,12 +154,11 @@ def _cell(value: Any) -> str:
 
 
 def _details(event_type: str, attributes: Dict[str, Any]) -> str:
-    """The few attributes an event carries (most carry none)."""
     parts = []
     for key, value in attributes.items():
         if key in ('estimated_body_corners_vehicle_m','path_frame_heading_rad','target_lateral_speed_mps',
                    'source_local_nodes','semantic_state','initial_state_unannounced'):
-            continue  # complete numerical/provenance data remain in the graph JSON
+            continue
         if isinstance(value, dict):
             value = ", ".join("{0} {1}".format(name, _cell(item)) for name, item in sorted(value.items()))
         parts.append("{0}={1}".format(key, _cell(value)))
@@ -229,7 +211,6 @@ def _state_cell(state: Optional[Dict[str, Any]]) -> str:
 
 
 def _groups(nodes: Sequence[Any], time_of) -> List[List[Any]]:
-    """Consecutive nodes with equal times: they share one perceived state before them."""
     groups: List[List[Any]] = []
     for node in nodes:
         if groups and abs(time_of(node) - time_of(groups[-1][0])) < 1e-6:
@@ -258,7 +239,6 @@ def _perceived_state_lines(graph: LocalGraph) -> List[str]:
 
 
 def lost_while_active(graph: LocalGraph) -> List[Dict[str, Any]]:
-    """TRACK_LOST nodes and the states of the lost track that were true just before."""
     out = []
     for node in graph.nodes:
         if node.event_type != "TRACK_LOST":
@@ -453,7 +433,6 @@ def global_graph_markdown(title: str, graph: GlobalGraph, alignment: Alignment,
 
 
 def _belief_rows(graph: GlobalGraph) -> List[Any]:
-    """(t_global, recorder, nodes) for each recorder's simultaneous local events, in global order."""
     rows: List[Any] = []
     index: Dict[Any, int] = {}
     for node in graph.nodes:
@@ -468,9 +447,6 @@ def _belief_rows(graph: GlobalGraph) -> List[Any]:
     return rows
 
 
-# --------------------------------------------------------------------------
-# DOT
-# --------------------------------------------------------------------------
 
 def _quote(text: str) -> str:
     return '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"'
@@ -489,7 +465,6 @@ def _dot(name: str, title: str, nodes: Sequence[Dict[str, Any]], edges: Iterable
             _quote(KIND_COLOURS.get(node["kind"], "#ffffff")), extra))
         if node.get("time") is not None:
             same_time.setdefault(node["time"], []).append(node["id"])
-    # Simultaneous events share a column; they have no PRECEDES among them.
     for ids in same_time.values():
         if len(ids) > 1:
             lines.append("  {{rank=same; {0};}}".format("; ".join(_quote(item) for item in ids)))
@@ -502,7 +477,6 @@ def _dot(name: str, title: str, nodes: Sequence[Dict[str, Any]], edges: Iterable
 
 
 def _dot_label(event_type: str, who: str, when: Optional[str], attributes: Dict[str, Any]) -> List[str]:
-    """Only type, who and when: the graph stays sparse."""
     return [event_type, who, "unaligned" if when is None else "t=" + when]
 
 
@@ -529,12 +503,8 @@ def global_graph_dot(title: str, graph: GlobalGraph) -> str:
     return _dot("global", "Global graph - {0} (t=0 at the reference collision)".format(title), nodes, graph.edges)
 
 
-# --------------------------------------------------------------------------
-# Run report
-# --------------------------------------------------------------------------
 
 def _road_user_lines(road_users: Optional[Mapping[str, Any]]) -> List[str]:
-    """Recorder links and anonymous road users of ``global/anonymous_entities.json``."""
     if not road_users:
         return ["Not computed."]
     lines = []

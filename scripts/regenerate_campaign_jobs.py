@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import argparse
@@ -32,7 +31,6 @@ def _init(code: str) -> None:
     for path in (str(_CODE / "scripts"), str(_CODE / "src")):
         sys.path.insert(0, path)
     os.chdir(str(_CODE))
-    # Without the tag (a plain checkout) nothing is frozen: the scorecard comparison is the check.
     commit = subprocess.run(["git", "rev-parse", "--verify", "--quiet", "campaign-v3^{commit}"], cwd=str(_CODE),
                             capture_output=True, text=True).stdout.strip()
     os.environ.update({"CDF_ANALYSIS_FREEZE_COMMIT": commit, "OMP_NUM_THREADS": "1", "MKL_NUM_THREADS": "1",
@@ -40,7 +38,6 @@ def _init(code: str) -> None:
 
 
 def job_of(record: Dict[str, Any], code: Path) -> Dict[str, Any]:
-    """The job dict of a campaign record, its run mapped into the frozen worktree."""
     run = Path(record["run"])
     job = {k: record[k] for k in ("family", "level", "parameter", "seed") if k in record}
     if record.get("recorder"):
@@ -50,7 +47,6 @@ def job_of(record: Dict[str, Any], code: Path) -> Dict[str, Any]:
 
 
 def _restore_parameter(job: Dict[str, Any]) -> Any:
-    """The level's parameter exactly as robustness.FAMILIES defines it (JSON turns tuples into lists)."""
     import robustness
     for label, parameter in robustness.FAMILIES[job["family"]][0]:
         if label == job["level"]:
@@ -94,9 +90,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     log = args.out / "regenerated.jsonl"
     done = {key(r) for r in read_records(log)} if log.exists() else set()
     todo = [r for r in records if key(r) not in done]
-    todo.sort(key=lambda r: -float(r.get("wall_s") or 0.0))  # longest first
+    todo.sort(key=lambda r: -float(r.get("wall_s") or 0.0))
     if args.limit is not None:
-        todo = sorted(todo, key=lambda r: float(r.get("wall_s") or 0.0))[:args.limit]  # a check: the shortest
+        todo = sorted(todo, key=lambda r: float(r.get("wall_s") or 0.0))[:args.limit]
     print("{0} jobs of {1}; {2} already regenerated; {3} to run".format(len(records), sorted(families), len(done),
                                                                      len(todo)), flush=True)
     with ProcessPoolExecutor(max_workers=args.workers, initializer=_init, initargs=(str(args.code),)) as pool:

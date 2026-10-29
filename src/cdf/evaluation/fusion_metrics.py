@@ -1,27 +1,3 @@
-"""Privileged evaluation of the road-user fusion (ground truth is used here only).
-
-Reads the reconstruction's own files -- ``<recorder>/local_tracks.jsonl``, ``<recorder>/local_graph.json``,
-``global/alignment.json``, ``global/associations.json``, ``global/anonymous_entities.json`` -- the
-recorders' first ego pose (the origin of their local frames) and ``ground_truth/``; never changes the
-reconstruction (``cdf.reconstruction`` never imports this module).  Writes
-``reconstruction/evaluation/fusion_metrics.json|md``.
-
-* Per track sample, its true identity: the true vehicle whose box is nearest its point, within
-  ``IDENTITY_MAX_BOX_DISTANCE_M`` (else none: clutter); a track's identity is its majority one.
-* Identity decisions of the tracks of aligned recorders: recorder links correct / wrong / missed.
-* Anonymous entities: purity (share of their samples with the majority identity), correct / false /
-  missed merges counted over pairs of tracks, fragmentation of every true road user over entities.
-* The fused state of every entity against its majority identity's true state, at the simulator time of
-  its global time, at the instants every source track observing it was on that road user (an instant
-  where a source track was on another vehicle or on nothing is an association error, counted apart as
-  an impure state): centre, velocity, speed and heading errors, footprint length and width errors, the
-  calibration of its declared position uncertainty; for comparison, the centre of the nominal ghost box
-  the replay draws for every source track at the same instants (no fusion, no face correction: phase 0).
-* The clock offset of every recorder aligned through observed trajectories.
-
-Privileged assumptions (as ``cdf.evaluation.reconstruction``): the recorders' raw clocks are the
-simulator clock and a vehicle's box is centred on its origin in the horizontal plane.
-"""
 
 from __future__ import annotations
 
@@ -39,9 +15,8 @@ from ..replay.model import ReplayRun
 from .gt_audit import stats, truth_of
 from .reconstruction import _box_distance, _to_world
 
-IDENTITY_MAX_BOX_DISTANCE_M = 1.5  # cdf.evaluation.reconstruction: a track "is" a vehicle within this
+IDENTITY_MAX_BOX_DISTANCE_M = 1.5
 HEADING_MIN_SPEED_MPS = 2.0
-# Share of a 2-D isotropic Gaussian error within k per-axis sigmas (Rayleigh): 1 - exp(-k^2 / 2).
 EXPECTED_WITHIN = {"1_sigma": 1.0 - math.exp(-0.5), "2_sigma": 1.0 - math.exp(-2.0), "3_sigma": 1.0 - math.exp(-4.5)}
 
 
@@ -62,8 +37,6 @@ def _yaw_error(a: float, b: float) -> float:
 
 
 def evaluate_fusion(run_dir: Path, write: bool = True, pose_factory: Any = None) -> Dict[str, Any]:
-    """The fusion metrics of a reconstructed run (module docstring); ``pose_factory`` is the pose source the
-    reconstruction used (the robustness study's perturbed GNSS), for the no-fusion baseline boxes."""
     run_dir = Path(run_dir)
     rec = run_dir / "reconstruction"
     alignment = _read_json(rec / "global" / "alignment.json")
@@ -73,13 +46,11 @@ def evaluate_fusion(run_dir: Path, write: bool = True, pose_factory: Any = None)
     origins = {name: _read_json(rec / name / "local_graph.json")["recorder"]["clock"]["origin_source_timestamp"]
                for name in recorders}
     first_poses = {name: _read_jsonl(run_dir / "vehicles" / name / "ego.jsonl")[0] for name in recorders}
-    replay = ReplayRun.load(run_dir, pose_factory=pose_factory)  # phase-0 ghosts: one nominal box per track
+    replay = ReplayRun.load(run_dir, pose_factory=pose_factory)
     paths = {(pid, path.track_id): path for pid, items in replay.tracks.items() for path in items}
     truth, _ = truth_of(run_dir)
     aligned = {name for name, clock in alignment["graphs"].items() if clock["status"] == "ALIGNED"}
 
-    # Simulator time of t_global = 0: the reference recorder's own report of the reference collision, or,
-    # without a matched collision, the reference recorder's own clock origin.
     reference_sim = None
     for name in recorders:
         clock = alignment["graphs"][name]
@@ -88,7 +59,6 @@ def evaluate_fusion(run_dir: Path, write: bool = True, pose_factory: Any = None)
             reference_sim = -clock["offset_to_global"] + origins[name]
             break
 
-    # 1. Per track sample: its true identity; per track: the majority one.
     decision = {(a["local_graph"], a["local_track"]): a for a in associations}
     samples_of: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
     for name in recorders:
@@ -107,7 +77,6 @@ def evaluate_fusion(run_dir: Path, write: bool = True, pose_factory: Any = None)
         votes = Counter(row["identity"] for row in rows if row["measured"])
         track_identity[key] = votes.most_common(1)[0][0] if votes else None
 
-    # 2. Identity decisions of the tracks of aligned recorders.
     decisions = []
     for (owner, track_id), item in sorted(decision.items()):
         if owner not in aligned:
@@ -131,7 +100,6 @@ def evaluate_fusion(run_dir: Path, write: bool = True, pose_factory: Any = None)
                                                                     else None),
                           "true_identity": identity, "purity": round(purity, 3), "verdict": verdict})
 
-    # 3. Anonymous entities: purity, merges, fragmentation.
     entity_rows, merge = [], {"correct": 0, "false": 0, "missed": 0}
     member_of = {}
     for entity in road_users.get("entities", []):
@@ -141,7 +109,6 @@ def evaluate_fusion(run_dir: Path, write: bool = True, pose_factory: Any = None)
         rows = [row for name in entity["source_tracks"] for row in samples_of.get(name, []) if row["measured"]]
         votes = Counter(row["identity"] for row in rows)
         majority = votes.most_common(1)[0][0] if votes else None
-        # A phantom (no true identity): the median distance of its measured samples to the nearest true box.
         nearest = [row["nearest_m"] for row in rows if row["nearest_m"] is not None]
         entity_rows.append({"id": entity["id"], "source_tracks": entity["source_tracks"],
                             "observers": entity["observers"], "true_identity": majority,
@@ -168,10 +135,7 @@ def evaluate_fusion(run_dir: Path, write: bool = True, pose_factory: Any = None)
             fragmentation.setdefault(identity, set()).add(member_of[name])
     fragmentation = {pid: sorted(ids) for pid, ids in sorted(fragmentation.items())}
 
-    # 4. Fused states against the truth of the entity's majority identity.
     errors: Dict[str, List[float]] = defaultdict(list)
-    # The same errors of the road users that record nothing: a recorder ghost (an anonymous road user that is in
-    # truth a recorder, a missed recorder link) is not an estimate of a road user.
     road_user_errors: Dict[str, List[float]] = defaultdict(list)
     by_method: Dict[str, Dict[str, List[float]]] = defaultdict(lambda: defaultdict(list))
     within = Counter()
@@ -188,7 +152,6 @@ def evaluate_fusion(run_dir: Path, write: bool = True, pose_factory: Any = None)
             true = truth[identity].at(reference_sim + state["t_global"])
             if true is None:
                 continue
-            # Whom each source track observing at this instant was on (its nearest 10 Hz sample).
             on = []
             for name in entity["source_tracks"]:
                 owner = name.split(":", 1)[0]
@@ -218,7 +181,6 @@ def evaluate_fusion(run_dir: Path, write: bool = True, pose_factory: Any = None)
                 errors["normalised_centre_error"].append(ratio)
                 for k in (1, 2, 3):
                     within["{0}_sigma".format(k)] += ratio <= k
-            # No fusion: the nominal ghost box of every source track at this instant (phase-0 replay).
             single_errors = []
             for name in entity["source_tracks"]:
                 owner, track_id = name.split(":", 1)
@@ -232,8 +194,6 @@ def evaluate_fusion(run_dir: Path, write: bool = True, pose_factory: Any = None)
                     single_errors.append(math.hypot(ghost.centre[0] - true["transform"]["x"],
                                                     ghost.centre[1] - true["transform"]["y"]))
             if single_errors:
-                # One comparison per entity instant, matching the fused population;
-                # additional observers must not silently add statistical weight.
                 errors['single_track_nominal_centre_error_m'].append(float(np.median(single_errors)))
             paired_states.append({'t_global': state['t_global'], 'sim_timestamp': round(reference_sim+state['t_global'],4),
                 'true_identity': identity, 'entity': entity['id'], 'method': state['method'],
@@ -258,7 +218,6 @@ def evaluate_fusion(run_dir: Path, write: bool = True, pose_factory: Any = None)
                                    "states": len(own.get("centre_error_m", [])), "impure_states": impure},
                                   **{key: stats(values) for key, values in own.items()}, **dims))
 
-    # 5. Recorders aligned through observed trajectories.
     observed_alignment = []
     for item in road_users.get("observed_alignment", []):
         if item.get("method") != "observed_trajectories":
@@ -302,7 +261,6 @@ def evaluate_fusion(run_dir: Path, write: bool = True, pose_factory: Any = None)
     if write:
         write_json(rec / "evaluation" / "fusion_metrics.json", result)
         write_text(rec / "evaluation" / "fusion_metrics.md", fusion_markdown(result))
-    # The raw values, for pooling over runs (not written).
     result["_raw"] = {"errors": {key: list(values) for key, values in errors.items()},
                       "road_user_errors": {key: list(values) for key, values in road_user_errors.items()},
                        'paired_states': paired_states,

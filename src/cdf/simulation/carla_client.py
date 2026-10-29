@@ -1,23 +1,3 @@
-"""Connection and process management for the CARLA simulator.
-
-This module exists because a bare ``carla.Client`` is not robust enough for
-repeatable scenario acquisition. Three failure modes are handled explicitly:
-
-1. ``client.load_world(X)`` while the server is **already running map X** crashes
-   the server. :func:`ensure_map` therefore switches maps only when the requested
-   map differs from the current one.
-2. A map switch returns before the new world is actually serviceable, so the next
-   call times out. :func:`ensure_map` polls the new world until it answers
-   consistently.
-3. Loading a heavy map can kill the server outright. :class:`CarlaServer` can
-   therefore start, stop and restart the simulator process, and
-   :func:`connect_with_retry` transparently waits for a server that is still
-   booting.
-
-Passing the map on the command line was also tested and is *not* honoured by the
-packaged 0.9.15 build (it boots the default map regardless), so map selection
-always goes through :func:`ensure_map`.
-"""
 
 from __future__ import annotations
 
@@ -49,11 +29,10 @@ __all__ = [
 
 
 class CarlaUnavailable(RuntimeError):
-    """Raised when no usable CARLA server or Python API can be reached."""
+    pass
 
 
 def query_nvidia_gpus() -> List[Dict[str, Any]]:
-    """Return free memory/utilisation for NVIDIA adapters, if nvidia-smi exists."""
     command = ["nvidia-smi", "--query-gpu=index,name,memory.total,memory.used,memory.free,utilization.gpu",
                "--format=csv,noheader,nounits"]
     try:
@@ -76,7 +55,6 @@ def query_nvidia_gpus() -> List[Dict[str, Any]]:
 
 
 def select_gpu(config: Union[str, int, None] = "auto", gpus: Optional[List[Dict[str, Any]]] = None) -> Optional[int]:
-    """Resolve ``auto`` to the most free, least utilised adapter."""
     if config is None or str(config).strip().lower() in {"", "none", "null", "off"}:
         return None
     if isinstance(config, int) or str(config).strip().lstrip("-").isdigit():
@@ -93,16 +71,11 @@ def select_gpu(config: Union[str, int, None] = "auto", gpus: Optional[List[Dict[
 
 
 def import_carla() -> Any:
-    """Import the ``carla`` module, with an actionable error when it is missing.
-
-    Imported lazily so that the rest of the package (and the entire test-suite)
-    works on a machine without the simulator.
-    """
     try:
-        import carla  # type: ignore
+        import carla
 
         return carla
-    except ImportError as exc:  # pragma: no cover - environment dependent
+    except ImportError as exc:
         raise CarlaUnavailable(
             "the CARLA Python API is not importable. Install the wheel shipped "
             "with your simulator, e.g.\n"
@@ -112,16 +85,11 @@ def import_carla() -> Any:
 
 
 def map_basename(name: str) -> str:
-    """Reduce ``"Carla/Maps/Town05"`` (or a ``/Game/...`` path) to ``"Town05"``."""
     return str(name).replace("\\", "/").rstrip("/").split("/")[-1]
 
 
-# ---------------------------------------------------------------------------
-# Locating the simulator
-# ---------------------------------------------------------------------------
 
-#: Paths probed for a packaged CARLA installation when none is configured.
-from ..common.installation import _DEFAULT_ROOT_CANDIDATES, _server_executable, find_carla_root  # noqa: E402,F401
+from ..common.installation import _DEFAULT_ROOT_CANDIDATES, _server_executable, find_carla_root
 
 
 DEFAULT_PORT = 3000
@@ -135,19 +103,6 @@ def connect_with_retry(
     retry_delay_s: float = 3.0,
     probe_timeout_s: float = 10.0,
 ) -> Any:
-    """Connect to a CARLA server, tolerating one that is still booting.
-
-    A short per-probe timeout is used while waiting and the caller's real timeout
-    is applied once the handshake succeeds, so a cold start does not block for
-    the full ``timeout_s`` on every attempt.
-
-    The handshake alone is not readiness. ``get_server_version`` answers while
-    the engine is still bringing a map up, and the caller's first ``get_map``
-    then blocks for the full sixty seconds and raises -- which on the collection
-    looked like a scenario that hung, retried three times and stalled the whole
-    run. So the probe asks for the world as well, and a server that cannot yet
-    produce one is treated as still booting rather than as connected.
-    """
     carla = import_carla()
     last_error: Optional[BaseException] = None
     for attempt in range(int(attempts)):
@@ -162,7 +117,6 @@ def connect_with_retry(
                     server_version,
                     client_version,
                 )
-            # Readiness, not just reachability: ask for the world.
             client.get_world().get_map().name
             client.set_timeout(float(timeout_s))
             LOGGER.info(
@@ -173,7 +127,7 @@ def connect_with_retry(
                 attempt + 1,
             )
             return client
-        except BaseException as exc:  # noqa: BLE001 - re-raised below with context
+        except BaseException as exc:
             last_error = exc
             time.sleep(float(retry_delay_s))
     raise CarlaUnavailable(
@@ -184,13 +138,6 @@ def connect_with_retry(
 
 
 def ensure_map(client: Any, target_map: str, settle_timeout_s: float = 60.0) -> Any:
-    """Return a world running ``target_map``, switching maps only if necessary.
-
-    Reloading the map the server already runs crashes the 0.9.15 build, so the
-    current map is checked first. After a genuine switch the new world is polled
-    until it reports the expected map *and* answers a settings query, because the
-    call returns before the world is serviceable.
-    """
     target = map_basename(target_map)
     world = client.get_world()
     current = map_basename(world.get_map().name)
@@ -211,7 +158,6 @@ def ensure_map(client: Any, target_map: str, settle_timeout_s: float = 60.0) -> 
                 LOGGER.info("map %s settled", target)
                 return world
         except RuntimeError:
-            # The world is mid-swap; keep polling until the deadline.
             pass
         time.sleep(1.0)
     raise CarlaUnavailable(
@@ -220,25 +166,10 @@ def ensure_map(client: Any, target_map: str, settle_timeout_s: float = 60.0) -> 
     )
 
 
-# ---------------------------------------------------------------------------
-# Server process management
-# ---------------------------------------------------------------------------
 
 
 class CarlaServer:
-    """Optional supervisor for a locally installed CARLA simulator process.
 
-    The scenario runner can use this to bring a server up when none is
-    running, and to restart one that died mid-suite. It never touches a server it
-    did not start unless :meth:`kill_existing` is called explicitly.
-    """
-
-    #: ``Low`` is not the default: in CARLA 0.9.15 on this setup it makes the
-    #: engine crash deterministically in some scenarios (a camera scene capture
-    #: renders a vehicle skeletal mesh whose mesh object was already freed:
-    #: EXCEPTION_ACCESS_VIOLATION in FSkeletalMeshSceneProxy::
-    #: GetMeshElementsConditionallySelectable).  The same runs complete under
-    #: ``Epic``, with bit-identical vehicle physics.
     DEFAULT_QUALITY = "Epic"
 
     def __init__(
@@ -255,8 +186,6 @@ class CarlaServer:
         self.port = int(port)
         self.quality = quality
         self.offscreen = bool(offscreen)
-        # -unattended: an engine crash exits instead of waiting behind a modal
-        # "Fatal error" dialog, so a supervisor can restart it.
         self.unattended = bool(unattended)
         self.extra_args = list(extra_args or [])
         self.gpu = gpu
@@ -266,13 +195,10 @@ class CarlaServer:
         self._process: Optional[subprocess.Popen] = None
         self._pre_existing_pids: set = set()
         self._owned_pids: set = set()
-        #: Whether the most recent :meth:`restart` actually produced a fresh
-        #: engine. ``None`` until one has been attempted.
         self.last_restart_verified: Optional[bool] = None
 
     @property
     def available(self) -> bool:
-        """Whether a simulator executable was found on this machine."""
         return self.root is not None and _server_executable(self.root) is not None
 
     @property
@@ -280,7 +206,6 @@ class CarlaServer:
         return _server_executable(self.root) if self.root else None
 
     def command(self) -> List[str]:
-        """The exact command line used to launch the server."""
         exe = self.executable
         if exe is None:
             raise CarlaUnavailable(
@@ -312,16 +237,12 @@ class CarlaServer:
         args.extend(self.extra_args)
         return args
 
-    #: Image names the packaged Windows build actually runs under. ``CarlaUE4.exe``
-    #: is a thin launcher: it spawns ``CarlaUE4-Win64-Shipping.exe`` and exits, so
-    #: terminating the handle returned by ``Popen`` does **not** stop the server.
     _SERVER_IMAGE_NAMES: Sequence[str] = (
         "CarlaUE4-Win64-Shipping.exe",
         "CarlaUE4-Linux-Shipping",
     )
 
     def _server_pids(self) -> List[int]:
-        """PIDs of running simulator *engine* processes, launcher excluded."""
         pids: List[int] = []
         for name in self._SERVER_IMAGE_NAMES:
             try:
@@ -341,12 +262,6 @@ class CarlaServer:
         return pids
 
     def start(self, wait_s: float = 180.0) -> Any:
-        """Launch the simulator and return a connected client.
-
-        The engine PIDs present beforehand are recorded so that :meth:`stop` can
-        kill exactly the engine this call started, and leave alone one a user
-        happens to be running.
-        """
         if not self.available:
             raise CarlaUnavailable("cannot start CARLA: no installation found")
         cmd = self.command()
@@ -366,24 +281,9 @@ class CarlaServer:
         return client
 
     def is_running(self) -> bool:
-        """Whether a server we started is still alive."""
         return self._process is not None and self._process.poll() is None
 
     def stop(self, grace_s: float = 10.0) -> None:
-        """Terminate the simulator this session started.
-
-        Killing the launcher is not enough. ``CarlaUE4.exe`` spawns
-        ``CarlaUE4-Win64-Shipping.exe`` and exits, so terminating the ``Popen``
-        handle leaves a ~2.5 GB engine process alive and still holding the RPC
-        port. A collection that restarts the simulator between runs then leaks one
-        engine per restart -- and, far worse, every later "fresh" server fails to
-        bind the port and the client silently reconnects to the FIRST one, so the
-        runs meant to be independent all share accumulated state.
-
-        The engine processes this session started are therefore killed by pid.
-        Engines that were already running when :meth:`start` was called are left
-        alone.
-        """
         pids = sorted(getattr(self, "_owned_pids", set()))
         if self._process is not None and self._process.poll() is None:
             LOGGER.info("stopping CARLA launcher (pid %s)", self._process.pid)
@@ -395,12 +295,6 @@ class CarlaServer:
                 self._process.kill()
         self._process = None
 
-        # `/T` is deliberately NOT used. It walks the process tree by parent pid,
-        # and the engine's recorded parent is the launcher, which exited long ago
-        # and whose pid Windows is free to hand to an unrelated process -- so a
-        # tree kill can reach processes that have nothing to do with the
-        # simulator. The engine is killed by its own pid instead, and the kill is
-        # then verified rather than assumed.
         for pid in pids:
             try:
                 subprocess.call(
@@ -411,10 +305,6 @@ class CarlaServer:
             except OSError as exc:
                 LOGGER.warning("could not kill simulator engine pid %s: %s", pid, exc)
         if pids:
-            # Give the OS a moment to release the RPC port, or the next start
-            # races the teardown and binds nothing. A pid that is still listed
-            # after the wait is reported: a surviving engine is the failure mode
-            # this whole method exists to prevent, so it must never be silent.
             deadline = time.time() + float(grace_s)
             alive = set(pids)
             while time.time() < deadline and alive:
@@ -430,24 +320,9 @@ class CarlaServer:
             time.sleep(3.0)
         self._owned_pids = set()
 
-    #: A freshly booted engine has been ticking for at most a few seconds. Well
-    #: above that and the client is talking to something older.
     FRESH_ENGINE_MAX_ELAPSED_S = 120.0
 
     def restart(self, wait_s: float = 180.0) -> Any:
-        """Stop (if we own the process) and start again; returns a new client.
-
-        :meth:`stop` deliberately leaves engines that were already running when
-        this session started -- killing a server somebody else is using would be
-        indefensible. But that creates the failure this method must not hide: a
-        pre-existing engine still holding the RPC port means the new engine
-        cannot bind it, and the client reconnects to the *old* one. Every
-        subsequent "fresh" run then shares accumulated state, silently, while
-        every log line says the restart succeeded.
-
-        So the restart is verified rather than assumed. A genuinely fresh engine
-        has been ticking for seconds; one that has served a collection has not.
-        """
         self.stop()
         time.sleep(3.0)
         client = self.start(wait_s=wait_s)
@@ -455,10 +330,9 @@ class CarlaServer:
         return client
 
     def _verify_fresh(self, client: Any) -> bool:
-        """Whether the client is talking to an engine this restart started."""
         try:
             elapsed = float(client.get_world().get_snapshot().timestamp.elapsed_seconds)
-        except Exception:  # noqa: BLE001 - a probe must never break the run
+        except Exception:
             LOGGER.debug("could not read the world clock to verify the restart")
             return False
         if elapsed <= self.FRESH_ENGINE_MAX_ELAPSED_S:
@@ -480,19 +354,6 @@ class CarlaServer:
 
 
 class SimulatorSession:
-    """Guarantees a live CARLA server running a requested map.
-
-    Map switching on the tested 0.9.15 build is only dependable **once per server
-    process**: a freshly booted server switches to any map in a few seconds, but a
-    second switch (or a reload of the current map) hangs or kills the simulator.
-    Both failure modes were reproduced repeatedly on the reference machine.
-
-    This class therefore tracks whether the current process has already performed
-    a switch. The first switch is done in place; any later map change restarts the
-    simulator process and switches again from the freshly booted default map. A
-    suite that runs nine scenarios on one map and one on another consequently
-    pays the restart cost exactly once.
-    """
 
     def __init__(
         self,
@@ -516,10 +377,8 @@ class SimulatorSession:
         self._switched = False
         self.restarts = 0
 
-    # -- connection -------------------------------------------------------
 
     def client(self) -> Any:
-        """A connected client, starting the simulator if permitted."""
         if self._client is not None:
             try:
                 self._client.get_server_version()
@@ -543,7 +402,6 @@ class SimulatorSession:
         return map_basename(self.client().get_world().get_map().name)
 
     def world_for_map(self, map_name: str) -> Any:
-        """Return a world running ``map_name``, restarting the server if needed."""
         target = map_basename(map_name)
         client = self.client()
         current = map_basename(client.get_world().get_map().name)
@@ -552,7 +410,6 @@ class SimulatorSession:
             return client.get_world()
 
         if self._switched:
-            # This process has already spent its one dependable map switch.
             LOGGER.info(
                 "restarting CARLA to reach %s (this process already switched to %s)",
                 target,
@@ -572,11 +429,6 @@ class SimulatorSession:
         try:
             world = ensure_map(client, target, settle_timeout_s=self.settle_timeout_s)
         except CarlaUnavailable:
-            # The switch-budget bookkeeping only knows about switches THIS session
-            # performed. A server left on some other map by an earlier process
-            # has already spent its budget, and we cannot tell from the outside.
-            # So a failed switch falls back to the same remedy as a known-spent
-            # budget: restart the process and switch from the boot map.
             if not self.server.available:
                 raise
             LOGGER.warning(
@@ -592,19 +444,12 @@ class SimulatorSession:
         return world
 
     def release_client(self) -> None:
-        """Drop the client bound to the current server and collect it.
-
-        Dropping the last reference and forcing a collection lets the CARLA
-        client release its background streaming resources before a restart.
-        """
         if self._client is None:
             return
         self._client = None
         gc.collect()
 
     def fresh_world_for_map(self, map_name: str) -> Any:
-        """Restart the simulator, then return a world running ``map_name``.
-        """
         if not self.server.available:
             LOGGER.warning(
                 "no local CARLA installation to restart; falling back to the "
@@ -618,7 +463,6 @@ class SimulatorSession:
         return self.world_for_map(map_name)
 
     def close(self) -> None:
-        """Stop a server this session started."""
         self.release_client()
         self.server.stop()
 
@@ -626,13 +470,10 @@ class SimulatorSession:
         return self
 
     def __exit__(self, exc_type, exc, tb) -> None:
-        # Only a server we started ourselves is stopped; an externally managed
-        # simulator is left exactly as we found it.
         self.close()
 
 
 def session_from_config(cfg: Config, autostart: bool = True) -> SimulatorSession:
-    """Build a :class:`SimulatorSession` from the ``simulation`` config section."""
     return SimulatorSession(
         host=cfg.get("simulation.host", "127.0.0.1"),
         port=int(cfg.get("simulation.port", DEFAULT_PORT)),
@@ -647,7 +488,6 @@ def session_from_config(cfg: Config, autostart: bool = True) -> SimulatorSession
 
 
 def client_from_config(cfg: Config, autostart: bool = False) -> Any:
-    """Connect using the ``simulation`` section of a resolved configuration."""
     host = cfg.get("simulation.host", "127.0.0.1")
     port = int(cfg.get("simulation.port", DEFAULT_PORT))
     timeout_s = float(cfg.get("simulation.timeout_s", 60.0))

@@ -1,4 +1,3 @@
-"""The 22 runs of the article (19 scenarios), as folders under traces/."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]

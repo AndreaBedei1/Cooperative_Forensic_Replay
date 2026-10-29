@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 from __future__ import annotations
 
@@ -19,7 +18,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from cdf.evaluation import event_validation as ev  # noqa: E402
+from cdf.evaluation import event_validation as ev
 
 LEVELS = ("none", "nominal", "severe", "extreme")
 INCORRECT = ("wrong vehicle", "unsupported")
@@ -35,9 +34,6 @@ def job_id(line: Mapping[str, Any]) -> str:
                                            line["seed"], _name(line["run"]))
 
 
-# ----------------------------------------------------------------------------------------------------------------
-# per run and per job (worker processes)
-# ----------------------------------------------------------------------------------------------------------------
 
 def truth_task(run: str, out: str) -> str:
     target = Path(out) / "truth" / (_name(run) + ".json")
@@ -59,7 +55,7 @@ def job_task(line: Dict[str, Any], out: str) -> str:
     np.savez_compressed(str(out_dir / (name + "_states.npz")), **states)
     result["states_summary"] = {k: _stats(v) for k, v in states.items()}
     result["job"] = {k: line.get(k) for k in ("family", "level", "recorder", "seed", "run", "kept")}
-    text = json.dumps(result)  # serialised first: a failure leaves no partial file behind
+    text = json.dumps(result)
     partial = target.with_name(target.name + ".partial")
     with gzip.open(str(partial), "wt", encoding="utf-8") as handle:
         handle.write(text)
@@ -74,9 +70,6 @@ def _stats(values: np.ndarray) -> Dict[str, Any]:
             "within_1_5m": float(np.mean(values <= ev.IDENTITY_M))}
 
 
-# ----------------------------------------------------------------------------------------------------------------
-# aggregation
-# ----------------------------------------------------------------------------------------------------------------
 
 GNSS_NAME = {"rtk": "G1", "degraded": "G2"}
 ORDER = ["G0", "G1", "G2", "radar nominal", "radar severe", "radar extreme",
@@ -116,7 +109,6 @@ def aggregate(results: List[Dict[str, Any]], out: Path, states_dir: Path) -> Dic
     tables: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
     for cond in conditions:
         jobs = by[cond]
-        # A. events per family (before contact, and every phase)
         for phase in ("before contact", "all"):
             for family in list(ev.FAMILIES) + ["all"]:
                 preds = [p for j in jobs for p in j["predictions"]
@@ -136,7 +128,6 @@ def aggregate(results: List[Dict[str, Any]], out: Path, states_dir: Path) -> Dic
                     "FN_observable": sum(not t["matched"] for t in obs),
                     "precision": _ratio(tp, tp + fp), "recall": _ratio(tp, tp + fn),
                     "recall_observable": _ratio(sum(t["matched"] for t in obs), len(obs))})
-        # B. durations of the matched events
         for family in list(ev.FAMILIES) + ["all"]:
             matched = [p for j in jobs for p in j["predictions"] if p["class"] == "correct"
                        and (family == "all" or p["family"] == family) and p["phase"] != "after contact"]
@@ -148,7 +139,6 @@ def aggregate(results: List[Dict[str, Any]], out: Path, states_dir: Path) -> Dic
                 "onset_abs_median_s": _pct(onset, 50), "onset_abs_p95_s": _pct(onset, 95),
                 "closed_pairs": len(duration), "duration_abs_median_s": _pct(duration, 50),
                 "duration_abs_p95_s": _pct(duration, 95), "iou_median": _pct(iou, 50), "iou_p5": _pct(iou, 5)})
-        # C. active-state time
         rec = [v for j in jobs for v in j["active"]["recorders"].values()]
         n, n_pre = sum(v["n"] for v in rec), sum(v["n_pre_contact"] for v in rec)
         tables["time"].append({
@@ -161,7 +151,6 @@ def aggregate(results: List[Dict[str, Any]], out: Path, states_dir: Path) -> Dic
             "incorrect_pre_pct": _ratio(100 * sum(v["incorrect_pre"] for v in rec), n_pre),
             "spurious_pre_pct": _ratio(100 * sum(v["spurious_pre"] for v in rec), n_pre),
             "missing_pre_pct": _ratio(100 * sum(v["missing_pre"] for v in rec), n_pre)})
-        # D. replays
         rows = [replay_row(j) for j in jobs]
         tables["replays"] += rows
         k = len(rows)
@@ -173,7 +162,6 @@ def aggregate(results: List[Dict[str, Any]], out: Path, states_dir: Path) -> Dic
             "of_which_phantom_pct": _ratio(100 * sum(r["incorrect_active_last_second_phantom"] > 0 for r in rows), k),
             "phantom_within_2m_at_impact_pct": _ratio(100 * sum(r["phantoms_at_impact_<=2m"] > 0 for r in rows), k),
             "phantom_within_5m_at_impact_pct": _ratio(100 * sum(r["phantoms_at_impact_<=5m"] > 0 for r in rows), k)})
-        # E. saved states (pooled raw values)
         pooled: Dict[str, List[np.ndarray]] = defaultdict(list)
         for j in jobs:
             with np.load(str(states_dir / (job_id(j["job"]) + "_states.npz"))) as data:
@@ -184,7 +172,6 @@ def aggregate(results: List[Dict[str, Any]], out: Path, states_dir: Path) -> Dic
             row = {"condition": cond, "states": key}
             row.update(_stats(values))
             tables["states"].append(row)
-        # F. relevance (participants)
         rel = [x for j in jobs for x in j["relevance"] if x["role"] == "participant"]
         observable = [x for x in rel if x["observable_true_warning_about_partner"]]
         tables["relevance"].append({
@@ -198,11 +185,10 @@ def aggregate(results: List[Dict[str, Any]], out: Path, states_dir: Path) -> Dic
             "incorrect_events_in_8s_per_side": _ratio(sum(x["events_wrong_vehicle"] + x["events_unsupported"] for x in rel), len(rel)),
             "sides_with_incorrect_event_about_pair_pct": _ratio(100 * sum(x["incorrect_about_pair"] > 0 for x in rel), len(rel)),
             "partner_tracked_before_impact_pct": _ratio(100 * sum(bool(x["partner_tracked_before_impact"]) for x in rel), len(rel))})
-        # G. proximity at impact, by kind and bin (per contact)
         contacts = sum(len(j["contacts"]) for j in jobs)
         kinds = ["phantom", "ghost of a colliding recorder", "ghost of another recorder", "other vehicle"]
         if any(x["kind"] == "colliding vehicle" for j in jobs for x in j["proximity"]):
-            kinds.append("colliding vehicle")  # a collision with a non-recording vehicle (none in the 22 runs)
+            kinds.append("colliding vehicle")
         for kind in kinds:
             prox = [x for j in jobs for x in j["proximity"] if x["kind"] == kind]
             bins = Counter(x["bin_at_impact"] for x in prox)
@@ -216,7 +202,6 @@ def aggregate(results: List[Dict[str, Any]], out: Path, states_dir: Path) -> Dic
                 x["incorrect_event"] and x["clearance_at_impact_m"] is not None and x["clearance_at_impact_m"] <= 5.0
                 for x in prox)
             tables["proximity"].append(row)
-        # H. recovery
         recs = [x for j in jobs for x in j["recovery"]]
         for zone in ev.ZONES_M:
             col = "zone_{0:g}m".format(zone)
@@ -226,7 +211,6 @@ def aggregate(results: List[Dict[str, Any]], out: Path, states_dir: Path) -> Dic
                                        **counts})
         tables["recovery_association"].append({"condition": cond, "tracks": len(recs),
                                                **Counter(x["association"] for x in recs)})
-        # I. phantoms
         phantom_fp = sum(p["class"] in INCORRECT and p["subject"] is None for j in jobs for p in j["predictions"]
                          if p["phase"] != "after contact")
         all_fp = sum(p["class"] in INCORRECT for j in jobs for p in j["predictions"] if p["phase"] != "after contact")
@@ -245,7 +229,6 @@ def aggregate(results: List[Dict[str, Any]], out: Path, states_dir: Path) -> Dic
 
 
 def degraded(job: Mapping[str, Any], recorders: Sequence[str]) -> List[str]:
-    """The recorders whose radar the job degrades."""
     if job["family"] in ("baseline", "gnss"):
         return []
     if job.get("recorder"):
@@ -254,9 +237,6 @@ def degraded(job: Mapping[str, Any], recorders: Sequence[str]) -> List[str]:
 
 
 def by_degraded_radars(results: Sequence[Mapping[str, Any]]) -> List[Dict[str, Any]]:
-    """Per GNSS, radar level, number of recorders of the run and number of degraded radars (the same runs compared):
-    false events and who raised them (a recorder with a degraded radar or with an intact one), phantoms near the
-    impact, incorrect context in the last second before a contact."""
     groups: Dict[tuple, List[Mapping[str, Any]]] = defaultdict(list)
     for r in results:
         job = r["job"]
@@ -389,7 +369,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         write_csv(args.out / (name + ".csv"), rows)
     events, truths, contacts, prox, recov = [], [], [], [], []
     for r in results:
-        # job_* columns: an event's own "family" (CRITICAL_TTC, ...) must not overwrite the job's
         key = {"job_" + k: r["job"].get(k) for k in ("family", "level", "recorder", "seed", "run")}
         key["condition"] = condition(r["job"])
         events += [dict(key, kind="prediction", **p) for p in r["predictions"]]
@@ -414,7 +393,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         "phantoms": "6. Phantoms and the incident",
         "by_degraded_radars": "7. One, two or all radars degraded (same runs; who raises the false events)"})
     commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(ROOT), capture_output=True, text=True).stdout.strip()
-    # The analysis code (not this run's own outputs) must match the commit.
     dirty = bool(subprocess.run(["git", "status", "--porcelain", "--untracked-files=no", "--", "src", "scripts",
                                  "configs"], cwd=str(ROOT), capture_output=True, text=True).stdout.strip())
     expected = Counter(l["family"] for l in lines if l["family"] in families)

@@ -1,32 +1,3 @@
-"""Deterministic STOP/YIELD perception from transient RGB frames.
-
-A colour-and-shape detector with frame-to-frame tracking.  It uses no CARLA
-labels, actor IDs, maps or ground truth: only the pixels of one camera.
-
-Candidates are the external contours of the red mask (HSV, two hue bands,
-opened and closed).  A contour touching the image border is rejected: its
-shape is truncated and cannot be verified (the S10 false STOP was a red
-advertising board cut by the image border).  The remaining ones are classified
-by their geometry:
-
-  STOP   a regular convex octagon: hull compactness (4 pi A / P^2; 0.948 for a
-         regular octagon) at least ``stop_min_compactness``, at least
-         ``stop_min_vertices`` corners once the plate is large enough to show
-         them, a nearly square box (perspective narrows a plate seen from the
-         side, hence ``stop_aspect``), a red fraction typical of a plate with
-         letters (``stop_red_fraction``) and white letters inside it
-         (``stop_min_letters``: low-saturation bright pixels in the central band),
-         which no brick wall, tail light or red car shows;
-  YIELD  an inverted triangle: 3-4 corners (5 when small), box fill about 0.5,
-         the top edge much wider than the bottom (apex down), a red border with
-         a white interior.
-
-Detections are tracked between frames by class, centre distance (relative to
-the image width), size consistency and time gap; a track is confirmed after
-``min_detections_per_track`` detections with a stable shape.  Thresholds were
-calibrated on CARLA frames (Town05 STOP plates, the Town10HD YIELD sign; S10's
-red board and Town05's brick facades as negatives), see the README.
-"""
 
 from __future__ import annotations
 
@@ -41,7 +12,7 @@ YIELD = "YIELD"
 def _cv2() -> Any:
     try:
         import cv2
-    except ImportError as exc:  # pragma: no cover
+    except ImportError as exc:
         raise ImportError("sign perception needs OpenCV; install opencv-python") from exc
     return cv2
 
@@ -83,12 +54,12 @@ class SignDetection:
     confidence: float
     bbox: Tuple[int, int, int, int]
     n_vertices: int = 0
-    fill_ratio: float = 0.0  # contour area / bounding box area
-    redness: float = 0.0  # red fraction inside the contour
+    fill_ratio: float = 0.0
+    redness: float = 0.0
     compactness: float = 0.0
-    letters: float = 0.0  # white fraction in the central band
+    letters: float = 0.0
     image_width: int = 0
-    bearing_deg: float = 0.0  # horizontal angle of the box centre from the camera axis (+ = right)
+    bearing_deg: float = 0.0
 
     @property
     def area(self) -> int:
@@ -128,8 +99,6 @@ class SignTrack:
     def frame_first(self) -> int: return self.detections[0].frame
     @property
     def frame_confirmed(self) -> int:
-        # The tracker writes this value at serialization time; callers that do
-        # not know the configured threshold use the historical default of 3.
         return self.detections[min(2, len(self.detections) - 1)].frame
     @property
     def t_last(self) -> float: return self.detections[-1].t
@@ -155,8 +124,6 @@ class SignTrack:
         return min(abs(d.bearing_deg) for d in self.detections)
 
     def relevance(self, image_width: int) -> Dict[str, Any]:
-        """Image-only judgement whether the sign governs the camera's own path: it came
-        within ``relevance_bearing_deg`` of the camera axis and grew as the vehicle approached."""
         near_axis = self.min_bearing_deg <= self.relevance_bearing_deg
         return {"relevant_to_ego_path": bool(near_axis and self.growing),
                 "centredness": round(self.centredness(image_width), 4), "growing": self.growing,
@@ -181,7 +148,7 @@ def _clip01(value: float) -> float:
 
 class SignDetector:
     def __init__(self, cfg: Optional[Any] = None) -> None:
-        val = lambda name, default: _value(cfg, name, default)  # noqa: E731
+        val = lambda name, default: _value(cfg, name, default)
         self.min_area_px = int(val("min_area_px", 100))
         self.min_saturation = int(val("min_saturation", 90))
         self.min_value = int(val("min_value", 50))
@@ -205,7 +172,6 @@ class SignDetector:
         self.min_confidence = float(val("min_confidence", 0.0))
 
     def red_mask(self, image: Any) -> Tuple[Any, Any, Any]:
-        """(closed red mask, raw red mask, HSV image)."""
         cv2 = _cv2()
         import numpy as np
         hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
@@ -223,7 +189,6 @@ class SignDetector:
         return math.degrees(math.atan((centre_x - width / 2.0) / focal))
 
     def candidates(self, image: Any) -> List[Dict[str, Any]]:
-        """Measured shape and colour features of every red contour (also used for calibration)."""
         cv2 = _cv2()
         import numpy as np
         mask, raw, hsv = self.red_mask(image)
@@ -268,7 +233,6 @@ class SignDetector:
         return out
 
     def classify(self, c: Mapping[str, Any]) -> Tuple[Optional[str], float]:
-        """(class, confidence) of one candidate, or (None, 0)."""
         if c["touches_border"] or c["centre_row"] > self.max_centre_row_fraction:
             return None, 0.0
         aspect, small = c["aspect"], c["size"] < self.stop_small_px
@@ -306,12 +270,11 @@ class SignDetector:
 
 class SignTracker:
     def __init__(self, cfg: Optional[Any] = None) -> None:
-        val = lambda name, default: _value(cfg, name, default)  # noqa: E731
+        val = lambda name, default: _value(cfg, name, default)
         self.max_centre_gap_fraction = float(val("max_centre_gap_fraction", 0.08))
         self.max_time_gap_s = float(val("max_time_gap_s", 0.6))
         self.max_size_ratio = float(val("max_size_ratio", 1.8))
         self.min_detections = int(val("min_detections_per_track", 3))
-        # A plate seen from further aside looks narrower: the aspect changes along the approach.
         self.max_aspect_spread = float(val("max_aspect_spread", 0.35))
         self.relevance_bearing_deg = float(val("relevance_bearing_deg", 30.0))
         self._tracks: List[SignTrack] = []; self._next_id = 0
@@ -339,7 +302,6 @@ class SignTracker:
                 best.detections.append(detection)
 
     def stable(self, track: SignTrack) -> bool:
-        """Enough detections whose shape stays consistent (aspect spread) from frame to frame."""
         if len(track.detections) < self.min_detections:
             return False
         aspects = sorted(d.aspect for d in track.detections)
@@ -361,7 +323,6 @@ class SignTracker:
 
 def detect_signs(frames: Sequence[Tuple[float, int, Any]], cfg: Optional[Any] = None,
                  image_width: int = 0) -> Dict[str, Any]:
-    """Run the detector/tracker over ``(timestamp, frame, RGB image)`` tuples."""
     detector = SignDetector(cfg); tracker = SignTracker(cfg)
     all_detections: List[SignDetection] = []; width = int(image_width)
     for timestamp, frame, image in frames:

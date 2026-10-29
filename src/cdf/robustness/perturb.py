@@ -16,15 +16,10 @@ from ..reconstruction.tracking import RadarMount
 
 
 def stream_seed(seed: int, *labels: Any) -> int:
-    """A 64-bit seed for one random stream (run seed, recorder, sensor, quantity), independent of the order
-    in which the streams are drawn."""
     digest = hashlib.sha256(":".join([str(seed)] + [str(label) for label in labels]).encode("utf-8")).digest()
     return int.from_bytes(digest[:8], "big")
 
 
-# --------------------------------------------------------------------------
-# Radar
-# --------------------------------------------------------------------------
 
 @dataclass(frozen=True)
 class RadarProfile:
@@ -34,26 +29,15 @@ class RadarProfile:
     sigma_elevation_deg: float = 0.0
     sigma_velocity_mps: float = 0.0
     p_drop: float = 0.0
-    clutter_per_sweep: float = 0.0  # Poisson mean of false returns per sweep of one radar
+    clutter_per_sweep: float = 0.0
 
 
-# Accuracies taken as 1-sigma (vendors do not say: an engineering assumption, conservative if they are 2-sigma).
 RADAR_PROFILES: Dict[str, RadarProfile] = {
     "ideal": RadarProfile("ideal"),
-    # Best stated accuracies (Continental ARS 408-21 near range, Bosch premium, AUMOVIO ARS540); residual losses.
     "low": RadarProfile("low", 0.10, 0.1, 0.1, 0.03, 0.05, 1.0),
-    # Range at the median stated accuracy of production radars, azimuth and radial velocity above their medians
-    # (off-boresight crash geometry); the values used to perturb CARLA radar in DC-Loc (ICRA 2022);
-    # p_drop = 1 - 0.8 (Scheel & Dietmayer, T-ITS 2019); clutter from the Radar Ghost Dataset (IROS 2021).
     "nominal": RadarProfile("nominal", 0.25, 0.5, 0.5, 0.10, 0.20, 3.0),
-    # Worst stated accuracies (long-range modes, field-of-view edges); clutter lambda_C = 30 of T-ITS 2019.
     "high": RadarProfile("high", 0.50, 2.0, 2.0, 0.20, 0.40, 30.0),
-    # Campaign v3 levels (Table II of the article).
-    # severe: measurement quality at the field-of-view edge / long range (azimuth 2 deg: RadarScenes edge
-    # specification), twice the nominal misses, the measured urban ghost rate kept.
     "severe": RadarProfile("severe", 0.50, 2.0, 2.0, 0.20, 0.40, 3.0),
-    # extreme: the severe accuracies with dense clutter lambda = 30 per sweep, a tracker design value of T-ITS
-    # 2019, not a measured rate: a stress test beyond typical automotive radar (equal to the historical "high").
     "extreme": RadarProfile("extreme", 0.50, 2.0, 2.0, 0.20, 0.40, 30.0),
 }
 
@@ -61,10 +45,6 @@ RADAR_PROFILES: Dict[str, RadarProfile] = {
 def perturb_sweeps(frames: np.ndarray, timestamps: np.ndarray, offsets: np.ndarray, detections: np.ndarray,
                    metadata: Mapping[str, Any], profile: RadarProfile, rng: np.random.Generator,
                    speed_at: Any, keep: Optional[np.ndarray] = None) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """One radar's compact observations perturbed (columns: depth, azimuth, altitude, radial velocity).
-
-    ``keep`` selects the sweeps that survive (downsampling, outages); ``speed_at(timestamp)`` is the
-    vehicle's own recorded speed (for the static-world Doppler of clutter)."""
     keep = np.arange(len(frames)) if keep is None else np.asarray(keep, dtype=int)
     hfov = math.radians(float(metadata.get("horizontal_fov_deg", 30.0)))
     vfov = math.radians(float(metadata.get("vertical_fov_deg", 30.0)))
@@ -90,8 +70,6 @@ def perturb_sweeps(frames: np.ndarray, timestamps: np.ndarray, offsets: np.ndarr
             azimuth = rng.uniform(-hfov / 2.0, hfov / 2.0, count)
             altitude = rng.uniform(-vfov / 2.0, vfov / 2.0, count)
             depth = rng.uniform(1.0, reach, count)
-            # Static world seen from the moving vehicle: v_r = -(v_vehicle . u) along the line of sight
-            # (positive away from the sensor); the vehicle moves along its own x axis.
             forward, _, _ = mount.directions(azimuth, altitude)
             velocity = -float(speed_at(float(timestamps[index]))) * forward
             mirrored = rng.random(count) < 0.5
@@ -104,13 +82,9 @@ def perturb_sweeps(frames: np.ndarray, timestamps: np.ndarray, offsets: np.ndarr
     return frames[keep], timestamps[keep], np.asarray(starts, dtype=np.int64), detections_out
 
 
-# --------------------------------------------------------------------------
-# GNSS
-# --------------------------------------------------------------------------
 
 @dataclass(frozen=True)
 class GnssProfile:
-    """Per-axis error e(t) = b + g(t) + w(t), drawn at the receiver rate and interpolated."""
 
     name: str
     bias_m: float = 0.0
@@ -123,8 +97,6 @@ class GnssProfile:
     yaw_tau_s: float = 30.0
     yaw_white_deg: float = 0.0
     velocity_white_mps: float = 0.0
-    # Fraction of slow horizontal-position variance shared within a local run.
-    # Sensitivity parameter, not a universally calibrated receiver property.
     common_fraction: float = 0.0
     velocity_bias_mps: float = 0.0
     velocity_markov_mps: float = 0.0
@@ -149,7 +121,6 @@ class GnssProfile:
 
 GNSS_PROFILES: Dict[str, GnssProfile] = {
     "ideal": GnssProfile("ideal"),
-    # Position and heading preserve the earlier b:g:w ratios; velocity keeps white receiver-epoch noise.
     "rtk": GnssProfile("rtk", bias_m=0.0089732414, markov_m=0.0134598621, tau_s=60.0,
                        white_m=0.0026919724, rate_hz=10.0, yaw_bias_deg=0.0385369084,
                        yaw_markov_deg=0.0578053625, yaw_tau_s=30.0, yaw_white_deg=0.0192684542,
@@ -160,7 +131,6 @@ GNSS_PROFILES: Dict[str, GnssProfile] = {
                             velocity_white_mps=0.0722666351),
 }
 
-# Retained for the earlier retrospective analyses; never scheduled by the current campaign.
 HISTORICAL_GNSS_PROFILES: Dict[str, GnssProfile] = {
     "consumer": GnssProfile("consumer", 1.5, 0.7, 60.0, 0.05, 1.0, 0.3, 0.9, 10.0, 0.3, 0.10),
 }
@@ -168,7 +138,6 @@ HISTORICAL_GNSS_PROFILES: Dict[str, GnssProfile] = {
 
 def _error_series(times: np.ndarray, bias: float, markov: float, tau: float, white: float, rate: float,
                   rng: np.random.Generator) -> np.ndarray:
-    """Bias + Gauss-Markov + white noise drawn at ``rate`` and interpolated linearly at ``times``."""
     if not (bias or markov or white):
         return np.zeros_like(times)
     step = 1.0 / rate
@@ -184,8 +153,6 @@ def _error_series(times: np.ndarray, bias: float, markov: float, tau: float, whi
 
 
 class PerturbedPoseSource(RecordedPoseSource):
-    """The recorded GNSS-like stream with a profile's errors (position, heading, velocity), declaring the
-    profile's accuracy as a receiver reports its own estimate."""
 
     def __init__(self, records: Sequence[Mapping[str, Any]], clock_origin: float, profile: GnssProfile, seed: int,
                  recorder: str, common: Optional[Mapping[str, Any]] = None) -> None:
@@ -195,7 +162,7 @@ class PerturbedPoseSource(RecordedPoseSource):
         self.position_std_m = profile.position_std_m
         self.yaw_std_rad = math.radians(profile.yaw_std_deg)
         self.velocity_std_mps = profile.velocity_std_mps
-        rng = lambda label: np.random.default_rng(stream_seed(seed, "gnss", profile.name, recorder, label))  # noqa: E731
+        rng = lambda label: np.random.default_rng(stream_seed(seed, "gnss", profile.name, recorder, label))
         t = self.times
         independent = math.sqrt(1-profile.common_fraction)
         def position_error(axis: str) -> np.ndarray:
@@ -222,7 +189,6 @@ class PerturbedPoseSource(RecordedPoseSource):
 
     @classmethod
     def factory(cls, profile: GnssProfile, seed: int):
-        """A ``pose_factory(vehicle_dir, clock_origin)`` for the reconstruction and the replay."""
         common: Dict[str, Any] = {}
         def make(vehicle_dir: Path, clock_origin: float) -> "PerturbedPoseSource":
             path = Path(vehicle_dir) / "ego.jsonl"
@@ -243,36 +209,28 @@ class PerturbedPoseSource(RecordedPoseSource):
         return make
 
 
-# --------------------------------------------------------------------------
-# Collision reports, clock, sampling, dropout: the copy of a run
-# --------------------------------------------------------------------------
 
 @dataclass(frozen=True)
 class CollisionPerturbation:
-    impulse_rel_std: float = 0.0  # multiplicative noise per callback
-    p_drop: float = 0.0  # each callback lost with this probability
-    # Crash-recorder-like reports (``_crash_recorder_reports``): callbacks at most burst_gap_s apart are one burst.
-    burst_rel_std: float = 0.0  # multiplicative delta-V noise per burst
-    mass_rel_std: float = 0.0  # multiplicative mass error per recorder (reported impulse = mass x delta-V)
-    burst_jitter_s: float = 0.0  # uniform time shift per burst within +-this
+    impulse_rel_std: float = 0.0
+    p_drop: float = 0.0
+    burst_rel_std: float = 0.0
+    mass_rel_std: float = 0.0
+    burst_jitter_s: float = 0.0
     burst_gap_s: float = 0.075
 
 
 @dataclass(frozen=True)
 class Perturbation:
-    """One perturbed condition of a run (anything left at its default is unchanged)."""
 
     name: str
     radar: RadarProfile = RADAR_PROFILES["ideal"]
     gnss: GnssProfile = GNSS_PROFILES["ideal"]
     collisions: CollisionPerturbation = CollisionPerturbation()
-    clock_offsets_s: Tuple[Tuple[str, float], ...] = ()  # (recorder, offset): every timestamp it wrote
-    downsample: int = 1  # keep every n-th ego / control / radar sample
+    clock_offsets_s: Tuple[Tuple[str, float], ...] = ()
+    downsample: int = 1
     drop_recorders: Tuple[str, ...] = ()
-    radar_outage: Optional[Tuple[str, float, float]] = None  # (recorder, start, end) in its local time [s]
-    # The recorders whose radars get the radar profile; empty: every recorder.  The random stream of a recorder's
-    # radar is keyed by (seed, profile, recorder, radar), so a recorder degraded alone gets exactly the errors it
-    # gets when every recorder is degraded (paired asymmetric comparisons).
+    radar_outage: Optional[Tuple[str, float, float]] = None
     radar_recorders: Tuple[str, ...] = ()
 
     def radar_profile_of(self, recorder: str) -> "RadarProfile":
@@ -308,7 +266,6 @@ TIMED_STREAMS = ("ego.jsonl", "controls.jsonl", "collisions.jsonl", "traffic_sig
 
 
 def perturbed_copy(run_dir: Path, target: Path, perturbation: Perturbation, seed: int) -> Path:
-    """Write the perturbed copy of ``run_dir`` to ``target`` (which must not exist) and return it."""
     run_dir, target = Path(run_dir), Path(target)
     if target.exists():
         raise FileExistsError("a perturbed copy is never overwritten: " + str(target))
@@ -321,7 +278,7 @@ def perturbed_copy(run_dir: Path, target: Path, perturbation: Perturbation, seed
         if parts[0] == "vehicles" and len(parts) > 1 and parts[1] in perturbation.drop_recorders:
             continue
         if parts[0] != "vehicles" or len(parts) < 3:
-            _link_or_copy(path, target / relative)  # ground truth, run metadata, incident context
+            _link_or_copy(path, target / relative)
             continue
         recorder = parts[1]
         shifted = recorder in offsets
@@ -335,7 +292,6 @@ def perturbed_copy(run_dir: Path, target: Path, perturbation: Perturbation, seed
             _perturb_radar_file(path, target / relative, run_dir / "vehicles" / recorder, recorder, perturbation,
                                 offsets, seed)
         elif path.name == "metadata.json" and len(parts) == 4 and shifted:
-            # Sensor metadata may carry timestamps of its own: shift the obvious ones.
             data = json.loads(path.read_text(encoding="utf-8"))
             for key in ("first_timestamp", "last_timestamp"):
                 if isinstance(data.get(key), (int, float)):
@@ -369,13 +325,10 @@ def _perturb_stream(path: Path, recorder: str, name: str, perturbation: Perturba
             kept.append(row)
         rows = kept
         if c.burst_rel_std or c.mass_rel_std or c.burst_jitter_s:
-            # Keyed by the run too: a recorder draws only a few errors, which must differ between runs.
             run = "{0}/{1}".format(path.parents[3].name, path.parents[2].name)
             rows = _crash_recorder_reports(rows, c, np.random.default_rng(stream_seed(seed, "crash_recorder", run,
                                                                                         recorder)))
     if shift:
-        # Every time the recorder wrote: "timestamp", and the "timestamp_first" / "_confirmed" / "_last" of a
-        # traffic-sign track.
         rows = [{key: (float(value) + shift if _is_time(key) and value is not None else value)
                  for key, value in row.items()} for row in rows]
     return rows
@@ -383,9 +336,6 @@ def _perturb_stream(path: Path, recorder: str, name: str, perturbation: Perturba
 
 def _crash_recorder_reports(rows: Sequence[Mapping[str, Any]], c: CollisionPerturbation,
                             rng: np.random.Generator) -> List[Dict[str, Any]]:
-    """Collision callbacks as a crash recorder reports them: the reported impulse is mass x delta-V, so every
-    callback of a burst shares one delta-V error and every burst of the recorder one mass error, and a burst's
-    callbacks move together by one timing error."""
     bursts: List[List[Dict[str, Any]]] = []
     for row in sorted(rows, key=lambda r: float(r["timestamp"])):
         if bursts and float(row["timestamp"]) - float(bursts[-1][-1]["timestamp"]) <= c.burst_gap_s:
@@ -410,7 +360,7 @@ def _is_time(key: str) -> bool:
 
 def _perturb_radar_file(path: Path, target: Path, vehicle_dir: Path, recorder: str, perturbation: Perturbation,
                         offsets: Mapping[str, float], seed: int) -> None:
-    with np.load(str(path)) as data:  # closed at once: Windows keeps an open file from being linked or removed
+    with np.load(str(path)) as data:
         frames, timestamps, starts, detections = (np.array(data["frames"]), np.array(data["timestamps"]),
                                                   np.array(data["offsets"]), np.array(data["detections"]))
     metadata = json.loads((path.parent / "metadata.json").read_text(encoding="utf-8"))

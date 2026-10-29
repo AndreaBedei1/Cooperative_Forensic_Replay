@@ -1,10 +1,3 @@
-"""Read-only queries over one local graph, for validation and reports.
-
-They describe the observed order of events in one recorder's own clock; they
-are not legal or causal judgements.  For example ``sign_windows`` says whether
-a STOP_START of the recorder lies inside a STOP-sign detection window, from
-which a later reasoning layer may derive NO_STOP_AFTER_STOP_SIGN.
-"""
 
 from __future__ import annotations
 
@@ -14,11 +7,6 @@ from .models import GraphNode, LocalGraph, transition_of
 
 
 def open_states(graph: LocalGraph) -> List[Dict[str, Any]]:
-    """States that started and never ended: still active when observation ended.
-
-    Observation of a track's states ends at its TRACK_LOST; of everything else
-    at the end of the recording.  No END is inferred in either case.
-    """
     active: Dict[Tuple[str, Optional[str]], GraphNode] = {}
     lost: Dict[Optional[str], float] = {}
     for node in graph.nodes:
@@ -39,7 +27,6 @@ def open_states(graph: LocalGraph) -> List[Dict[str, Any]]:
 
 
 def _stopped_at(graph: LocalGraph, t_local: float) -> bool:
-    """Whether the recorder was in the STOP state at ``t_local`` (strictly before any later change)."""
     stopped = False
     for node in graph.nodes:
         if node.t_local >= t_local:
@@ -52,14 +39,6 @@ def _stopped_at(graph: LocalGraph, t_local: float) -> bool:
 
 
 def sign_windows(graph: LocalGraph, sign: str = "STOP_SIGN_DETECTED") -> List[Dict[str, Any]]:
-    """Each detection window of a sign, and the recorder's STOP_START events inside it.
-
-    Inside means strictly after the window's START and strictly before its END
-    (equal times are simultaneous, hence unresolved).  A window without END (the
-    sign still in view when the recording ended) lasts until the recording end.
-    A reacquired sign has several windows; each START pairs with the next END
-    of the same sign.
-    """
     stops = [node for node in graph.nodes if node.event_type == "STOP_START"]
     recording_end = float(graph.recorder.get("end_t_local", float("inf")))
     pairs: List[Tuple[GraphNode, Optional[GraphNode]]] = []
@@ -97,23 +76,6 @@ def _round(value: Optional[float]) -> Optional[float]:
 def temporal_safety_relations(graph: LocalGraph,
                               partner_collisions: Optional[Mapping[str, Sequence[float]]] = None
                               ) -> List[Dict[str, Any]]:
-    """Order of a track's cut-in, critical TTC and path entry, and the recorder's collision.
-
-    One entry per local track with a CUT_IN_*_START, CRITICAL_TTC_START or
-    EGO_PATH_ENTRY, in the recorder's own clock.  These are temporal properties
-    only, not causal claims.  The cut-in is compared with the critical-TTC
-    episode active at its start: ``CRITICAL_TTC_ALREADY_ACTIVE`` when that
-    episode started at or before the cut-in (CRITICAL_TTC_START <= CUT_IN_START),
-    otherwise ``CUT_IN_BEFORE_CRITICAL_TTC`` with the next CRITICAL_TTC_START, or
-    ``NO_CRITICAL_TTC_AFTER_CUT_IN``.  ``chain`` states
-    ``CUT_IN_* < CRITICAL_TTC_START < COLLISION`` when all three hold in that order.
-
-    A recorder can collide more than once, so ``collision`` is its first
-    COLLISION at or after the track's critical TTC start (without one, after
-    the track's cut-in or path entry), or None.  ``partner_collisions`` (track
-    -> local times), known only after fusion has identified a track, limits the
-    choice to the recorder's collisions with that entity.
-    """
     collisions = sorted(node.t_local for node in graph.nodes if node.event_type == "COLLISION")
     subjects: Dict[str, List[GraphNode]] = {}
     for node in graph.nodes:
@@ -173,13 +135,11 @@ def temporal_safety_relations(graph: LocalGraph,
 
 
 def _collision_text(item: Dict[str, Any]) -> str:
-    """'COLLISION 5.25', or 'COLLISION with B 5.25' once fusion has identified the track."""
     partner = item.get("collision_with")
     return "COLLISION{0} {1:.2f}".format(" with " + partner if partner else "", item["collision"])
 
 
 def describe_temporal_relation(item: Dict[str, Any]) -> str:
-    """One compact line, e.g. 'CUT_IN_FROM_LEFT_START 3.90 < CRITICAL_TTC_START 4.20 (+0.30 s) < COLLISION 5.25 (+1.05 s)'."""
     parts = []
     deltas = item["deltas_s"]
     cut_in, critical, collision = item["cut_in"], item["critical_ttc_start"], item["collision"]

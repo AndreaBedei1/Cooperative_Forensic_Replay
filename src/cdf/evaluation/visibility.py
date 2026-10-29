@@ -1,10 +1,3 @@
-"""Ground-truth radar coverage of a recorder (privileged: evaluation only).
-
-Whether another vehicle lay within the field of view and range of one of a recorder's radars, with a clear
-line of sight, at one simulator frame: true poses and boxes (``ground_truth/states.jsonl``) and the radars'
-own mounts and fields of view (``vehicles/<id>/radar/<sensor>/metadata.json``).  Used by the event oracle (``cdf.evaluation.event_oracle``);
-``cdf.reconstruction`` never imports it.
-"""
 
 from __future__ import annotations
 
@@ -18,13 +11,11 @@ from ..replay.model import rotation_axes
 
 
 def rotation(yaw: float, pitch: float, roll: float) -> np.ndarray:
-    """Columns: world-frame forward, right, up of a CARLA rotation (degrees)."""
     forward, right, up = rotation_axes(yaw, pitch, roll)
     return np.array([forward, right, up]).T
 
 
 class Box:
-    """A vehicle's oriented bounding box (centre at the body's mid height)."""
 
     def __init__(self, state: Mapping[str, Any]):
         tf, ext = state["transform"], state["bbox_extent"]
@@ -49,7 +40,6 @@ class Box:
         return self.centre + (grid * self.extent) @ self.rot.T
 
     def blocks(self, start: np.ndarray, end: np.ndarray) -> bool:
-        """Does the horizontal segment start-end pass through this box (2-D)?"""
         a, b = self.local(start[None])[0][:2], self.local(end[None])[0][:2]
         t0, t1 = 0.0, 1.0
         d = b - a
@@ -69,13 +59,12 @@ class Box:
 
 @dataclass
 class RadarView:
-    """One radar of a recorder: mount (vehicle frame) and field of view, from its own metadata."""
 
     sensor_id: str
-    position: np.ndarray  # x forward, y right, z up (m)
+    position: np.ndarray
     rotation: np.ndarray
-    half_horizontal: float  # rad
-    half_vertical: float  # rad
+    half_horizontal: float
+    half_vertical: float
     range_m: float
 
     @classmethod
@@ -91,10 +80,10 @@ class RadarView:
 
 @dataclass
 class Coverage:
-    in_range: bool  # part of the body within some radar's range
-    inside_fov: bool  # part of the body within some radar's field of view and range
-    occluded: bool  # inside a field of view, but every such line of sight crosses another vehicle's box
-    radar: Optional[str]  # the radar seeing most of the body
+    in_range: bool
+    inside_fov: bool
+    occluded: bool
+    radar: Optional[str]
 
     @property
     def visible(self) -> bool:
@@ -104,10 +93,6 @@ class Coverage:
 def coverage(own: Mapping[str, Any], target: str, world: Mapping[str, Mapping[str, Any]],
              radars: Sequence[RadarView], boxes: Optional[Mapping[str, Box]] = None,
              partial: bool = True) -> Coverage:
-    """The coverage of ``target`` by the radars of the vehicle in state ``own`` at one frame (``world``:
-    participant -> state at that frame).  ``partial``: the body is seen when one of its surface points inside
-    a field of view has a clear line of sight (a radar sees part of a body past another); otherwise only the
-    line of sight to its centre counts (the visibility audit's simpler rule)."""
     boxes = boxes if boxes is not None else {pid: Box(state) for pid, state in world.items()}
     owner = own["participant_id"]
     tf = own["transform"]
@@ -145,6 +130,5 @@ def frames_by_participant(states: Iterable[Mapping[str, Any]]) -> Dict[int, Dict
 
 
 def radar_views(vehicle_dir: Any) -> List[Any]:
-    """(RadarView, observations) of every radar of a recorder (its own files)."""
     from ..recording.compact_observations import load_radar_observations
     return [(RadarView.from_metadata(obs.metadata), obs) for obs in load_radar_observations(vehicle_dir)]

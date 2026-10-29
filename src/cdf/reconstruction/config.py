@@ -1,4 +1,3 @@
-"""Reconstruction parameters and their defaults; ``configs/reconstruction.yaml`` sets the values used."""
 
 from __future__ import annotations
 
@@ -171,7 +170,6 @@ def _section(cls, values: Optional[Mapping[str, Any]]):
 
 
 def config_from_mapping(data: Optional[Mapping[str, Any]]) -> ReconstructionConfig:
-    """Build a config from the ``reconstruction:`` mapping, rejecting typos."""
     data = dict(data or {})
     unknown = sorted(set(data) - {"trace_hz", "collision", "tracking", "semantics", "fusion"})
     if unknown:
@@ -186,7 +184,6 @@ def config_from_mapping(data: Optional[Mapping[str, Any]]) -> ReconstructionConf
 
 
 def load_config(path: Optional[Path] = None) -> ReconstructionConfig:
-    """Load ``configs/reconstruction.yaml`` (or ``path``); defaults if absent."""
     if path is None:
         path = Path(__file__).resolve().parents[3] / "configs" / "reconstruction.yaml"
     path = Path(path)

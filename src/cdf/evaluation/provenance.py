@@ -1,8 +1,3 @@
-"""Provenance of evaluation aggregates: code version, configuration hash, inputs, time.
-
-Every aggregate written for the paper carries one ``provenance`` record so that a number can be traced
-back to the code, the configuration, the raw runs, the perturbation profile and the seed it came from.
-"""
 
 from __future__ import annotations
 
@@ -28,14 +23,10 @@ def _git(*args: str) -> Optional[str]:
 
 
 def config_hash(config: Mapping[str, Any]) -> str:
-    """SHA-256 of the configuration as canonical JSON (sorted keys)."""
     return hashlib.sha256(json.dumps(config, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
 
 
 def code_hash() -> str:
-    """SHA-256 over the source code (``src/cdf/**/*.py``) and ``configs/*.yaml``, path and content: identifies
-    the code version even before it is committed (an output committed with its code cannot name that
-    commit)."""
     digest = hashlib.sha256()
     files = sorted(list((ROOT / "src" / "cdf").rglob("*.py")) + list((ROOT / "configs").glob("*.yaml")))
     for path in files:
@@ -46,7 +37,6 @@ def code_hash() -> str:
 
 @lru_cache(maxsize=None)
 def commit_code_hash(commit: str) -> Optional[str]:
-    """Verify the same path/content digest directly from immutable Git objects."""
     listing = _git('ls-tree', '-r', '--name-only', commit, '--', 'src/cdf', 'configs')
     if listing is None:
         return None
@@ -64,7 +54,6 @@ def commit_code_hash(commit: str) -> Optional[str]:
 
 
 def verify_equivalence(record: Mapping[str, Any], commits: Sequence[str]) -> Dict[str, Any]:
-    """Annotate historical execution; never change its commit or dirty flag."""
     result = dict(record)
     value = result.get('code_sha256')
     result['analysis_code_sha256'] = value
@@ -80,7 +69,6 @@ def verify_equivalence(record: Mapping[str, Any], commits: Sequence[str]) -> Dic
 def provenance(config: Optional[Mapping[str, Any]] = None, runs: Sequence[str] = (),
                perturbation: Optional[str] = None, seed: Optional[int] = None,
                extra: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
-    """The provenance record of an aggregate."""
     status = _git("status", "--porcelain", "--untracked-files=no")
     record: Dict[str, Any] = {
         "git_commit": _git("rev-parse", "HEAD"),

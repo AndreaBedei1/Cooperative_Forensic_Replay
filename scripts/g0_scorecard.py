@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import argparse
@@ -10,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from cdf.evaluation.scorecard import markdown, scorecard  # noqa: E402
+from cdf.evaluation.scorecard import markdown, scorecard
 
 
 def main() -> int:

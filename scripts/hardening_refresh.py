@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-"""Regenerate derived analysis of saved runs only; never acquire CARLA or call providers."""
 import argparse
 import concurrent.futures
 import json

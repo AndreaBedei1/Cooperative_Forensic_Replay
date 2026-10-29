@@ -1,146 +1,107 @@
 # Forensic Reconstruction of Road Collisions from Independent Onboard Recordings
 
-Code, data and article of the paper by L. Bacchiani, A. Bedei, M. Bravetti, R. Girau and G. Pau (University of
-Bologna).
+Code, dataset and article accompanying the paper by L. Bacchiani, A. Bedei, M. Bravetti, R. Girau and G. Pau (University of Bologna).
 
-After a collision, each vehicle that recorded something holds only its own data, on its own clock and in its own
-frame: radar detections without identities, its pose and motion, its controls and the impact reports of its
-collision sensor. From these recordings alone, the method reconstructs offline a shared chronology of the incident:
-the collisions and their participants, the trajectories of all road users (including those that recorded nothing)
-and the semantic events that preceded the contact, each traceable to the recorder whose data support it.
+This project reconstructs road traffic collisions from independent onboard vehicle recordings. By combining radar observations, vehicle motion, positioning data and collision reports, the system reconstructs a shared chronology of the incident, including vehicle trajectories, collisions and events preceding the impact.
 
-* **Article:** [`paper/main.pdf`](paper/main.pdf) (LaTeX source in [`paper/`](paper/)).
-* **Dataset:** 19 scenarios, 22 runs simulated in CARLA 0.9.15, in [`traces/`](traces/).
-* **Evaluation:** the 22 runs with exact poses (G0) and 1816 reconstruction jobs with positioning and radar errors.
-
-## Results
-
-Table III of the article. Reconstruction columns are seed means; local event scores are pooled counts.
-
-| Condition | Jobs | Coll. | Phant. | Rec. dup. | W. links | F. merges | P95 [m] | Prec. | Rec. | Last 1 s |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| G0 | 22 | 1.000 | 0.0 | 0.05 | 0.00 | 0.00 | 0.82 | 0.978 | 0.899 | 4.5 % |
-| G1, RTK | 66 | 1.000 | 0.0 | 0.05 | 0.00 | 0.00 | 0.85 | 0.982 | 0.902 | 4.5 % |
-| G2, degraded | 66 | 1.000 | 0.0 | 0.02 | 0.00 | 0.00 | 0.87 | 0.986 | 0.906 | 3.0 % |
-| Radar nominal | 66 | 1.000 | 0.6 | 0.06 | 0.00 | 0.00 | 0.97 | 0.954 | 0.902 | 7.6 % |
-| Radar severe | 66 | 0.987 | 68.7 | 0.50 | 0.03 | 0.68 | 1.33 | 0.846 | 0.902 | 15.2 % |
-| Radar extreme | 110 | 0.954 | 102.4 | 1.79 | 0.12 | 0.91 | 1.56 | 0.313 | 0.834 | 86.4 % |
-| One recorder, severe | 150 | 0.995 | 30.5 | 0.26 | 0.01 | 0.03 | 1.08 | 0.911 | 0.892 | 8.7 % |
-| One recorder, extreme | 250 | 0.981 | 45.6 | 0.84 | 0.05 | 0.06 | 1.19 | 0.509 | 0.862 | 56.8 % |
-| G2 + radar severe | 66 | 1.000 | 69.6 | 0.52 | 0.03 | 0.73 | 1.33 | 0.826 | 0.879 | 25.8 % |
-
-*Coll.*: fraction of correctly identified contacts. *Phant.*, *Rec. dup.*, *W. links*, *F. merges*: counts per job of
-phantom entities, recorders duplicated as anonymous entities, wrong recorder links and false merges. *P95*:
-road-user position error. *Prec.* / *Rec.*: precision and observable recall of local conflict-event onsets before
-each recorder's first contact. *Last 1 s*: share of jobs with an unmatched nonduplicate conflict interval in the second before a
-recorder's first contact. G1/G2 are the RTK and degraded GNSS/INS profiles; the radar profiles are defined in Table II
-of the article.
-
-Under G0, all 26 collision participant sets are correct, all 45 observable vehicles without a recorder are
-represented (median position error 0.24 m), and there are no wrong recorder links and no false merges.
+- **Article:** [paper/main.pdf](paper/main.pdf) (LaTeX source in [paper/](paper/)).
+- **Dataset:** Recorded CARLA scenarios available in [traces/](traces/).
 
 ## Installation
 
-Requirements: Windows 10/11, [Miniconda](https://docs.conda.io/en/latest/miniconda.html) and the packaged Windows
-build of [CARLA 0.9.15](https://github.com/carla-simulator/carla/releases/tag/0.9.15). The reconstruction only reads
-the OpenDRIVE maps of CARLA; the simulations and the viewers also need the simulator and a GPU.
+**Requirements:**
+- Windows 10/11
+- [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
+- [CARLA 0.9.15](https://github.com/carla-simulator/carla/releases/tag/0.9.15) (Windows packaged build)
+- GPU for graphical visualization
+
+Clone the repository and create the Conda environment:
 
 ```bat
 git clone https://github.com/AndreaBedei1/Cooperative_Forensic_Replay.git
 cd Cooperative_Forensic_Replay
 conda env create -f environment.yml
 conda activate carla
+```
+
+Configure the CARLA installation path:
+
+```bat
 set CARLA_ROOT=C:\path\to\CARLA_0.9.15\WindowsNoEditor
 ```
 
-Set `CARLA_ROOT` in every new terminal (or once with `setx`): without it the reconstruction finds no road map.
-All commands below run from the repository root in the `carla` environment.
+Replace the path with your actual CARLA installation directory. Set `CARLA_ROOT` again when opening a new terminal.
 
-## Reproducing the results
+All commands below must be executed from the repository root with the `carla` environment activated.
 
-**1. The 22 runs under G0.** Reconstruct and evaluate every run, then compute the scorecard:
+## Viewing Replays
 
-```bat
-python scripts\hardening_refresh.py --scope canonical --workers 6
-python scripts\g0_scorecard.py --canonical --out results\g0
-```
+Recorded scenarios are stored in `traces/`. Each run can be visualized using two viewers:
 
-The reconstruction reads only each run's `vehicles\` and `incident_context.json`; ground truth is read by the
-evaluation only. The outputs in `traces\<scenario>\<run>\reconstruction\` are regenerated byte for byte.
+- **Reconstruction:** Displays the reconstructed vehicle trajectories, radar tracks, collisions and events.
+- **Ground Truth:** Displays the original simulation data for comparison.
 
-**2. The results table.** Recompute Table III from the campaign records in `results\`:
+### 1. Start CARLA
 
-```bat
-python scripts\paper_reconstruction_metrics.py
-python scripts\paper_event_metrics.py
-python scripts\paper_geometry_comparison.py
-```
-
-They write `results\paper_evaluation\` (`reconstruction_metrics.json`, `event_metrics.md`, `geometry_comparison.md`).
-
-**3. The campaign jobs.** Every job is deterministic (each random stream is seeded from seed, sensor, profile and
-recorder). This re-runs the 1816 jobs from this code, keeps their outputs and checks that each scorecard is
-identical to the recorded one (about 76 core-hours; `--limit N` runs only N jobs):
-
-```bat
-python scripts\regenerate_campaign_jobs.py --code . --out out\kept --families baseline,gnss,radar_v3,radar_asym,radar_gnss_v3,radar_asym_gnss --workers 8
-python scripts\event_validation.py --kept out\kept --work out\ev_work --out results\event_validation --families baseline,gnss,radar_v3,radar_asym,radar_gnss_v3,radar_asym_gnss
-```
-
-`out\kept\regenerated.jsonl` reports `scorecard_identical` for every job; the second command rebuilds
-`results\event_validation\events.csv.gz`, the input of `paper_event_metrics.py`.
-
-## Running a simulation
-
-Start a CARLA server, then record a scenario (definitions in `configs\scenarios\`):
+Open a terminal and start the CARLA server:
 
 ```bat
 python scripts\start_carla.py --carla-root %CARLA_ROOT% --port 3000
-python scripts\run_scenario.py --scenario S02 --output scratch\trial --no-autostart
-python scripts\reconstruct_run.py scratch\trial\S02\run_0_crash --evaluate
 ```
 
-Use a scratch output: the runs of the article in `traces\` are never overwritten. A recording holds `vehicles\` (what
-each recorder logged), `ground_truth\` (what CARLA simulated, for the evaluation only) and `incident_context.json`.
-`reconstruct_run.py` writes `reconstruction\`, including the global chronology `global\global_graph.md` and a
-plain-language `report.md`.
+### 2. View a Reconstruction
 
-## Viewing a run
-
-Two viewers draw a run in CARLA: **GROUND TRUTH** (what was simulated) and **RECONSTRUCTION** (what the method
-estimated: recorders at their GNSS/INS pose, road users without a recorder, radar tracks, collisions and events).
-Start two servers, each in its own terminal, and open the runs side by side:
-
-```bat
-python scripts\start_carla.py --carla-root %CARLA_ROOT% --port 3000
-python scripts\start_carla.py --carla-root %CARLA_ROOT% --port 3100
-python scripts\review_canonical_runs.py --port 3000 --gt-port 3100 --res 960x540 --speed 0.5
-```
-
-In the menu, `N` opens run N in both viewers. Keys: SPACE play/pause, LEFT/RIGHT seek, 1-4 speed, N/P next/previous
-event, C camera, ESC closes both. A single viewer, or top-down figures without a server:
+In another terminal, run:
 
 ```bat
 python scripts\replay_run.py traces\S12\run_0_crash --port 3000
-python scripts\view_ground_truth.py traces\S12\run_0_crash --port 3100
+```
+
+Replace `traces\S12\run_0_crash` with the path of any other recorded run.
+
+### 3. Compare Reconstruction and Ground Truth
+
+To visualize both views side by side, start a second CARLA server in a separate terminal:
+
+```bat
+python scripts\start_carla.py --carla-root %CARLA_ROOT% --port 3100
+```
+
+Then launch the two viewers in separate terminals:
+
+**Ground Truth:**
+```bat
+python scripts\view_ground_truth.py traces\S12\run_0_crash --port 3100 --sync-lead 47811 --res 960x540
+```
+
+**Reconstruction:**
+```bat
+python scripts\replay_run.py traces\S12\run_0_crash --port 3000 --sync-follow 47811 --res 960x540
+```
+
+Both viewers are synchronized for playback and navigation.
+
+### Playback Controls
+
+| Key | Action |
+|---|---|
+| `SPACE` | Play / Pause |
+| `LEFT / RIGHT` | Move backward / forward |
+| `1–4` | Change playback speed |
+| `N / P` | Next / previous event |
+| `C` | Change camera |
+| `TAB` | Select vehicle |
+| `T` | Show / hide radar tracks |
+| `ESC` | Exit viewer |
+
+### Export Replay Images
+
+Top-down replay images can also be generated without starting a CARLA server:
+
+```bat
 python scripts\replay_run.py traces\S12\run_0_crash --export out\s12 --at -1 --at 0 --format png
 ```
 
-## Repository layout
+## License
 
-| path | content |
-|---|---|
-| `paper/` | the article (`main.pdf`) and its LaTeX source |
-| `src/cdf/reconstruction/` | the reconstruction method |
-| `src/cdf/evaluation/` | evaluation against ground truth |
-| `src/cdf/simulation/`, `src/cdf/recording/` | CARLA scenarios, sensors and recording |
-| `src/cdf/robustness/` | positioning and radar perturbations |
-| `src/cdf/replay/` | the two viewers |
-| `configs/` | reconstruction parameters, scenarios, sensors |
-| `traces/` | the 22 runs: recordings, ground truth and reconstruction |
-| `results/` | campaign records from which Table III is computed |
-| `scripts/` | command-line entry points |
-
-## Licence
-
-MIT, see [LICENSE](LICENSE).
+MIT License. See [LICENSE](LICENSE).

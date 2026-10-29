@@ -1,4 +1,3 @@
-"""Separate privileged simulator-state trace for acquisition runs."""
 
 from __future__ import annotations
 
@@ -28,7 +27,6 @@ class GroundTruthLogger:
         self.controls.write(json.dumps(record, sort_keys=True, separators=(",", ":")) + "\n")
 
     def trigger(self, record: Dict[str, Any]) -> None:
-        """A scripted action fired by a privileged trigger (scenario construction only)."""
         if self.triggers is None:
             self.triggers = (self.root / "triggers.jsonl").open("w", encoding="utf-8")
         self.triggers.write(json.dumps(record, sort_keys=True, separators=(",", ":")) + "\n")

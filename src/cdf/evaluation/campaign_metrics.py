@@ -1,20 +1,3 @@
-"""Breakdowns of the existing fusion and collision evaluation for the robustness campaign.
-
-PRIVILEGED evaluation only (ground truth is read here, never by the reconstruction).  Nothing here defines a new
-event or identity criterion: every verdict is the one ``fusion_metrics.evaluate_fusion`` and
-``reconstruction.evaluate_run`` already give; this module only groups them.
-
-* Distance band of a local track: the median radar range (``range_m`` of ``local_tracks.jsonl``, the
-  reconstruction's own measurement) over the track's measured samples, in ``BANDS``.  A track never measured is
-  ``unmeasured``.  An anonymous entity or a true vehicle takes the band of its nearest track (smallest median
-  range): a road user one recorder saw close counts as close.  A pair of tracks (merge verdicts) takes the
-  band of its nearer track.
-* Incident participants: the vehicles of the true vehicle-vehicle contacts (``ground_truth/collisions.jsonl``,
-  recorders and non-recording vehicles alike).  A causal vehicle that never touches anybody (S12's B) is not in
-  this set: no criterion for causal involvement exists in the evaluation.
-* Collisions: a true contact is DETECTED when the reconstruction holds a collision node for it
-  (``reconstructed_as``) and IDENTIFIED when that node names exactly its participants (``participants_correct``).
-"""
 
 from __future__ import annotations
 
@@ -55,7 +38,6 @@ def _stats(values: Iterable[float]) -> Dict[str, Optional[float]]:
 
 
 def track_ranges(run_dir: Path) -> Dict[str, Optional[float]]:
-    """``recorder:track`` -> median measured radar range [m] (None: never measured)."""
     out: Dict[str, Optional[float]] = {}
     rec = Path(run_dir) / "reconstruction"
     for path in sorted(rec.glob("*/local_tracks.jsonl")):
@@ -72,7 +54,6 @@ def track_ranges(run_dir: Path) -> Dict[str, Optional[float]]:
 
 
 def incident_participants(run_dir: Path) -> List[str]:
-    """Participants of the true vehicle-vehicle contacts (ground truth)."""
     run_dir = Path(run_dir)
     actor_to_pid = {}
     with (run_dir / "ground_truth" / "states.jsonl").open(encoding="utf-8") as handle:
@@ -93,11 +74,10 @@ def _category(verdict: str) -> str:
     head = verdict.split(" (")[0]
     if head.startswith("anonymous"):
         return "clutter" if "clutter" in verdict else "anonymous"
-    return head  # "correct link", "WRONG link", "missed link"
+    return head
 
 
 def campaign_metrics(run_dir: Path, fusion: Mapping[str, Any], evaluation: Mapping[str, Any]) -> Dict[str, Any]:
-    """The banded and incident-restricted counts of one reconstructed run (module docstring)."""
     run_dir = Path(run_dir)
     ranges = track_ranges(run_dir)
     incident = set(incident_participants(run_dir))
@@ -111,7 +91,6 @@ def campaign_metrics(run_dir: Path, fusion: Mapping[str, Any], evaluation: Mappi
         if row.get("true_identity") in incident:
             incident_decisions[category] += 1
 
-    # Merge verdicts over pairs of tracks in anonymous entities, exactly as evaluate_fusion counts them.
     entities = fusion.get("entities", [])
     member_of = {name: e["id"] for e in entities for name in e["source_tracks"]}
     identity = {row["track"]: row.get("true_identity") for row in decisions}

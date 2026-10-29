@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import argparse
@@ -38,7 +37,6 @@ def _interval(value: str) -> Optional[List[float]]:
 
 
 def _run_name(value: str) -> str:
-    # Archived jobs store the run as a path; its last two parts name it.
     return "/".join([part for part in value.replace("\\", "/").split("/") if part][-2:])
 
 
@@ -56,7 +54,6 @@ def extract() -> Dict[str, Any]:
     scorecards = json.loads(scorecards_path.read_text(encoding="utf-8"))
     fusions = [json.loads(path.read_text(encoding="utf-8")) for path in fusion_paths]
 
-    # Reject incomplete or accidentally mixed canonical inputs.
     fusion_runs = {result["run"] for result in fusions}
     assert len(fusions) == len(fusion_runs) == len(scorecards) == 22
     assert fusion_runs == {card["run"] for card in scorecards}
@@ -95,7 +92,6 @@ def extract() -> Dict[str, Any]:
             })
     assert len(conditions) == 9
 
-    # Count true contacts and extra nodes independently in both committed exports.
     assert len(job_rows) == 1816 and all(row["status"] == "complete" for row in job_rows)
     csv_totals = {key: sum(int(row[key]) for row in job_rows)
                   for key in ("contacts", "reportable", "detected", "identified", "invented", "recontact_splits")}

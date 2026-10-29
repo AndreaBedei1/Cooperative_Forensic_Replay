@@ -1,9 +1,3 @@
-"""Per-run numbers pooled by the sweeps and the robustness study (privileged: evaluation side only).
-
-``run_metrics`` reads a run's evaluation results (``cdf.evaluation.reconstruction``,
-``cdf.evaluation.fusion_metrics``); ``core_event_diff`` compares the core events of two reconstructions of
-the same run (a perturbed one against the unperturbed one) without ground truth.
-"""
 
 from __future__ import annotations
 
@@ -13,7 +7,6 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from ..reconstruction.models import PAPER_CORE_EVENTS
 
-# The core events a perturbed reconstruction is expected to keep: instants, not durations.
 DIFF_EVENTS = ("COLLISION", "BRAKE_START", "CRITICAL_TTC_START", "CUT_IN_FROM_LEFT_START", "CUT_IN_FROM_RIGHT_START",
                "EGO_PATH_ENTRY")
 MATCH_WINDOW_S = 1.0
@@ -30,8 +23,6 @@ def run_metrics(run_dir: Path, evaluation: Dict[str, Any], fusion: Dict[str, Any
                and all(name in alignment["graphs"] for name in row["participants"])]
     counts = fusion["decision_counts"]
     errors = fusion["state_errors"]
-    # The fused road users' centre error leaves recorder ghosts out (an anonymous road user that is in truth a
-    # recorder is not a road-user estimate); results written before that split have every road user.
     road_users = fusion["road_user_state_errors"] if "road_user_state_errors" in fusion else errors
     relative = [abs(row["error_s"]) for row in evaluation.get("relative_clock_offsets", []) if row.get("error_s") is not None]
     return {"recorders": len(alignment["graphs"]),
@@ -58,9 +49,6 @@ def run_metrics(run_dir: Path, evaluation: Dict[str, Any], fusion: Dict[str, Any
 
 
 def _events(graph: Dict[str, Any], keep_recorders: Optional[Iterable[str]] = None) -> List[Tuple[Tuple[Any, ...], float]]:
-    """(key, t_global) of the instant core events; a subject is the recorder it was identified with, or just
-    'anonymous' (track and road-user numbers are not stable under perturbation).  A recorder outside
-    ``keep_recorders`` (dropped) is expected as an anonymous road user."""
     recorders = {e["entity_id"] for e in graph.get("entities", []) if e.get("kind") == "recorder"}
     keep = set(keep_recorders) if keep_recorders is not None else recorders
     out = []
@@ -82,12 +70,8 @@ def _events(graph: Dict[str, Any], keep_recorders: Optional[Iterable[str]] = Non
 
 def core_event_diff(base_graph: Dict[str, Any], new_graph: Dict[str, Any],
                     keep_recorders: Optional[Iterable[str]] = None) -> Dict[str, Any]:
-    """Core instant events of ``base_graph`` found again in ``new_graph`` (same type, actor and subject
-    class within MATCH_WINDOW_S, nearest first), missing ones, extra ones, and the time differences."""
     base = sorted(_events(base_graph, keep_recorders), key=lambda item: item[1])
     new = sorted(_events(new_graph, keep_recorders), key=lambda item: item[1])
-    # The zero of the global clock is a choice (the reference collision, or a reference recorder's own clock
-    # when no collision is matched): the shift that lines up most events is removed first.
     candidates = sorted({round(t2 - t, 2) for key, t in base for k2, t2 in new if k2 == key} | {0.0}, key=abs)
     origin = max(candidates, key=lambda d: (sum(1 for key, t in base if any(k2 == key and abs(t2 - d - t) <= 0.06
                                                                            for k2, t2 in new)), -abs(d)))
@@ -113,6 +97,5 @@ def core_event_diff(base_graph: Dict[str, Any], new_graph: Dict[str, Any],
 
 
 def graph_signature(graph: Dict[str, Any]) -> List[Tuple[Any, ...]]:
-    """Every node of a global graph as (type, actor, subject, participants, t_global): for identity checks."""
     return [(n["event_type"], n.get("actor_id"), n.get("subject_id"), tuple(n.get("participants") or ()),
              None if n.get("t_global") is None else round(float(n["t_global"]), 4)) for n in graph["nodes"]]

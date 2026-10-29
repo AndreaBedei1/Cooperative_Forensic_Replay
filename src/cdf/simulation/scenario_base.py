@@ -1,4 +1,3 @@
-"""Fixed scenario specifications and CARLA route construction."""
 
 from __future__ import annotations
 
@@ -26,27 +25,10 @@ __all__ = [
 ]
 
 
-# ---------------------------------------------------------------------------
-# Specification dataclasses
-# ---------------------------------------------------------------------------
 
 
 @dataclass
 class SpawnSpec:
-    """How to derive a participant's spawn waypoint from the map.
-
-    Three anchoring modes are supported:
-
-    ``spawn_index``
-        Offset from one of the map's recommended spawn points. Stable and
-        readable for straight-road scenarios.
-    ``location``
-        An explicit ``(x, y)`` projected onto the nearest driving lane.
-    ``junction_approach``
-        The lane that approaches a given junction centre from a given compass
-        bearing, backed off ``back_m`` metres. This is what makes crossing
-        scenarios expressible without hand-copying coordinates per map.
-    """
 
     anchor: str = "spawn_index"
     index: int = 0
@@ -77,7 +59,6 @@ class SpawnSpec:
 
 @dataclass
 class RouteSpec:
-    """How far and through which turns a participant drives."""
 
     length_m: float = 200.0
     step_m: float = 2.0
@@ -112,7 +93,6 @@ class RouteSpec:
 
 @dataclass
 class ParticipantSpec:
-    """Everything needed to instantiate one participant vehicle."""
 
     participant_id: str
     blueprint: str = "vehicle.tesla.model3"
@@ -178,7 +158,6 @@ class ParticipantSpec:
 
 @dataclass
 class ScenarioSpec:
-    """A scenario definition loaded from the fixed YAML files."""
 
     scenario_id: str
     name: str
@@ -188,9 +167,6 @@ class ScenarioSpec:
     participants: List[ParticipantSpec] = field(default_factory=list)
 
     max_duration_s: float = 30.0
-    # Known incident context supplied with the scenario, e.g. the legal speed
-    # limit at the location (``speed_limit_kmh``).  Not perceived, not ground
-    # truth; the runner copies it to ``incident_context.json``.
     context: Dict[str, Any] = field(default_factory=dict)
 
     def participant(self, participant_id: str) -> ParticipantSpec:
@@ -205,12 +181,9 @@ class ScenarioSpec:
 
     @property
     def recorder_ids(self) -> List[str]:
-        """Participants that write ``vehicles/<id>/`` (``record`` true)."""
         return [p.participant_id for p in self.participants if p.record]
 
     def without(self, participant_ids: Sequence[str]) -> "ScenarioSpec":
-        """The same scenario with some participants removed (a privileged
-        counterfactual).  A trigger aimed at a removed participant never fires."""
         unknown = sorted(set(participant_ids) - set(self.participant_ids))
         if unknown:
             raise KeyError("no participant(s) {0} in scenario {1}".format(unknown, self.scenario_id))
@@ -221,12 +194,6 @@ class ScenarioSpec:
 
     @staticmethod
     def from_config(cfg: Config, variant: Optional[str] = None) -> "ScenarioSpec":
-        """Build a specification from a resolved run configuration.
-
-        A named variant deep-merges its overrides over the base ``scenario``
-        block, which is how S01 expresses both its crash and its avoided variant
-        without duplicating the whole definition.
-        """
         from ..common.config import deep_merge
 
         block = cfg.get("scenario", None)
@@ -245,7 +212,6 @@ class ScenarioSpec:
         merged = dict(block)
         if chosen in variants:
             merged = deep_merge(merged, variants[chosen] or {})
-        # Variant participant overrides are keyed by participant id.
         overrides = merged.pop("participant_overrides", {}) or {}
         participants = []
         for pdict in merged.get("participants", []) or []:
@@ -277,9 +243,6 @@ class ScenarioSpec:
         return spec
 
 
-# ---------------------------------------------------------------------------
-# Map-based construction (scenario generation only)
-# ---------------------------------------------------------------------------
 
 
 def junction_approach_waypoint(
@@ -291,17 +254,6 @@ def junction_approach_waypoint(
     search_radius: float = 60.0,
     sample_step: float = 2.0,
 ) -> Any:
-    """Find the lane that approaches a junction from a given compass bearing.
-
-    ``bearing_deg`` is the direction of *travel* of the approaching vehicle, in
-    CARLA's yaw convention. The function scans driving waypoints near the
-    junction, keeps those whose heading points toward the junction centre and
-    matches the requested bearing, and returns the one backed off ``back_m``
-    metres along its lane.
-
-    This makes crossing scenarios portable: the YAML names a junction centre and
-    two bearings instead of a table of hand-measured spawn coordinates.
-    """
     carla = import_carla()
     best = None
     best_score = float("inf")
@@ -314,14 +266,12 @@ def junction_approach_waypoint(
         if d > search_radius or d < 8.0:
             continue
         heading = wp.transform.rotation.yaw
-        # Must be travelling roughly toward the junction centre.
         to_junction = math.degrees(math.atan2(junction_y - loc.y, junction_x - loc.x))
         if abs(angle_diff_deg(heading, to_junction)) > 35.0:
             continue
         bearing_err = abs(angle_diff_deg(heading, bearing_deg))
         if bearing_err > 30.0:
             continue
-        # Prefer a lane close to the requested stand-off distance and bearing.
         score = abs(d - back_m) + bearing_err * 0.5
         if score < best_score:
             best_score = score
@@ -336,7 +286,6 @@ def junction_approach_waypoint(
 
 
 def resolve_spawn_waypoint(carla_map: Any, spawn_points: Sequence[Any], spec: SpawnSpec) -> Any:
-    """Turn a :class:`SpawnSpec` into a concrete lane waypoint."""
     carla = import_carla()
 
     if spec.anchor == "spawn_index":
@@ -371,7 +320,6 @@ def resolve_spawn_waypoint(carla_map: Any, spawn_points: Sequence[Any], spec: Sp
     if wp is None:
         raise ValueError("spawn spec {0!r} did not resolve to a driving lane".format(spec))
 
-    # Lateral lane offset (positive = to the right of travel).
     for _ in range(abs(spec.lane_offset)):
         nxt = wp.get_right_lane() if spec.lane_offset > 0 else wp.get_left_lane()
         if nxt is None or nxt.lane_type != carla.LaneType.Driving or nxt.lane_id * wp.lane_id < 0:
@@ -392,13 +340,6 @@ def resolve_spawn_waypoint(carla_map: Any, spawn_points: Sequence[Any], spec: Sp
 
 
 def build_route(carla_map: Any, start_wp: Any, spec: RouteSpec) -> RoutePlan:
-    """Sample a driveable route forward from ``start_wp``.
-
-    At each junction the next turn decision is consumed from ``spec.turns``;
-    when they run out the route continues straight. Choosing the successor by
-    heading difference (rather than by CARLA's arbitrary successor order) is what
-    makes crossing and roundabout routes reproducible.
-    """
     points: List[Tuple[float, float]] = []
     headings: List[float] = []
 
@@ -435,19 +376,6 @@ def build_route(carla_map: Any, start_wp: Any, spec: RouteSpec) -> RoutePlan:
 
 
 def _eventual_heading(candidate: Any, probe_m: float = 14.0) -> float:
-    """Where this candidate is actually pointing once it has committed.
-
-    At a junction entry every connecting lane still runs along the approach, so
-    the candidates' own headings can differ by a degree or two while leading to
-    completely different roads. Scoring on those headings makes the turn decision
-    a coin toss: at Town05's junction 359 all three of ``left``, ``right`` and
-    ``straight`` selected the same lane and every vehicle turned the same way,
-    whatever its scenario asked for.
-
-    Following each candidate a short way forward and reading the heading there is
-    what separates them. The probe stops at the first fork, because past a fork
-    the answer would depend on a decision that has not been made yet.
-    """
     wp = candidate
     travelled = 0.0
     step = 2.0
@@ -466,18 +394,12 @@ def _choose_successor(
     decision: str,
     lookahead: bool = False,
 ) -> Any:
-    """Pick the successor matching a turn decision, by relative heading."""
     base = current.transform.rotation.yaw
     scored: List[Tuple[float, Any]] = []
     for c in candidates:
         delta = angle_diff_deg(c.transform.rotation.yaw, base)
         scored.append((delta, c))
 
-    # Where the immediate headings cannot tell the candidates apart, the choice
-    # above is decided by which lane CARLA happens to list first. Look downstream
-    # instead, for the scenarios that asked for it. Only this case is re-scored,
-    # so a junction whose candidates already diverge keeps the selection it
-    # always made even with the lookahead on.
     if lookahead and len(scored) > 1 and max(abs(d) for d, _ in scored) < 10.0:
         scored = [
             (angle_diff_deg(_eventual_heading(c), base), c) for _, c in scored
@@ -487,7 +409,6 @@ def _choose_successor(
     if decision == "straight":
         return min(scored, key=lambda s: abs(s[0]))[1]
     if decision == "right":
-        # In CARLA's left-handed frame a right turn increases yaw.
         rights = [s for s in scored if s[0] > 12.0]
         return max(rights, key=lambda s: s[0])[1] if rights else min(
             scored, key=lambda s: abs(s[0])
@@ -501,7 +422,6 @@ def _choose_successor(
 
 
 def make_controller(spec: ParticipantSpec, route: RoutePlan) -> ScriptedController:
-    """Instantiate the scripted controller for a participant specification."""
     return ScriptedController(
         participant_id=spec.participant_id,
         route=route,
