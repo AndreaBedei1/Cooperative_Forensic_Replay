@@ -4,66 +4,44 @@
 \subsection{State Estimation: Filtering and Smoothing}
 \label{subsec:state-estimation}
 
-State estimation infers the motion of an object from noisy observations.
-For planar vehicle motion, a common state contains position and velocity,
-$\mathbf{x}_k=(p_x,p_y,v_x,v_y)^{\mathsf T}$, at sampling instant $k$.
-For Cartesian position and directional velocity measurements, a linear
-state-space model describes its evolution and observation as
+For planar motion, let
+$\mathbf{x}_k=(p_x,p_y,v_x,v_y)^{\mathsf T}$. A linear state-space model
+describes its evolution and observation:
 \begin{equation}
   \mathbf{x}_k=\mathbf{F}_k\mathbf{x}_{k-1}+\mathbf{w}_k,
   \qquad
   \mathbf{z}_k=\mathbf{H}_k\mathbf{x}_k+\mathbf{v}_k,
   \label{eq:state-space}
 \end{equation}
-where $\mathbf{F}_k$ models motion, $\mathbf{H}_k$ relates the state to the
-measurements, and $\mathbf{w}_k$ and $\mathbf{v}_k$ represent process and
-measurement noise, with covariances $\mathbf{Q}_k$ and $\mathbf{R}_k$.
-In a constant-velocity model, position advances by velocity times the
-sampling interval; process noise accounts for departures from that
-prediction, including acceleration~\cite{barshalom2001estimation}.
-
-The Kalman filter recursively propagates a state estimate and its error
-covariance, then updates them using the next measurement and its
-uncertainty~\cite{kalman1960filtering}. The observations available to the
-estimator distinguish filtering from smoothing: filtering estimates the
-state at $k$ using observations through $k$, whereas fixed-interval
-smoothing estimates that same state using the entire observation
-sequence, including later measurements. The Rauch--Tung--Striebel (RTS)
-smoother achieves this through a backward recursion over the filtered
-estimates~\cite{rauch1965smoothing}. Both estimates depend on the assumed motion model, which must be
-revisited when an impact causes an abrupt velocity change.
+Here $\mathbf{w}_k$ and $\mathbf{v}_k$ have covariances $\mathbf{Q}_k$
+and $\mathbf{R}_k$. Under constant velocity, process noise covers
+accelerations~\cite{barshalom2001estimation}. The Kalman filter uses
+measurements through $k$~\cite{kalman1960filtering}; Rauch--Tung--Striebel
+(RTS) smoothing also uses later measurements~\cite{rauch1965smoothing}.
+An impact calls for a new motion segment because velocity can change
+abruptly.
 
 \subsection{Multi-Object Tracking and Data Association}
 \label{subsec:multi-object-tracking}
 
-Multi-object tracking estimates several trajectories while maintaining
-their identities over time. Because detections carry no reliable
-identity, data association determines which observations belong to which
-tracks, while track management handles their initiation, continuation,
-and termination~\cite{barshalom2001estimation}. For a predicted state
-$\hat{\mathbf{x}}$ with covariance $\mathbf{P}$,
-the measurement innovation $\mathbf{r}=\mathbf{z}-\mathbf{H}\hat{\mathbf{x}}$
-has covariance $\mathbf{S}=\mathbf{H}\mathbf{P}\mathbf{H}^{\mathsf T}+\mathbf{R}$.
-Compatibility can be assessed using the squared Mahalanobis distance,
+Tracking associates detections with trajectories and manages their
+initiation and termination~\cite{barshalom2001estimation}. For a
+predicted state $\hat{\mathbf{x}}$ with covariance $\mathbf{P}$, the
+innovation $\mathbf{r}=\mathbf{z}-\mathbf{H}\hat{\mathbf{x}}$ has covariance
+$\mathbf{S}=\mathbf{H}\mathbf{P}\mathbf{H}^{\mathsf T}+\mathbf{R}$.
+Its squared Mahalanobis distance is
 \begin{equation}
   d^2=\mathbf{r}^{\mathsf T}\mathbf{S}^{-1}\mathbf{r}.
   \label{eq:association-distance}
 \end{equation}
-A statistical gate uses this distance to reject incompatible candidates.
-Several tracks may nevertheless explain the same observation, so passing
-the gate establishes compatibility without uniquely determining the
-association.
+A gate rejects incompatible candidates; passing it does not determine
+a unique association.
 
-Automotive radar also requires an extended-object view of a vehicle.
-Multiple detections can arise from spatially separated reflection centres,
-and their distribution depends on the visible parts of the
-body~\cite{hammarstrand2012extended}. Doppler measures relative velocity along each
-return's line of sight; a single return does not directly determine the
-tangential component. Consequently, a tracked radar position need not
-coincide with the vehicle centre, and different observers can track
-different surfaces of the same car. Extended-object tracking explicitly
-accounts for the relationship between object motion, physical extent,
-and multiple detections~\cite{granstrom2017extended}.
+Radar returns arise from visible parts of an extended vehicle
+body~\cite{hammarstrand2012extended,granstrom2017extended}. Doppler
+measures line-of-sight velocity, while a tracked return need not
+coincide with the vehicle centre. Different observers can therefore
+track different surfaces of the same car.
 
 With several observers, track-to-track association must determine whether
 histories from different sources describe the same physical object, a
@@ -72,30 +50,21 @@ problem distinct from fusing their estimates~\cite{chong2000association}.
 \subsection{Traffic Conflict Measures}
 \label{subsec:traffic-conflicts}
 
-Traffic-conflict measures quantify proximity to a collision under specified
-motion assumptions. Time to collision (TTC) is the time until the first
-predicted contact if those assumptions continue to
-hold~\cite{hayward1972near-miss}. For two vehicles following a straight path
-at constant speeds, with follower speed $v_f>v_l$ and leader speed $v_l$,
-TTC and the following time gap are
+Time to collision (TTC) is the time until predicted contact under stated
+motion assumptions~\cite{hayward1972near-miss}. For straight-path
+following at constant speeds with $v_f>v_l$, TTC and time gap are
 \begin{equation}
   \mathrm{TTC}=\frac{d}{v_f-v_l},
   \qquad
   \tau_{\mathrm{gap}}=\frac{d}{v_f},
   \label{eq:ttc-time-gap}
 \end{equation}
-where $d>0$ is the bumper-to-bumper clearance. These measures describe
-different properties: two vehicles travelling at the same speed
-can have a short following gap while their constant-speed TTC is infinite.
-Close following and an imminent collision are therefore distinct
-conditions~\cite{vogel2003headway}.
+where $d>0$ is bumper-to-bumper clearance. At equal speeds, a short
+gap can coexist with infinite constant-speed TTC~\cite{vogel2003headway}.
 
-For cut-ins and crossing traffic, the distance-to-closing-speed ratio alone
-does not establish a collision course. Predictions must account for both
-vehicles' paths and physical footprints. Measures based on braking further
-consider the deceleration needed to avoid predicted contact after an
-assumed response delay. Their interpretation depends on the motion model,
-response assumptions, and available deceleration~\cite{westhofen2023criticality}.
+For cut-ins and crossings, prediction must account for both paths and
+footprints. Braking-based measures also assume a response delay and
+available deceleration~\cite{westhofen2023criticality}.
 
 The interpretation of response timing likewise depends on context.
 Naturalistic studies show that braking onset varies with the evolving

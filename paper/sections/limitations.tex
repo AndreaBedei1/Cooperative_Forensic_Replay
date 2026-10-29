@@ -12,6 +12,12 @@ the campaign fixes recordings, code and settings and reuses identical
 per-recorder perturbations in corresponding conditions.
 
 \paragraph{External validity}
+The method applies when the pose, detection-level radar, controls and
+per-contact impact logs specified in Sec.~\ref{sec:methodology} have been
+retained and made available under case-specific access controls.
+Event-data-recorder requirements alone do
+not guarantee those streams~\cite{cfr563}. The positioning experiments
+cover the stated G0--G2 grades, not metre-level GNSS.
 Transfer to other sensing conditions depends on the structure of the
 errors as well as their magnitude. The severe and extreme all-recorder
 profiles apply sustained corruption to every radar throughout every
@@ -46,9 +52,10 @@ auditable interpretation, without equating a reconstructed conflict with
 driver awareness or responsibility.
 
 \paragraph{Conclusion validity}
-The design parameters were set
-during development on these scenarios and frozen before the
-campaign~\cite{causaldrive2026code}. However, threshold tuning only affects scenario development while methodology parameters are fixed beforehand.
+All 1816 jobs use one fixed reconstruction configuration. The
+statistical constructions and the numerical operating choices are
+distinguished in Sec.~\ref{sec:methodology}; these runs do not establish
+generalization of the choices to unseen scenario families.
 Because the 1816 jobs repeat 22 recorded runs,
 seed-based intervals describe perturbation variability within that set. Pooled differences
 between single-recorder and all-recorder rows are interpreted

@@ -138,7 +138,7 @@ priors. At each shared observation, the compatibility cost is
   \label{eq:body-compatibility}
 \end{equation}
 where the terms are the normalized fitting costs for one joint body and
-two separate bodies. This cost is tested against a $\chi^2_2$ gate,
+two separate bodies. This cost is compared with the $\chi^2_2(0.99)$ cutoff,
 together with velocity compatibility; after either observer's impact,
 geometry alone is used. Agreement must persist, and a link is refused
 when a rival remains plausible or a \emph{cannot-link} constraint would
@@ -151,9 +151,10 @@ group supported by sustained cross-observer evidence: its first measured
 position and velocity are propagated backward with the motion model and
 compared with earlier fragments' last measured states, including process
 and relative-pose uncertainty. A candidate must pass a $\chi^2_4$
-state-compatibility gate and reach model posterior support of at least
-0.95 against both competing successors and competing predecessors, with
-a new-road-user alternative in each comparison. Merging also requires
+state-compatibility gate and reach normalized continuation support of at
+least 0.95 in both successor and predecessor comparisons. Each compares
+Gaussian state densities of the candidates, with equal relative weights,
+against rivals and a new-road-user alternative. Merging also requires
 that the cannot-link constraints hold and that the earlier fragment ends
 without a confusable neighbour. Successful resolution updates identity
 attribution while preserving the original observations and event times,
@@ -167,6 +168,41 @@ minimizing the trace of the fused covariance. This handles unknown
 cross-correlations and also provides the position fallback when no joint
 body fit is available. Fused trajectories are smoothed without crossing
 gaps or impacts.
+
+\begin{table}[!t]
+\caption{Selected reconstruction settings and their basis. Sources
+motivate the model or range; numerical choices are empirically decided except where
+specified by UN R157.}
+\label{tab:settings}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{.22\columnwidth}
+                  @{\hspace{6pt}}>{\raggedright\arraybackslash}p{.29\columnwidth}
+                  @{\hspace{6pt}}>{\raggedright\arraybackslash}p{.43\columnwidth}@{}}
+\hline
+\textbf{Use} & \textbf{Value} & \textbf{Basis} \\
+\hline
+Gaussian gates & $P_{\rm gate}=0.99$ &
+Gaussian innovation validation~\cite{barshalom2001estimation}. \\
+Body fit & $\chi^2_2(0.99)$ &
+Numerical cutoff; null distribution unestablished. \\
+Alignment/link & 0.05~s; 10 samples; 80\% &
+One 20-Hz step; about 0.5~s shared support. \\
+Stitching & $\leq1.5$~s &
+Limits motion extrapolation. \\
+Identity & $2\ln20$; 0.95 &
+Conservative margins; multi-scan hypotheses~\cite{reid1979tracking}. \\
+New road user & $3.57\times10^{-5}$~s$^2$/m$^4$ &
+New-target model~\cite{reid1979tracking}; density assumed. \\
+Conflict & 1.0~s; 6.0~m/s$^2$; 6.0~s &
+Response and braking ranges~\cite{green2000stop,kudarauskas2007braking};
+horizon assumed. \\
+Following gap & 1.0--1.6~s; 2~m &
+UN R157~\cite{unece2021r157}; 1.6~s held above 60~km/h. \\
+\hline
+\end{tabular}
+\end{table}
 
 \subsection{Semantic Events and Shared Chronology}
 \label{subsec:semantic-events}
@@ -205,8 +241,8 @@ traffic in adjacent lanes, and unlike a predicted overlap, a short
 following gap does not by itself give a
 time-to-collision~\cite{vogel2003headway}. Both conditions require
 sufficiently mature tracks with bounded position and velocity uncertainty.
-The experiments use a 1.0~s response delay, 6.0~m/s$^2$ available
-deceleration and a 6.0~s prediction horizon.
+Table~\ref{tab:settings} gives the common conflict-test assumptions; they
+do not estimate a particular driver's response or braking capability.
 
 Fused trajectories describe the estimated physical motion, while the
 shared chronology integrates events already extracted independently by
