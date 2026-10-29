@@ -30,19 +30,15 @@ state at $k$ using observations through $k$, whereas fixed-interval
 smoothing estimates that same state using the entire observation
 sequence, including later measurements. The Rauch--Tung--Striebel (RTS)
 smoother achieves this through a backward recursion over the filtered
-estimates~\cite{rauch1965smoothing}. In retrospective analysis, the
-complete recording is available, making this distinction relevant. Both
-estimates still depend on the assumed motion model, which must be
+estimates~\cite{rauch1965smoothing}. Both estimates depend on the assumed motion model, which must be
 revisited when an impact causes an abrupt velocity change.
 
 \subsection{Multi-Object Tracking and Data Association}
 \label{subsec:multi-object-tracking}
 
 Multi-object tracking estimates several trajectories while maintaining
-their identities over time. This is difficult because sensor detections
-generally carry no reliable object identity: a vehicle can produce several
-returns, disappear from view, or pass close to another vehicle. Data
-association therefore determines which observations belong to which
+their identities over time. Because detections carry no reliable
+identity, data association determines which observations belong to which
 tracks, while track management handles their initiation, continuation,
 and termination~\cite{barshalom2001estimation}. For a predicted state
 $\hat{\mathbf{x}}$ with covariance $\mathbf{P}$,
@@ -69,12 +65,9 @@ different surfaces of the same car. Extended-object tracking explicitly
 accounts for the relationship between object motion, physical extent,
 and multiple detections~\cite{granstrom2017extended}.
 
-With several observers, the association problem extends from detections
-to tracks. Although a local track label identifies an observation history
-within one source, track-to-track association must determine whether
-histories from different sources describe the same physical object.
-Establishing that correspondence and fusing the associated state
-estimates remain distinct estimation problems~\cite{chong2000association}.
+With several observers, track-to-track association must determine whether
+histories from different sources describe the same physical object, a
+problem distinct from fusing their estimates~\cite{chong2000association}.
 
 \subsection{Traffic Conflict Measures}
 \label{subsec:traffic-conflicts}
@@ -91,9 +84,8 @@ TTC and the following time gap are
   \tau_{\mathrm{gap}}=\frac{d}{v_f},
   \label{eq:ttc-time-gap}
 \end{equation}
-where $d>0$ is the bumper-to-bumper clearance. The latter is a net time gap;
-gross time headway instead uses front-to-front spacing. These measures
-describe different properties: two vehicles travelling at the same speed
+where $d>0$ is the bumper-to-bumper clearance. These measures describe
+different properties: two vehicles travelling at the same speed
 can have a short following gap while their constant-speed TTC is infinite.
 Close following and an imminent collision are therefore distinct
 conditions~\cite{vogel2003headway}.
@@ -104,7 +96,6 @@ vehicles' paths and physical footprints. Measures based on braking further
 consider the deceleration needed to avoid predicted contact after an
 assumed response delay. Their interpretation depends on the motion model,
 response assumptions, and available deceleration~\cite{westhofen2023criticality}.
-They characterize aspects of conflict urgency without establishing its cause.
 
 The interpretation of response timing likewise depends on context.
 Naturalistic studies show that braking onset varies with the evolving

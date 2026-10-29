@@ -8,6 +8,8 @@
 \usepackage{url}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 
 \title{Forensic Reconstruction of Road Collisions from Independent Onboard Recordings}
 
@@ -33,7 +35,8 @@ and contacts, preserving source observations and the provenance of
 identity decisions. Evaluation on 19 CARLA scenarios comprises 22 runs
 and 1816 reconstruction jobs with positioning and radar perturbations,
 including asymmetric degradation. In the
-reference condition, all 26 collision participant sets are correct and
+reference condition, with impact reports available from both
+participants, all 26 collision participant sets are correct and
 all 45 observable non-recording vehicles are represented. With nominal
 radar errors, the method preserves complete collision identification and
 local conflict precision of 0.954. When extreme radar corruption affects every recorder,

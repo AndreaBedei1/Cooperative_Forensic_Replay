@@ -1,11 +1,6 @@
 \section{Threats to Validity}
 \label{sec:threat}
 
-Validity depends on correct temporal and identity correspondences and on
-interpreting the chronology within the reconstructed evidence. We
-address these risks through controls in the reconstruction and separate
-evaluation of its outputs.
-
 \paragraph{Internal validity}
 Because an incorrect impact pairing could propagate clock and identity
 errors through the chronology, matching checks impulse compatibility,
@@ -28,8 +23,16 @@ accumulate support that independently redrawn clutter does not.
 Confirmation, Doppler and cross-observer body checks constrain
 unsupported hypotheses, although resilience to coherent ghosts
 satisfying these checks remains unmeasured. The collision results are
-obtained with impact reports available, while positioning and radar
-evidence are perturbed.
+obtained with impact reports available from both participants, and no
+collision involves a non-recording vehicle; missing reports, offsets
+beyond $\pm50$~ms and clock drift remain untested, and motion-only
+alignment rests on two recorders. Real EDR records also depend on the
+contact direction: the 8~km/h trigger of~\cite{cfr563} applies to
+longitudinal $\Delta V$, and to lateral $\Delta V$ only in vehicles that
+record it, whereas our census uses the horizontal magnitude. Frontal and
+rear impacts are thus the most likely to be recorded, while low-speed
+lateral contacts, such as those in our merge, overtaking and platoon
+scenarios, may leave no record even above that magnitude.
 
 \paragraph{Construct validity}
 The oracle tests recovery of the defined manoeuvre and conflict onsets
@@ -43,8 +46,11 @@ auditable interpretation, without equating a reconstructed conflict with
 driver awareness or responsibility.
 
 \paragraph{Conclusion validity}
-Because the 1816 jobs repeat 22 recorded runs, seed-based intervals
-describe perturbation variability within that set. Pooled differences
+The design parameters were set
+during development on these scenarios and frozen before the
+campaign~\cite{causaldrive2026code}. However, threshold tuning only affects scenario development while methodology parameters are fixed beforehand.
+Because the 1816 jobs repeat 22 recorded runs,
+seed-based intervals describe perturbation variability within that set. Pooled differences
 between single-recorder and all-recorder rows are interpreted
 descriptively because their scenario weights differ. Local event scoring
 uses ground-truth subject correspondence, whereas recorder links,
@@ -52,6 +58,6 @@ purity and merges separately assess physical identity. Likewise,
 position errors are conditional on source-consistent states, with
 separate false-entity and association counts exposing excluded errors.
 The G0 geometric comparison pairs the same entity instants and measures
-body reconstruction and fusion together. Reporting these dimensions
-separately makes the reliability of the surrounding chronology visible
-alongside collision identification.
+body reconstruction and fusion together; the stage references of
+Sec.~\ref{subsec:exact} are derived from the same outputs, and no stage
+is rerun in isolation.

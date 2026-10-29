@@ -21,7 +21,13 @@ and 600 rays per sweep, and no rear coverage. G0 uses exact poses and native rad
 returns without added corruption, although field of view, occlusion and
 finite ray sampling still limit observations. By leaving impact-report
 streams unchanged, the campaign tests collision matching under
-positioning and radar errors rather than crash-sensor failures.
+positioning and radar errors rather than crash-sensor failures. These
+reports follow every contact, unlike EDR records. Many contacts are
+low-speed lateral ones, and under the 8~km/h $\Delta V$ trigger
+of~\cite{cfr563}, 10 to 12 of the 26 would leave no record from either
+participant, depending on whether $\Delta V$ is estimated from the
+contact impulse at nominal mass or from recorded velocity. The collision results therefore assume crash-sensor-like
+reporting.
 
 The position and heading perturbations in Table~\ref{tab:profiles}
 combine constant bias, a Gauss--Markov component and white noise, while
@@ -115,6 +121,18 @@ recorder duplicate counted separately. Together, these measures assess
 consistency of physical identity independently of agreement between
 local and global label names.
 
+Trivial references show what each integration stage adds. A single
+recorder already observes on average 98\% of the observable
+non-recording vehicles in its run, so cooperation contributes mainly a
+second viewpoint, available for 42 of the 45 vehicles, together with
+recorder identities and a common clock. Without identity association,
+the 118 local tracks of these vehicles would remain 2.62 entities per
+vehicle and all 50 recorder tracks would appear as ghosts. Association
+reduces this to 1.44 entities per vehicle and one ghost. Pairwise merge
+precision is 1.000 and recall 0.613, with 68 of 111 same-vehicle track
+pairs merged and 15 vehicles still fragmented. The gates thus favour
+missed over false merges.
+
 To assess the geometric reconstruction under G0, we compare the fitted
 bodies with nominal boxes inferred independently from each source track.
 The comparison pools 4376 source-consistent entity instants
@@ -154,10 +172,8 @@ Fig.~\ref{fig:viewer} shows how the reconstruction includes a vehicle
 absent from the impact reports. In S12, C cuts into A's lane before A
 swerves into B's lane and the two recorders collide. A's local evidence
 already contains C's cut-in; association brings three tracks from A and
-B into one road user, U1, with purity 1.0. By placing U1's cut-in and
-path entry before A's critical interaction with B, the shared chronology
-preserves both observers' evidence of the preceding interaction without
-requiring a recording from C.
+B into one road user, U1, with purity 1.0, whose cut-in and path entry
+precede A's critical interaction with B.
 
 \subsection{Robustness to Sensor Degradation}
 \label{subsec:robustness}
@@ -206,9 +222,7 @@ under severe and extreme radar, although the all-recorder tests retain
 98.7\% and 95.4\% correct collision participant sets, respectively.
 Across the entire campaign, all 2344 true contact instances are detected
 and 2322 have correct participant sets; 22 extra single-recorder impact
-nodes are also produced. Reporting these outcomes separately keeps
-collision identification distinct from radar identities and semantic
-correctness.
+nodes are also produced.
 
 In the asymmetric rows, severe corruption of one recorder retains
 99.5\% correct collision sets, while extreme corruption reduces local
@@ -221,9 +235,14 @@ frequency of simultaneous failures.
 Two supplementary tests perturb the clocks and the impact reports,
 using three seeds per run under G0 and G2 with severe radar.
 Clock offsets drawn uniformly within $\pm50$~ms per recorder
-are recovered within $0.1$~ms for successfully aligned recorders;
-one of $150$ recorders loses radar-based alignment under G2
-with severe radar. Reconstructed event times nevertheless
+give relative offsets up to 84~ms (median 26~ms), which would
+remain uncorrected without alignment. Recorders aligned through
+matched collisions recover the true offset within $0.1$~ms.
+The two recorders aligned only through observed motion, C in
+S05 and S06, keep an error of one 50~ms search step that is
+already present without injected offsets and lies within their
+reported feasible intervals of 50 and 200~ms. One of $150$
+recorders loses radar-based alignment under G2 with severe radar. Reconstructed event times nevertheless
 shift by up to $0.3$~s under G0 and $0.75$~s under G2 with
 severe radar, reversing $0.25\%$ and $0.40\%$ of the evaluated
 event-pair orderings, respectively. EDR-inspired impact
@@ -255,7 +274,4 @@ events and does not validate the unmatched ones. Last-second unmatched
 intervals occur in 86.4\% of jobs, and even one extremely degraded
 recorder gives 56.8\%. The chronology therefore preserves many genuine
 conflicts while adding substantial unsupported context under dense
-clutter. Its claims remain auditable through recorder provenance,
-original local events and retrospective identity evidence, with their
-reliability assessed through the separate association and event-quality
-measurements.
+clutter.
