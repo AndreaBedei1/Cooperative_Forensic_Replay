@@ -1,18 +1,4 @@
 #!/usr/bin/env python3
-"""Re-run campaign v3 jobs with their outputs kept, from the frozen code, and check each against its campaign record.
-
-The campaign deleted every job's perturbed copy and reconstruction once the job was scored.  A post-hoc analysis of
-the reconstructed tracks, entities and events needs them back.  A job is deterministic (paired random streams keyed
-by seed, sensor, profile and recorder), so re-running it with the frozen code reproduces it; the scorecard of every
-regenerated job is compared with the one in ``jobs.jsonl``, and only an identical one counts.
-
-    python scripts/regenerate_campaign_jobs.py --code F:/CarlaGraph_v3_regen --out F:/CarlaGraph_v3_kept
-        --families baseline,radar_v3 --workers 20
-
-``--code`` is a worktree of the tag ``campaign-v3`` (the frozen code and canonical runs).  ``<out>/regenerated.jsonl``
-gets one line per job (key, kept folder, scorecard identical or not); a second call skips the jobs already there.
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -63,9 +49,17 @@ def job_of(record: Dict[str, Any], code: Path) -> Dict[str, Any]:
     return job
 
 
+def _restore_parameter(job: Dict[str, Any]) -> Any:
+    """The level's parameter exactly as robustness.FAMILIES defines it (JSON turns tuples into lists)."""
+    import robustness
+    for label, parameter in robustness.FAMILIES[job["family"]][0]:
+        if label == job["level"]:
+            return parameter
+    raise KeyError((job["family"], job["level"]))
+
+
 def _run(record: Dict[str, Any], out: str) -> Dict[str, Any]:
     import robustness
-    from campaign_controller import _restore_parameter
     job = job_of(record, _CODE)
     job["parameter"] = _restore_parameter(job)
     result = robustness.run_job(job, out, True)

@@ -1,20 +1,4 @@
 #!/usr/bin/env python3
-"""Menu for the manual review of the 22 canonical development runs.
-
-With ``--gt-port Q`` (a second CARLA 0.9.15 server) a run number opens both viewers at once, side by side and
-synchronised: the GROUND TRUTH viewer (what CARLA simulated: every vehicle, true trajectories, physical contacts) on
-the server of ``--gt-port``, leading, and the RECONSTRUCTION viewer (what the algorithm estimated from the sensors)
-on the server of ``--port``, following its instant, play state and speed (cdf.replay.sync, local UDP
-``--sync-port``).  Control time in the GROUND TRUTH window; each window keeps its own camera.  Without
-``--gt-port`` the GROUND TRUTH viewer opens first and the RECONSTRUCTION viewer when its window closes.  ``12g``
-opens only the ground truth of run 12, ``12r`` only its reconstruction.
-
-    conda activate carla
-    python scripts/review_canonical_runs.py --port 3000 --gt-port 3100 --res 960x540
-
-Other extra arguments are passed to both viewers (e.g. --speed 0.25).
-"""
-
 from __future__ import annotations
 
 import json
@@ -27,7 +11,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from validate_canonical import canonical_runs  # noqa: E402
+from canonical import canonical_runs  # noqa: E402
 
 
 def server_line(extra) -> str:

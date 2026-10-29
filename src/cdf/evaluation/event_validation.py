@@ -1,4 +1,4 @@
-"""Post-hoc validation of a reconstructed run against its ground truth (docs/EVENT_VALIDATION.md): the conflict
+"""Post-hoc validation of a reconstructed run against its ground truth: the conflict
 events and their intervals, the relevance of the timeline to each collision, the proximity of the reconstructed road
 users at each impact, the recovery of the tracks that approach a collision partner, and the phantoms.
 

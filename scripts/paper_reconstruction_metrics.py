@@ -1,11 +1,4 @@
 #!/usr/bin/env python3
-"""Extract the paper's reconstruction evidence from archived campaign-v3 results.
-
-This stdlib-only derivation does not rerun reconstruction or change the archived
-metrics. Run from any directory with ``python scripts/paper_reconstruction_metrics.py``.
-The deterministic JSON records the SHA-256 of every input and of this script.
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -45,7 +38,7 @@ def _interval(value: str) -> Optional[List[float]]:
 
 
 def _run_name(value: str) -> str:
-    # Archived jobs contain absolute Windows acquisition paths.
+    # Archived jobs store the run as a path; its last two parts name it.
     return "/".join([part for part in value.replace("\\", "/").split("/") if part][-2:])
 
 

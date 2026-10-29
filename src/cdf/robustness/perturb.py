@@ -45,12 +45,10 @@ RADAR_PROFILES: Dict[str, RadarProfile] = {
     # Range at the median stated accuracy of production radars, azimuth and radial velocity above their medians
     # (off-boresight crash geometry); the values used to perturb CARLA radar in DC-Loc (ICRA 2022);
     # p_drop = 1 - 0.8 (Scheel & Dietmayer, T-ITS 2019); clutter from the Radar Ghost Dataset (IROS 2021).
-    # Sources and the engineering assumptions per value: docs/robustness_profiles.md.
     "nominal": RadarProfile("nominal", 0.25, 0.5, 0.5, 0.10, 0.20, 3.0),
     # Worst stated accuracies (long-range modes, field-of-view edges); clutter lambda_C = 30 of T-ITS 2019.
     "high": RadarProfile("high", 0.50, 2.0, 2.0, 0.20, 0.40, 30.0),
-    # Campaign v3 levels (docs/robustness_profiles.md, "Radar levels v3"): each value labelled there as
-    # specification, derived from a measurement, or engineering assumption.
+    # Campaign v3 levels (Table II of the article).
     # severe: measurement quality at the field-of-view edge / long range (azimuth 2 deg: RadarScenes edge
     # specification), twice the nominal misses, the measured urban ghost rate kept.
     "severe": RadarProfile("severe", 0.50, 2.0, 2.0, 0.20, 0.40, 3.0),

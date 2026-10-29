@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import List, Optional, Sequence
 
 _DEFAULT_ROOT_CANDIDATES: Sequence[str] = (
-    r"C:\Users\andrea.bedei3\Desktop\Carla9_15\WindowsNoEditor",
     r"C:\CARLA_0.9.15\WindowsNoEditor",
     r"C:\carla\WindowsNoEditor",
     "/opt/carla-simulator",

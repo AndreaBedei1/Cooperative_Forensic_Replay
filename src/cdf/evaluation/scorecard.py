@@ -366,7 +366,7 @@ def markdown(cards: List[Dict[str, Any]], title: str) -> str:
     return "\n".join(out) + "\n"
 
 
-# Campaign summaries (docs/CAMPAIGN_V3.md).  One row per job, paired with the G0 baseline job of the same run; the
+# Campaign summaries.  One row per job, paired with the G0 baseline job of the same run; the
 # conditions pool the jobs of one seed (rates are ratios of sums, counts and paired changes are means per job, so
 # that a condition with several recorder subsets per run compares with one that has a single job per run), then
 # average the seeds.

@@ -1,14 +1,4 @@
 #!/usr/bin/env python3
-"""Reconstruct local graphs and the global graph of one or more recorded runs.
-
-    python scripts/reconstruct_run.py traces/S01/run_0_crash
-    python scripts/reconstruct_run.py traces/S0[123]/run_0_crash --evaluate
-
-Writes ``<run>/reconstruction/``.  With ``--evaluate`` the privileged
-comparison with ``ground_truth/`` runs afterwards, on the files already written,
-and goes to ``<run>/reconstruction/evaluation/``.
-"""
-
 from __future__ import annotations
 
 import argparse

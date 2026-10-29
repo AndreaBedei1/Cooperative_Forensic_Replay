@@ -1,42 +1,4 @@
 #!/usr/bin/env python3
-"""Interactive slow-motion replay of a recorded run in CARLA (visualization only).
-
-    python scripts/replay_run.py traces/S01/run_0_crash [--speed 0.25]
-
-Every rendered frame, the recorded ego.jsonl pose of each vehicle is
-interpolated at the playback time and applied directly to a physics-less CARLA
-actor.  No scenario controller runs and CARLA simulates no vehicle physics, so
-every playback speed shows exactly the recorded trajectories.  Reconstructed
-events (local graphs, global collisions, track associations) and each
-recorder's perceived state (``local_trace.jsonl``: its tracks with CLOSING,
-CRITICAL_TTC, CUT_IN, ..., lost tracks, known signs) are only read and
-displayed, never derived here; nothing is written anywhere.
-
-The viewer shows what the reconstruction knows, not the simulator's ground
-truth: only the recorders (vehicles with their own ego.jsonl) are replayed as
-vehicles, and the map is recognised from their recorded positions and the
-public OpenDRIVE files (``--map`` overrides it).  The clock is the
-reconstruction's global time; a recorder it could not align is not replayed.
-Every anonymous road user of the fusion (U1, U2, ...: a road user that recorded
-nothing) is drawn once, in grey: a wireframe box of its fitted footprint at the
-fused position and heading with an arrow along its motion, solid while measured,
-dashed while predicted, labelled only U1; scientific dimensions, uncertainty,
-method and sources remain in the reconstruction files. Member tracks are radar dots. A
-track associated with a recorder is a radar dot and a line from its observer (one line per
-observer and recorder), never a second body and never a second label: the recorder's own badge
-names it.  Each recorder's panel lists its recent semantic events first, then its confirmed
-important states per global road user (never UNKNOWN states, never raw track lists), at most a
-few lines (``... +N more``).  A track that is neither (none after
-the fusion) is drawn as before: a ghost box of the nominal size in its
-observer's colour.
-
-Controls: SPACE play/pause, R restart, LEFT/RIGHT seek 0.5 s (with SHIFT
-0.05 s), N/P next/previous reconstructed event, 1-4 speed 0.25/0.5/1/2x,
-C camera: overview, then a follow camera on every recorder vehicle in turn, then free (TAB next
-recorder), T tracks, G ghost boxes or dots, H help, ESC exit.  In the free camera: W/A/S/D/Q/E move (SHIFT faster); drag with the
-mouse to look or orbit, wheel to zoom.
-"""
-
 from __future__ import annotations
 
 import argparse

@@ -1,13 +1,4 @@
 #!/usr/bin/env python3
-"""Event validation of campaign v3 jobs (docs/EVENT_VALIDATION.md): per-job analysis, then tables and figures.
-
-    python scripts/event_validation.py --kept F:/CarlaGraph_v3_kept --out results/event_validation --workers 20
-
-``--kept`` holds the jobs regenerated with their outputs (``scripts/regenerate_campaign_jobs.py``,
-``regenerated.jsonl``); only jobs whose scorecard is identical to the campaign's are analysed.  The truth of a run is
-computed once, from the canonical recording (``traces/``).  Per-job results go to ``<out>/jobs/``; a second call
-reuses them (``--aggregate-only`` skips the analysis).
-"""
 
 from __future__ import annotations
 
@@ -343,7 +334,7 @@ def write_csv(path: Path, rows: Sequence[Mapping[str, Any]], compress: bool = Fa
 
 def write_md(path: Path, tables: Mapping[str, Sequence[Mapping[str, Any]]], titles: Mapping[str, str]) -> None:
     lines = ["# Event validation, relevance at impact and phantoms: tables", "",
-             "Definitions: `docs/EVENT_VALIDATION.md`.  Counts with their denominators; percentages are of the column "
+             "Counts with their denominators; percentages are of the column "
              "named in the header.", ""]
     for name, title in titles.items():
         rows = tables.get(name) or []
@@ -429,16 +420,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     expected = Counter(l["family"] for l in lines if l["family"] in families)
     (args.out / "provenance.json").write_text(json.dumps({
         "analysis_commit": commit, "analysis_tree_dirty": dirty,
-        "campaign_code": "tag campaign-v3 (df12f759), regenerated with scripts/regenerate_campaign_jobs.py",
-        "kept_jobs": str(args.kept), "per_job_results": str(work), "families": sorted(families),
+        "campaign_code": "regenerated with scripts/regenerate_campaign_jobs.py",
+        "families": sorted(families),
         "jobs_regenerated": len([l for l in lines if l["family"] in families]), "jobs_analysed": len(usable),
         "jobs_refused": [{k: l.get(k) for k in ("family", "level", "recorder", "seed", "run", "status",
                                                 "scorecard_identical")} for l in refused],
-        "jobs_by_family": dict(Counter(l["family"] for l in usable)),
-        "definitions": "docs/EVENT_VALIDATION.md"}, indent=1), encoding="utf-8")
-    sys.path.insert(0, str(ROOT / "scripts"))
-    import event_validation_figures
-    event_validation_figures.draw(results, tables, args.out / "figures")
+        "jobs_by_family": dict(Counter(l["family"] for l in usable))}, indent=1), encoding="utf-8")
     print("analysed {0} jobs ({1} refused) -> {2}".format(len(usable), len(refused), args.out))
     return 0
 

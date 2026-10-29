@@ -1,13 +1,4 @@
 #!/usr/bin/env python3
-"""Scientific scorecard of reconstructed runs (privileged evaluation; cdf.evaluation.scorecard).
-
-    python scripts/g0_scorecard.py --canonical [--root traces] --out results/g0_scorecard
-    python scripts/g0_scorecard.py traces/S10/run_0_deflected_into_c ...
-
-Needs each run's evaluation files (scripts/hardening_refresh.py or scripts/reconstruct_run.py --evaluate and
-scripts/event_oracle.py).  Writes ``scorecard.json`` (everything) and ``scorecard.md`` (one row per run).
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -32,7 +23,7 @@ def main() -> int:
     args = parser.parse_args()
     runs = list(args.runs)
     if args.canonical:
-        from validate_canonical import CANONICAL
+        from canonical import CANONICAL
         runs += [args.root / s / ("run_0_" + v) for s, vs in sorted(CANONICAL.items()) for v in vs]
     cards = []
     for run in runs:

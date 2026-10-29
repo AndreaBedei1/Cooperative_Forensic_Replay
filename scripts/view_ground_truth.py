@@ -1,17 +1,4 @@
 #!/usr/bin/env python3
-"""GROUND TRUTH viewer of a recorded run: what CARLA simulated, to compare with the reconstruction.
-
-    python scripts/view_ground_truth.py traces/S10/run_0_deflected_into_c --port 3000 [--speed 0.25]
-    python scripts/view_ground_truth.py traces/S10/run_0_deflected_into_c --export DIR [--at T ...]
-
-PRIVILEGED: reads only ``<run>/ground_truth/`` (cdf.replay.ground_truth): every vehicle, recorder or not, on its
-true trajectory, and the physical contact episodes (COLLISION banner, CONTACT_START / CONTACT_END in the
-vehicles' panels).  Nothing of the reconstruction is read or drawn.  Same window, camera, keys, speeds and
-timeline as the RECONSTRUCTION viewer (scripts/replay_run.py, whose options it accepts); the clock shown is
-``t_contact``, seconds from the first true vehicle-vehicle contact, which is where the reconstruction's
-``t_global`` is anchored when it aligns the recorders on that collision.
-"""
-
 from __future__ import annotations
 
 import logging

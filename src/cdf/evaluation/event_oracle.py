@@ -17,8 +17,7 @@ radar has to assume.  Two oracles:
 * COVERAGE_TRACKED: COVERAGE with the point a radar track reports instead of the true nearest point: the
   median of V's outline points facing one of R's radars (the visible faces), as the median of a track's
   returns is. All three oracles carry the same true oriented body estimate, so body-based PATH and
-  CUT_IN no longer depend on the representative-point convention. The explicit body/point geometry
-  ablation is implemented on identical reconstructed tracks in scripts/body_event_ablation.py.
+  CUT_IN no longer depend on the representative-point convention.
 
 Each ideal track goes through ``cdf.reconstruction.local.track_events`` with R's own ego trajectory and
 footprint; R's true contacts with V end its CRITICAL_TTC episode, as R's collision sensor does in the
@@ -26,7 +25,7 @@ reconstruction.  The oracles share the definitions (corridor, cut-in criteria, c
 model, safe following distance, release rules) and isolate what perception costs: COVERAGE against PERFECT
 is the sensors' coverage, the reconstruction against COVERAGE is sensing, tracking and estimation.  They do
 not validate the definitions themselves: their thresholds are documented with their sources or as
-engineering assumptions and varied one at a time by ``scripts/semantic_sensitivity.py``.
+engineering assumptions in ``configs/reconstruction.yaml``.
 
 The reconstruction's events are R's local events (``reconstruction/<R>/local_graph.json``, R's own clock:
 the alignment plays no part), their subject the true identity of the track (``evaluation.json``: the

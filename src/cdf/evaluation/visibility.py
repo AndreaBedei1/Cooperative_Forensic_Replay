@@ -2,8 +2,7 @@
 
 Whether another vehicle lay within the field of view and range of one of a recorder's radars, with a clear
 line of sight, at one simulator frame: true poses and boxes (``ground_truth/states.jsonl``) and the radars'
-own mounts and fields of view (``vehicles/<id>/radar/<sensor>/metadata.json``).  Used by the radar
-visibility audit (``scripts/audit_radar_visibility.py``) and the event oracle (``cdf.evaluation.event_oracle``);
+own mounts and fields of view (``vehicles/<id>/radar/<sensor>/metadata.json``).  Used by the event oracle (``cdf.evaluation.event_oracle``);
 ``cdf.reconstruction`` never imports it.
 """
 

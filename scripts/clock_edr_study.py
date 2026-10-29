@@ -1,30 +1,4 @@
 #!/usr/bin/env python3
-"""Residual clock offsets within the GNSS-disciplined bound, and crash-recorder-like collision reports.
-
-    python scripts/clock_edr_study.py [runs ...] [--studies clock,edr] [--seeds 3] [--workers 16]
-           [--work scratch/clock_edr] [--results results/robustness/clock_edr] [--summarize]
-
-``clock``: every recorder's local clock is started a residual offset later, drawn uniformly within
-+-CLOCK_RESIDUAL_S, and the local reconstruction, alignment and fusion are rerun in memory (as the 0.73 s check of
-``cdf.evaluation.reconstruction``).  The recorders of a run start at one instant on one clock, so the true
-relative offset of two recorders is minus the difference of their residuals; the estimated relative offsets are
-compared with it, and the order of the global events with that of the unshifted reconstruction.  Shifting the raw
-timestamps would test nothing: the local clock starts at the first ego sample, so a constant shift cancels.
-
-``edr``: the collision reports of a perturbed copy are rewritten as a crash recorder reports them
-(``CollisionPerturbation``): a delta-V error per burst of callbacks (1-sigma EDR_LEVELS), a mass error per
-recorder (MASS_REL_STD; reported impulse = mass x delta-V) and a timing error per burst (+-JITTER_S).  The copy is
-reconstructed and evaluated.
-
-``trigger census`` (no reconstruction): whether each recorder of each true contact reaches the 49 CFR Part 563
-trigger, a delta-V of 8 km/h within 150 ms, from its impulse over a nominal mass and from its recorded velocity
-change.  A contact below the trigger would not be recorded by a crash recorder at all.
-
-Both studies run under G0 (exact pose, ideal radar) and G2 + radar severe (``CONDITIONS``).  Results:
-``<results>/jobs.jsonl`` (one line per job, resumable), ``summary.json`` and ``summary.md``.  Copies go to
-``--work`` (never ``traces/``) and are deleted after each job.
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -66,6 +40,15 @@ def _jsonl(path: Path) -> List[Dict[str, Any]]:
 
 def _run_name(run_dir: Path) -> str:
     return "{0}/{1}".format(run_dir.parent.name, run_dir.name)
+
+
+def _relative(run: Path) -> str:
+    """The run as a path relative to the repository, so the job records do not depend on where it is checked out."""
+    path = Path(run).resolve()
+    try:
+        return path.relative_to(ROOT).as_posix()
+    except ValueError:
+        return str(path)
 
 
 def _recorders(run_dir: Path) -> List[Path]:
@@ -130,7 +113,7 @@ def census_summary(rows: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
 def _copy(job: Dict[str, Any], work: Path, collisions: Any = None) -> Tuple[Path, Any]:
     """The perturbed copy of the job's run under its condition (and collision perturbation), and its pose factory."""
     from cdf.robustness.perturb import GNSS_PROFILES, RADAR_PROFILES, PerturbedPoseSource, Perturbation, perturbed_copy
-    run_dir = Path(job["run"])
+    run_dir = ROOT / job["run"]
     gnss, radar = CONDITIONS[job["condition"]]
     target = work / job["study"] / job["condition"].replace("+", "_") / job["level"] / "seed{0}".format(job["seed"]) \
         / run_dir.parent.name / run_dir.name
@@ -196,7 +179,7 @@ def clock_job(job: Dict[str, Any], work: Path) -> Dict[str, Any]:
     from cdf.reconstruction.pipeline import fuse_recorders, measured_ego_records, read_incident_context
     from cdf.robustness.perturb import stream_seed
     cfg = load_config()
-    run_dir = Path(job["run"])
+    run_dir = ROOT / job["run"]
     data_dir, pose, target = run_dir, None, None
     if CONDITIONS[job["condition"]] != (None, None):
         target, pose = _copy(job, work)
@@ -270,7 +253,7 @@ def edr_job(job: Dict[str, Any], work: Path) -> Dict[str, Any]:
     from cdf.reconstruction.pipeline import reconstruct_run
     from cdf.robustness.perturb import CollisionPerturbation
     cfg = load_config()
-    run_dir = Path(job["run"])
+    run_dir = ROOT / job["run"]
     collisions = CollisionPerturbation(burst_rel_std=EDR_LEVELS[job["level"]], mass_rel_std=MASS_REL_STD,
                                        burst_jitter_s=JITTER_S)
     target, pose = _copy(job, work, collisions)
@@ -333,7 +316,7 @@ def jobs_for(runs: Sequence[Path], studies: Sequence[str], seeds: int) -> List[D
             for level in levels:
                 for seed in range(seeds):
                     for run in runs:
-                        jobs.append({"run": str(run), "study": study, "condition": condition, "level": level,
+                        jobs.append({"run": _relative(run), "study": study, "condition": condition, "level": level,
                                      "seed": seed})
     return jobs
 
@@ -476,7 +459,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         parser.error("perturbed copies never go into traces/")
     if not args.summarize and not use_maps(args.maps):
         parser.error("no OpenDRIVE maps found (--maps or a CARLA installation): no road model")
-    from validate_canonical import canonical_runs
+    from canonical import canonical_runs
     runs = [Path(r) for r in args.runs] or [Path(r) for r in canonical_runs()]
     args.results.mkdir(parents=True, exist_ok=True)
     jobs_file = args.results / "jobs.jsonl"

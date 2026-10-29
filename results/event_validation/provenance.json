@@ -2,8 +2,6 @@
  "analysis_commit": "a27b89143098180d4711c97dfc8063bd80e9adec",
  "analysis_tree_dirty": false,
  "campaign_code": "tag campaign-v3 (df12f759), regenerated with scripts/regenerate_campaign_jobs.py",
- "kept_jobs": "F:\\CarlaGraph_v3_kept",
- "per_job_results": "F:\\CarlaGraph_event_validation_work",
  "families": [
   "baseline",
   "gnss",

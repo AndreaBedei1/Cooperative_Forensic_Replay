@@ -1,12 +1,4 @@
 #!/usr/bin/env python3
-"""Derive paired geometric comparisons from the canonical G0 reconstructions.
-
-The estimator is not rerun. ``evaluate_fusion(write=False)`` reads existing
-reconstructions and ground truth; this script writes only the requested JSON
-and Markdown publication summaries. Run from any directory with the project's
-Python dependencies installed.
-"""
-
 from __future__ import annotations
 
 import argparse

@@ -1,4 +1,4 @@
-"""Two viewers shown side by side (GROUND TRUTH and RECONSTRUCTION, docs/REPLAY.md), driven from either window.
+"""Two viewers shown side by side (GROUND TRUTH and RECONSTRUCTION), driven from either window.
 
 The two viewers are linked by two UDP ports on this machine: the leader sends on ``PORT`` and listens on
 ``PORT + 1``, the follower the other way round (``lead_ports`` / ``follow_ports``).  Three messages cross:

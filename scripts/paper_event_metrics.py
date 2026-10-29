@@ -1,23 +1,4 @@
 #!/usr/bin/env python3
-"""Derive phase-correct local-event scores from the committed campaign export.
-
-This is a versioned paper-only derivation: neither reconstruction nor the original
-``results/event_validation`` archive is changed. Both predictions and oracle events
-are restricted to before the recorder's first contact BEFORE one-to-one matching.
-Witnesses with no contact contribute their full recording. Duplicate predictions
-count as false positives; non-evaluable predictions are reported and excluded.
-
-    python scripts/paper_event_metrics.py
-
-These are GT-assisted LOCAL event scores, not joint scores of the final global
-event and its asserted identity. The export contains event STARTs, not a complete
-samplewise assessment of initially active path occupancy. Original observability
-flags and interval endpoints are retained. Incorrect last-second context is
-recomputed before each participant recorder's FIRST contact, using canonical
-contact times; witnesses have no such window. Wrong-vehicle or unsupported
-intervals with positive-duration overlap count; duplicates alone do not. This
-script does not recompute saved states, proximity, recovery or full active states.
-"""
 
 from __future__ import annotations
 

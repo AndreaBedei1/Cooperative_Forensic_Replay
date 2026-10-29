@@ -1,11 +1,4 @@
 #!/usr/bin/env python3
-"""Start the project's private CARLA 0.9.15 server (port 3000) and keep it alive until Ctrl-C.
-
-    python scripts/start_carla.py            # port 3000, offscreen, Epic quality
-
-Only the engine this script started is stopped on exit; a server already running elsewhere (port 2000) is
-never touched."""
-
 from __future__ import annotations
 
 import argparse

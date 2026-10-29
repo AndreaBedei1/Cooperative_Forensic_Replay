@@ -107,7 +107,7 @@ def import_carla() -> Any:
             "the CARLA Python API is not importable. Install the wheel shipped "
             "with your simulator, e.g.\n"
             "  pip install <CARLA>/PythonAPI/carla/dist/carla-0.9.15-cp38-cp38-win_amd64.whl\n"
-            "See docs/ENVIRONMENT.md. Original error: {0}".format(exc)
+            "See README.md (Installation). Original error: {0}".format(exc)
         )
 
 

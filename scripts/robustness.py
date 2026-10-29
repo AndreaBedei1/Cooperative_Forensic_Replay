@@ -1,34 +1,4 @@
 #!/usr/bin/env python3
-"""Robustness of the reconstruction to sensor, pose, timing and data-loss perturbations.
-
-    python scripts/robustness.py --canonical [--families radar,gnss,...] [--workers N]
-           [--work robustness/<campaign>] [--results results/robustness/<campaign>] [--keep]
-    python scripts/robustness.py traces/S01/run_0_crash ...   (explicit runs; no shell wildcard needed)
-
-For every condition (``cdf.robustness.perturb``) and run: a perturbed copy of the run's own files (hard links
-for whatever does not change), the unchanged reconstruction on it (a perturbed GNSS enters as its pose
-source), the privileged evaluation, and a comparison of its core events with those of the unperturbed
-reconstruction (``traces/<run>/reconstruction``).  The copy is deleted afterwards (``--keep`` keeps it): raw
-data are not duplicated.  Stochastic conditions draw seeds 0, 1, 2, ... until the standard error over
-seeds of every pooled metric is below its tolerance (at most ``--max-seeds``).  Results:
-``<results>/jobs.jsonl`` (one line per attempt of a run and condition, written as soon as it ends),
-``summary.json|md|csv`` and ``figures/``.
-
-Resuming: a job with a ``complete`` line is never run again; a ``failed`` one is attempted again, at most
-``--max-attempts`` times in all, and its earlier failure lines stay in ``jobs.jsonl``.  A failure does not stop
-the study: failed jobs are counted (``failed``) and their error and stack trace kept.  The summaries use one
-result per job (its complete attempt, else its last failure).
-
-``radar_gnss_combined`` applies a radar profile and a GNSS profile to the same copy and reconstruction.  Every
-random stream is keyed by seed, sensor, profile and recorder (``perturb.stream_seed``), never by the family, so
-its radar errors are those of the ``radar`` job and its GNSS errors those of the ``gnss`` job of the same run,
-level and seed (paired comparisons), and the two are independent of each other.
-
-``gnss_refined`` changes the reconstruction configuration (``fusion.mutual_refinement``): a pose-refinement
-ablation, labelled ``configuration: ablation_mutual_refinement``; every other family runs the frozen
-configuration.
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -62,7 +32,7 @@ FAMILIES: Dict[str, Tuple[List[Tuple[str, Any]], bool]] = {
     "radar_gnss_combined": ([("gnss {0} + radar {1}".format(g, r), (g, r))
                              for g in ("rtk", "degraded") for r in ("low", "nominal", "high")], True),
     "impulse": ([("2%", 0.02), ("5%", 0.05), ("10%", 0.10), ("20%", 0.20)], True),
-    # Campaign v3 (docs/CAMPAIGN_V3.md): radar levels on every recorder, on recorder subsets (asymmetric: each
+    # Campaign v3: radar levels on every recorder, on recorder subsets (asymmetric: each
     # recorder alone and, with three or more, all but each one; ``asym_subsets``), and GNSS x radar on every
     # recorder.
     "radar_v3": ([("nominal", "nominal"), ("severe", "severe"), ("extreme", "extreme")], True),
@@ -288,17 +258,15 @@ def _resources() -> Dict[str, Any]:
 def extra_evaluation(target: Path, evaluation: Dict[str, Any], fusion: Dict[str, Any]) -> Dict[str, Any]:
     """The campaign's further measurements of one reconstructed copy, all from the existing evaluation code:
     trajectory error distributions and their calibration (``fusion_metrics``), the distance-band and
-    incident breakdowns (``campaign_metrics``), the privileged stability audit (``scripts/stability_audit``:
-    track losses, phantoms, duplicates, EGO_PATH oscillations, CUT_IN against its ground-truth criterion,
-    CRITICAL_TTC closure, trajectory jumps) and the ground-truth event oracle (``event_oracle``: counts and
+    incident breakdowns (``campaign_metrics``) and the ground-truth event oracle (``event_oracle``: counts and
     time differences per event type, reconstruction against the ideal oracles)."""
     import traceback
     from cdf.evaluation.campaign_metrics import campaign_metrics
     from cdf.evaluation.event_oracle import compare_run
     from cdf.reconstruction.config import load_config
     out: Dict[str, Any] = {}
-    # Campaign revision v2: each further evaluation runs on its own; one that raises is recorded in
-    # ``evaluation_errors`` and leaves the job's other measurements in place (v1 lost the whole job).
+    # Each further evaluation runs on its own; one that raises is recorded in ``evaluation_errors`` and leaves
+    # the job's other measurements in place.
     failures: Dict[str, str] = {}
     errors = fusion.get("state_errors", {})
     out["trajectory"] = {key: errors.get(key) for key in ("centre_error_m", "velocity_error_mps", "speed_error_mps",
@@ -309,16 +277,6 @@ def extra_evaluation(target: Path, evaluation: Dict[str, Any], fusion: Dict[str,
         out["campaign"].pop("track_ranges_m", None)
     except Exception:
         failures["campaign_metrics"] = traceback.format_exc()[-2000:]
-    if str(ROOT / "scripts") not in sys.path:
-        sys.path.insert(0, str(ROOT / "scripts"))
-    import stability_audit
-    try:
-        audit = stability_audit.audit_run(Path(target))
-    except Exception:
-        failures["stability_audit"] = traceback.format_exc()[-2000:]
-        audit = None
-    if audit is not None:
-        _stability(out, audit)
     try:
         oracle = compare_run(Path(target), load_config())
         out["_oracle_full"] = oracle
@@ -330,21 +288,6 @@ def extra_evaluation(target: Path, evaluation: Dict[str, Any], fusion: Dict[str,
     if failures:
         out["evaluation_errors"] = failures
     return out
-
-
-def _stability(out: Dict[str, Any], audit: Dict[str, Any]) -> None:
-    recorders = audit.get("recorders", {})
-    out["stability"] = {
-        "track_losses": sum(len(m["tracks"]["losses"]) for m in recorders.values()),
-        "fragmentation_losses": sum(1 for m in recorders.values() for loss in m["tracks"]["losses"]
-                                    if loss["kind"] == "fragmentation"),
-        "phantom_tracks": sum(len(m["tracks"]["phantoms"]) for m in recorders.values()),
-        "duplicate_track_s": round(sum(d["overlap_s"] for m in recorders.values()
-                                       for d in m["tracks"]["duplicates"]), 2),
-        "ego_path_oscillations": sum(v["oscillations"] for m in recorders.values() for v in m["ego_path"].values()),
-        "reference_path_jumps": sum(m["reference_path"].get("jumps") or 0 for m in recorders.values()),
-        "trajectory_jumps": sum(m["trajectory"]["implausible_steps"] for m in recorders.values()),
-        "cut_in": audit.get("cut_in"), "closure_violations": audit.get("closure_violations")}
 
 
 def job_key(job: Dict[str, Any]) -> Tuple[Any, ...]:
@@ -618,7 +561,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Robustness study over saved recordings (non-destructive)")
     parser.add_argument("runs", nargs="*", type=Path)
     parser.add_argument("--canonical", action="store_true",
-                        help="the canonical runs of the manifest (validate_canonical.CANONICAL), no wildcard needed")
+                        help="the 22 runs of the article (canonical.CANONICAL), no wildcard needed")
     parser.add_argument("--families", default=",".join(FAMILIES))
     parser.add_argument("--work", default=str(ROOT / "robustness"))
     parser.add_argument("--results", type=Path, default=ROOT / "results" / "robustness")
@@ -632,7 +575,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.canonical:
         if str(ROOT / "scripts") not in sys.path:
             sys.path.insert(0, str(ROOT / "scripts"))
-        from validate_canonical import canonical_runs
+        from canonical import canonical_runs
         args.runs = list(args.runs) + [Path(run) for run in canonical_runs()]
     if not args.runs and not args.summarize:
         parser.error("no runs: give run directories or --canonical")

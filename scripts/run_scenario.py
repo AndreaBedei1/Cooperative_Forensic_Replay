@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-"""Acquire one raw CARLA scenario run."""
-
 from __future__ import annotations
 
 import argparse
