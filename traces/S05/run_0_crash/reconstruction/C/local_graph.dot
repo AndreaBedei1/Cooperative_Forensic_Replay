@@ -1,0 +1,22 @@
+digraph "local_C" {
+  graph [rankdir=LR, labelloc=t, fontname=Helvetica, label="Local graph - vehicle C (local time)"];
+  node [shape=box, style="rounded,filled", fontname=Helvetica, fontsize=10];
+  edge [fontname=Helvetica, fontsize=8];
+  "C:e01" [label="MOVING_START\nC\nt=0.00", fillcolor="#e5e7eb"];
+  "C:e02" [label="THROTTLE_START\nC\nt=0.00", fillcolor="#fde68a"];
+  "C:e03" [label="THROTTLE_END\nC\nt=2.95", fillcolor="#fde68a"];
+  "C:e04" [label="BRAKE_START\nC\nt=2.95", fillcolor="#fde68a"];
+  "C:e05" [label="MOVING_END\nC\nt=4.35", fillcolor="#e5e7eb"];
+  "C:e06" [label="STOP_START\nC\nt=4.35", fillcolor="#e5e7eb"];
+  {rank=same; "C:e01"; "C:e02";}
+  {rank=same; "C:e03"; "C:e04";}
+  {rank=same; "C:e05"; "C:e06";}
+  "C:e01" -> "C:e03" [label="PRECEDES"];
+  "C:e01" -> "C:e04" [label="PRECEDES"];
+  "C:e02" -> "C:e03" [label="PRECEDES"];
+  "C:e02" -> "C:e04" [label="PRECEDES"];
+  "C:e03" -> "C:e05" [label="PRECEDES"];
+  "C:e03" -> "C:e06" [label="PRECEDES"];
+  "C:e04" -> "C:e05" [label="PRECEDES"];
+  "C:e04" -> "C:e06" [label="PRECEDES"];
+}

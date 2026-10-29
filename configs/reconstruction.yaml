@@ -1,0 +1,123 @@
+reconstruction:
+  trace_hz: 10
+
+  collision:
+    merge_gap_s: 0.5
+    new_impact_ratio: 0.75
+    min_impact_ratio: 0.25
+    min_new_impact_impulse: 1000.0
+    impact_acceleration_mps2: 20.0
+    reversal_angle_deg: 90.0
+    undirected_impact_ratio: 0.5
+
+  tracking:
+    min_height_m: 0.3
+    max_height_m: 2.5
+    moving_speed_mps: 1.0
+    cluster_distance_m: 2.0
+    max_track_gap_s: 0.5
+    min_track_frames: 5
+    measurement_std_m: 0.5
+    radial_speed_std_mps: 0.3
+    acceleration_std_mps2: 6.0
+    max_braking_mps2: 30.0
+    contact_clearance_m: 1.0
+    lane_heading_std_deg: 10.0
+    identity_body_width_m: 2.5
+
+  semantics:
+    brake_onset_threshold: 0.1
+    throttle_on_threshold: 0.10
+    throttle_off_threshold: 0.05
+    throttle_release_debounce_s: 0.2
+    full_stop_speed_mps: 0.3
+    speed_limit_hysteresis_kmh: 1.0
+    closing_speed_threshold_mps: 1.0
+    critical_reaction_time_s: 1.0
+    critical_deceleration_mps2: 6.0
+    critical_standstill_margin_m: 1.0
+    critical_lateral_margin_m: 0.3
+    critical_release_ratio: 0.75
+    prediction_horizon_s: 6.0
+    prediction_time_step_s: 0.05
+    target_length_m: 4.6
+    target_width_m: 1.9
+    target_braking_min_mps2: 1.0
+    critical_min_track_age_s: 0.5
+    critical_time_gap_table:
+      - [7.2, 1.0]
+      - [10.0, 1.1]
+      - [20.0, 1.2]
+      - [30.0, 1.3]
+      - [40.0, 1.4]
+      - [50.0, 1.5]
+      - [60.0, 1.6]
+    critical_min_following_distance_m: 2.0
+    critical_forward_min_speed_mps: 1.0
+    critical_front_lateral_margin_m: 1.0
+    critical_front_lateral_speed_mps: 0.3
+    critical_forward_release_factor: 1.10
+    occlusion_margin_m: 0.5
+    turn_yaw_rate_window_s: 0.2
+    turn_yaw_rate_on_dps: 10.0
+    turn_yaw_rate_off_dps: 5.0
+    turn_min_speed_mps: 1.0
+    turn_release_debounce_s: 0.3
+    turn_min_duration_s: 0.5
+    turn_min_heading_change_deg: 15.0
+    path_half_width_m: 1.5
+    path_hysteresis_m: 0.5
+    path_edge_std_m: 0.25
+    path_occupancy_quantile: 1.645
+    path_min_definite_samples: 2
+    track_appeared_front_deg: 5.0
+    max_position_std_m: 1.0
+    max_velocity_std_mps: 1.0
+    cut_in_max_heading_deg: 25.0
+    cut_in_min_target_speed_mps: 2.0
+    cut_in_lateral_speed_mps: 0.3
+    cut_in_persistence_s: 0.5
+    cut_in_outside_margin_m: 0.5
+    cut_in_min_displacement_m: 0.5
+    cut_in_horizon_s: 3.0
+    cut_in_preentry_margin_m: 1.0
+    cut_in_settle_speed_mps: 0.2
+    cut_in_settle_s: 0.3
+
+  fusion:
+    impulse_tolerance: 0.10
+    impulse_relative_std: 0.10
+    impulse_sigma_gate: 3.0
+    contact_consistency_m: 1.0
+    recontact_max_pause_s: 2.0
+    recontact_max_separation_m: 1.0
+    clock_tolerance_s: 0.1
+    contact_window_s: 1.0
+    contact_range_m: 3.5
+    contact_range_scale_m: 3.0
+    approach_window_s: 1.0
+    min_track_persistence_s: 1.0
+    speed_consistency_mps: 1.5
+    touching_clearance_m: 1.0
+    rival_clearance_m: 2.0
+    observed_alignment_step_s: 0.05
+    observed_alignment_min_samples: 10
+    observed_alignment_min_speed_mps: 2.0
+    observed_alignment_uniqueness_ratio: 3.0
+    link_min_samples: 10
+    link_min_fraction: 0.8
+    anonymous_gate_probability: 0.99
+    anonymous_min_shared_samples: 10
+    anonymous_pass_fraction: 0.8
+    stitch_max_gap_s: 1.5
+    box_face_std_m: 0.25
+    box_length_std_m: 0.7
+    box_width_std_m: 0.2
+    entity_output_rate_hz: 10.0
+    mutual_refinement: false
+    mutual_refinement_iterations: 3
+    radar_range_std_m: 0.25
+    radar_azimuth_std_deg: 0.5
+    assignment_likelihood_ratio: 20.0
+    retrospective_new_target_density: 3.57e-5
+    retrospective_min_posterior: 0.95

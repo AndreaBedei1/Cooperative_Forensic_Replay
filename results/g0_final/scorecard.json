@@ -1,0 +1,4030 @@
+[
+ {
+  "run": "S01/run_0_crash",
+  "recorders": [
+   "A",
+   "B"
+  ],
+  "collisions": {
+   "true": 1,
+   "reportable": 1,
+   "detected": 1,
+   "identified": 1,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 1826.086835294962,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 2,
+   "recorders": 2,
+   "observable": 2,
+   "represented_observable": 2,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 0,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "speed_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "velocity_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   }
+  },
+  "association": {
+   "decisions": {
+    "correct link": 1
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 0,
+    "false": 0,
+    "missed": 0
+   },
+   "fragmented_vehicles": {},
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 6.75,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 2.35,
+     "justified": true,
+     "oracle_lead_time_s": 2.4
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 6.75,
+     "warned": false,
+     "in_time": false,
+     "lead_time_s": null,
+     "justified": false,
+     "oracle_lead_time_s": null
+    }
+   ],
+   "justified_warnings": 1,
+   "justified_warned_in_time": 1,
+   "lead_time_s": [
+    2.35
+   ],
+   "path_intrusions": {
+    "expected": 0,
+    "found": 0,
+    "missed": [],
+    "extra": []
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S02/run_0_crash",
+  "recorders": [
+   "A",
+   "B"
+  ],
+  "collisions": {
+   "true": 1,
+   "reportable": 1,
+   "detected": 1,
+   "identified": 1,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 1840.7702581882477,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 2,
+   "recorders": 2,
+   "observable": 2,
+   "represented_observable": 2,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 0,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "speed_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "velocity_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   }
+  },
+  "association": {
+   "decisions": {
+    "correct link": 1
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 0,
+    "false": 0,
+    "missed": 0
+   },
+   "fragmented_vehicles": {},
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 5.25,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 3.4,
+     "justified": true,
+     "oracle_lead_time_s": 3.45
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 5.25,
+     "warned": false,
+     "in_time": false,
+     "lead_time_s": null,
+     "justified": false,
+     "oracle_lead_time_s": null
+    }
+   ],
+   "justified_warnings": 1,
+   "justified_warned_in_time": 1,
+   "lead_time_s": [
+    3.4
+   ],
+   "path_intrusions": {
+    "expected": 1,
+    "found": 1,
+    "missed": [],
+    "extra": []
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S03/run_0_crash",
+  "recorders": [
+   "A",
+   "B"
+  ],
+  "collisions": {
+   "true": 1,
+   "reportable": 1,
+   "detected": 1,
+   "identified": 1,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 1859.1364966332912,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 2,
+   "recorders": 2,
+   "observable": 2,
+   "represented_observable": 2,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 0,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "speed_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "velocity_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   }
+  },
+  "association": {
+   "decisions": {
+    "correct link": 2
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 0,
+    "false": 0,
+    "missed": 0
+   },
+   "fragmented_vehicles": {},
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 4.1,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.55,
+     "justified": true,
+     "oracle_lead_time_s": 1.95
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 4.1,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.5,
+     "justified": true,
+     "oracle_lead_time_s": 2.15
+    }
+   ],
+   "justified_warnings": 2,
+   "justified_warned_in_time": 2,
+   "lead_time_s": [
+    1.55,
+    1.5
+   ],
+   "path_intrusions": {
+    "expected": 2,
+    "found": 2,
+    "missed": [],
+    "extra": []
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S04/run_0_a_front_pushed",
+  "recorders": [
+   "A",
+   "B",
+   "C"
+  ],
+  "collisions": {
+   "true": 2,
+   "reportable": 2,
+   "detected": 2,
+   "identified": 2,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 1879.3106370046735,
+     "involves_recorder": true,
+     "recontacts": 1,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    },
+    {
+     "pair": "B-C",
+     "sim_time": 1879.810637012124,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 3,
+   "recorders": 3,
+   "observable": 3,
+   "represented_observable": 3,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 0,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "C",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "speed_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "velocity_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   }
+  },
+  "association": {
+   "decisions": {
+    "correct link": 2
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 0,
+    "false": 0,
+    "missed": 0
+   },
+   "fragmented_vehicles": {},
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 4.8,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 4.3,
+     "justified": true,
+     "oracle_lead_time_s": 4.3
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 4.8,
+     "warned": false,
+     "in_time": false,
+     "lead_time_s": null,
+     "justified": false,
+     "oracle_lead_time_s": null
+    },
+    {
+     "recorder": "B",
+     "partner": "C",
+     "contact_t_local": 5.3,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 4.8,
+     "justified": true,
+     "oracle_lead_time_s": 4.8
+    },
+    {
+     "recorder": "C",
+     "partner": "B",
+     "contact_t_local": 5.3,
+     "warned": false,
+     "in_time": false,
+     "lead_time_s": null,
+     "justified": false,
+     "oracle_lead_time_s": null
+    }
+   ],
+   "justified_warnings": 2,
+   "justified_warned_in_time": 2,
+   "lead_time_s": [
+    4.3,
+    4.8
+   ],
+   "path_intrusions": {
+    "expected": 0,
+    "found": 0,
+    "missed": [],
+    "extra": []
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S04/run_0_b_rear_first",
+  "recorders": [
+   "A",
+   "B",
+   "C"
+  ],
+  "collisions": {
+   "true": 2,
+   "reportable": 2,
+   "detected": 2,
+   "identified": 2,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "B-C",
+     "sim_time": 1897.3789431452751,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    },
+    {
+     "pair": "A-B",
+     "sim_time": 1898.928943168372,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 3,
+   "recorders": 3,
+   "observable": 3,
+   "represented_observable": 3,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 0,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "C",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "speed_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "velocity_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   }
+  },
+  "association": {
+   "decisions": {
+    "correct link": 2
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 0,
+    "false": 0,
+    "missed": 0
+   },
+   "fragmented_vehicles": {},
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "B",
+     "partner": "C",
+     "contact_t_local": 4.7,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 4.2,
+     "justified": true,
+     "oracle_lead_time_s": 4.2
+    },
+    {
+     "recorder": "C",
+     "partner": "B",
+     "contact_t_local": 4.7,
+     "warned": false,
+     "in_time": false,
+     "lead_time_s": null,
+     "justified": false,
+     "oracle_lead_time_s": null
+    },
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 6.25,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.55,
+     "justified": true,
+     "oracle_lead_time_s": 1.55
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 6.25,
+     "warned": false,
+     "in_time": false,
+     "lead_time_s": null,
+     "justified": false,
+     "oracle_lead_time_s": null
+    }
+   ],
+   "justified_warnings": 2,
+   "justified_warned_in_time": 2,
+   "lead_time_s": [
+    4.2,
+    1.55
+   ],
+   "path_intrusions": {
+    "expected": 0,
+    "found": 0,
+    "missed": [],
+    "extra": []
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S05/run_0_crash",
+  "recorders": [
+   "A",
+   "B",
+   "C"
+  ],
+  "collisions": {
+   "true": 1,
+   "reportable": 1,
+   "detected": 1,
+   "identified": 1,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 1917.3297364078462,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 3,
+   "recorders": 3,
+   "observable": 3,
+   "represented_observable": 3,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 0,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "C",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "speed_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "velocity_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   }
+  },
+  "association": {
+   "decisions": {
+    "correct link": 2
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 0,
+    "false": 0,
+    "missed": 0
+   },
+   "fragmented_vehicles": {},
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 5.9,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 5.4,
+     "justified": true,
+     "oracle_lead_time_s": 5.4
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 5.9,
+     "warned": false,
+     "in_time": false,
+     "lead_time_s": null,
+     "justified": false,
+     "oracle_lead_time_s": null
+    }
+   ],
+   "justified_warnings": 1,
+   "justified_warned_in_time": 1,
+   "lead_time_s": [
+    5.4
+   ],
+   "path_intrusions": {
+    "expected": 0,
+    "found": 0,
+    "missed": [],
+    "extra": []
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S06/run_0_crash",
+  "recorders": [
+   "A",
+   "B",
+   "C"
+  ],
+  "collisions": {
+   "true": 1,
+   "reportable": 1,
+   "detected": 1,
+   "identified": 1,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 1933.8311952203512,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 3,
+   "recorders": 3,
+   "observable": 3,
+   "represented_observable": 3,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 0,
+   "recorder_ghosts": [
+    "U1"
+   ],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "C",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "speed_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "velocity_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   }
+  },
+  "association": {
+   "decisions": {
+    "correct link": 5,
+    "missed link": 1
+   },
+   "wrong_links": 0,
+   "missed_links": 1,
+   "merges": {
+    "correct": 0,
+    "false": 0,
+    "missed": 0
+   },
+   "fragmented_vehicles": {},
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 4.1,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.55,
+     "justified": true,
+     "oracle_lead_time_s": 1.95
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 4.1,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.5,
+     "justified": true,
+     "oracle_lead_time_s": 2.15
+    }
+   ],
+   "justified_warnings": 2,
+   "justified_warned_in_time": 2,
+   "lead_time_s": [
+    1.55,
+    1.5
+   ],
+   "path_intrusions": {
+    "expected": 4,
+    "found": 3,
+    "missed": [
+     "C/B@3.75"
+    ],
+    "extra": []
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S07/run_0_merge_conflict",
+  "recorders": [
+   "A",
+   "B"
+  ],
+  "collisions": {
+   "true": 1,
+   "reportable": 1,
+   "detected": 1,
+   "identified": 1,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 47.503542229533195,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 2,
+   "recorders": 2,
+   "observable": 2,
+   "represented_observable": 2,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 0,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "speed_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "velocity_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   }
+  },
+  "association": {
+   "decisions": {
+    "correct link": 2
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 0,
+    "false": 0,
+    "missed": 0
+   },
+   "fragmented_vehicles": {},
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 19.25,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 3.4,
+     "justified": true,
+     "oracle_lead_time_s": 3.35
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 19.25,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 3.75,
+     "justified": true,
+     "oracle_lead_time_s": 3.8
+    }
+   ],
+   "justified_warnings": 2,
+   "justified_warned_in_time": 2,
+   "lead_time_s": [
+    3.4,
+    3.75
+   ],
+   "path_intrusions": {
+    "expected": 1,
+    "found": 1,
+    "missed": [],
+    "extra": []
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S08/run_0_rolls_through",
+  "recorders": [
+   "A",
+   "B"
+  ],
+  "collisions": {
+   "true": 1,
+   "reportable": 1,
+   "detected": 1,
+   "identified": 1,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 1955.0870363004506,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 2,
+   "recorders": 2,
+   "observable": 2,
+   "represented_observable": 2,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 0,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "speed_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "velocity_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   }
+  },
+  "association": {
+   "decisions": {
+    "correct link": 2
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 0,
+    "false": 0,
+    "missed": 0
+   },
+   "fragmented_vehicles": {},
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 5.4,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 2.05,
+     "justified": true,
+     "oracle_lead_time_s": 2.05
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 5.4,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.85,
+     "justified": true,
+     "oracle_lead_time_s": 1.75
+    }
+   ],
+   "justified_warnings": 2,
+   "justified_warned_in_time": 2,
+   "lead_time_s": [
+    2.05,
+    1.85
+   ],
+   "path_intrusions": {
+    "expected": 2,
+    "found": 2,
+    "missed": [],
+    "extra": []
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S09/run_0_near_simultaneous",
+  "recorders": [
+   "A",
+   "B"
+  ],
+  "collisions": {
+   "true": 1,
+   "reportable": 1,
+   "detected": 1,
+   "identified": 1,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 1977.2082872018218,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 2,
+   "recorders": 2,
+   "observable": 2,
+   "represented_observable": 2,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 0,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "speed_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "velocity_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   }
+  },
+  "association": {
+   "decisions": {
+    "correct link": 2
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 0,
+    "false": 0,
+    "missed": 0
+   },
+   "fragmented_vehicles": {},
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 7.15,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.2,
+     "justified": true,
+     "oracle_lead_time_s": 4.9
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 7.15,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.05,
+     "justified": true,
+     "oracle_lead_time_s": 1.0
+    }
+   ],
+   "justified_warnings": 2,
+   "justified_warned_in_time": 2,
+   "lead_time_s": [
+    1.2,
+    1.05
+   ],
+   "path_intrusions": {
+    "expected": 2,
+    "found": 1,
+    "missed": [
+     "A/B@7.05"
+    ],
+    "extra": []
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S10/run_0_deflected_into_c",
+  "recorders": [
+   "A",
+   "B",
+   "C"
+  ],
+  "collisions": {
+   "true": 2,
+   "reportable": 2,
+   "detected": 2,
+   "identified": 2,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 1990.8957802802324,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    },
+    {
+     "pair": "A-C",
+     "sim_time": 1991.7957802936435,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 3,
+   "recorders": 3,
+   "observable": 3,
+   "represented_observable": 3,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 0,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "C",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "speed_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "velocity_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   }
+  },
+  "association": {
+   "decisions": {
+    "correct link": 6
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 0,
+    "false": 0,
+    "missed": 0
+   },
+   "fragmented_vehicles": {},
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 3.8,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.25,
+     "justified": true,
+     "oracle_lead_time_s": 1.45
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 3.8,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.3,
+     "justified": true,
+     "oracle_lead_time_s": 2.25
+    },
+    {
+     "recorder": "A",
+     "partner": "C",
+     "contact_t_local": 4.7,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 0.95,
+     "justified": true,
+     "oracle_lead_time_s": 0.95
+    },
+    {
+     "recorder": "C",
+     "partner": "A",
+     "contact_t_local": 4.7,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.05,
+     "justified": true,
+     "oracle_lead_time_s": 0.85
+    }
+   ],
+   "justified_warnings": 4,
+   "justified_warned_in_time": 4,
+   "lead_time_s": [
+    1.25,
+    1.3,
+    0.95,
+    1.05
+   ],
+   "path_intrusions": {
+    "expected": 3,
+    "found": 1,
+    "missed": [
+     "A/B@3.60",
+     "B/A@2.85"
+    ],
+    "extra": []
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S11/run_0_consequential",
+  "recorders": [
+   "A",
+   "B",
+   "C"
+  ],
+  "collisions": {
+   "true": 2,
+   "reportable": 2,
+   "detected": 2,
+   "identified": 2,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 2011.4208218492568,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    },
+    {
+     "pair": "A-C",
+     "sim_time": 2012.470821864903,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 3,
+   "recorders": 3,
+   "observable": 3,
+   "represented_observable": 3,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 0,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "C",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "speed_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "velocity_error_mps": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 0,
+    "median": null,
+    "p95": null,
+    "mean": null,
+    "rmse": null
+   }
+  },
+  "association": {
+   "decisions": {
+    "correct link": 4
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 0,
+    "false": 0,
+    "missed": 0
+   },
+   "fragmented_vehicles": {},
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 5.55,
+     "warned": false,
+     "in_time": false,
+     "lead_time_s": null,
+     "justified": false,
+     "oracle_lead_time_s": null
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 5.55,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 5.05,
+     "justified": true,
+     "oracle_lead_time_s": 5.05
+    },
+    {
+     "recorder": "A",
+     "partner": "C",
+     "contact_t_local": 6.6,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.05,
+     "justified": true,
+     "oracle_lead_time_s": 1.05
+    },
+    {
+     "recorder": "C",
+     "partner": "A",
+     "contact_t_local": 6.6,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.05,
+     "justified": true,
+     "oracle_lead_time_s": 1.05
+    }
+   ],
+   "justified_warnings": 3,
+   "justified_warned_in_time": 3,
+   "lead_time_s": [
+    5.05,
+    1.05,
+    1.05
+   ],
+   "path_intrusions": {
+    "expected": 1,
+    "found": 1,
+    "missed": [],
+    "extra": []
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S12/run_0_crash",
+  "recorders": [
+   "A",
+   "B"
+  ],
+  "collisions": {
+   "true": 1,
+   "reportable": 1,
+   "detected": 1,
+   "identified": 1,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 2027.2015311531723,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 3,
+   "recorders": 2,
+   "observable": 3,
+   "represented_observable": 3,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 0,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "C",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 11.0,
+     "represented": true,
+     "road_users": [
+      "U1"
+     ],
+     "coverage": 0.677
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 75,
+    "median": 0.0455,
+    "p95": 0.1974,
+    "mean": 0.061,
+    "rmse": 0.0838
+   },
+   "speed_error_mps": {
+    "n": 75,
+    "median": 0.0182,
+    "p95": 0.0915,
+    "mean": 0.0375,
+    "rmse": 0.0895
+   },
+   "velocity_error_mps": {
+    "n": 75,
+    "median": 0.0446,
+    "p95": 0.3509,
+    "mean": 0.0906,
+    "rmse": 0.1578
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 75,
+    "median": 0.3146,
+    "p95": 1.6773,
+    "mean": 0.5522,
+    "rmse": 0.7997
+   }
+  },
+  "association": {
+   "decisions": {
+    "anonymous": 3,
+    "correct link": 2
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 3,
+    "false": 0,
+    "missed": 0
+   },
+   "fragmented_vehicles": {},
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 4.95,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.1,
+     "justified": true,
+     "oracle_lead_time_s": 1.15
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 4.95,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 0.9,
+     "justified": true,
+     "oracle_lead_time_s": 0.9
+    }
+   ],
+   "justified_warnings": 2,
+   "justified_warned_in_time": 2,
+   "lead_time_s": [
+    1.1,
+    0.9
+   ],
+   "path_intrusions": {
+    "expected": 2,
+    "found": 2,
+    "missed": [],
+    "extra": []
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S13/run_0_abreast",
+  "recorders": [
+   "A",
+   "B"
+  ],
+  "collisions": {
+   "true": 1,
+   "reportable": 1,
+   "detected": 1,
+   "identified": 1,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 2043.459540270269,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 4,
+   "recorders": 2,
+   "observable": 4,
+   "represented_observable": 4,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 0,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "C",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 11.5,
+     "represented": true,
+     "road_users": [
+      "U2"
+     ],
+     "coverage": 0.887
+    },
+    {
+     "vehicle": "D",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 11.5,
+     "represented": true,
+     "road_users": [
+      "U1"
+     ],
+     "coverage": 0.909
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 208,
+    "median": 0.2774,
+    "p95": 0.6773,
+    "mean": 0.336,
+    "rmse": 0.3696
+   },
+   "speed_error_mps": {
+    "n": 208,
+    "median": 0.0398,
+    "p95": 0.2128,
+    "mean": 0.0676,
+    "rmse": 0.0961
+   },
+   "velocity_error_mps": {
+    "n": 208,
+    "median": 0.113,
+    "p95": 0.3881,
+    "mean": 0.145,
+    "rmse": 0.1937
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 208,
+    "median": 0.4,
+    "p95": 1.4217,
+    "mean": 0.5245,
+    "rmse": 0.7463
+   }
+  },
+  "association": {
+   "decisions": {
+    "anonymous": 4,
+    "correct link": 2
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 2,
+    "false": 0,
+    "missed": 0
+   },
+   "fragmented_vehicles": {},
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 6.2,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.0,
+     "justified": true,
+     "oracle_lead_time_s": 1.0
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 6.2,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 0.75,
+     "justified": true,
+     "oracle_lead_time_s": 0.8
+    }
+   ],
+   "justified_warnings": 2,
+   "justified_warned_in_time": 2,
+   "lead_time_s": [
+    1.0,
+    0.75
+   ],
+   "path_intrusions": {
+    "expected": 1,
+    "found": 1,
+    "missed": [],
+    "extra": [
+     "A/B@6.30"
+    ]
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S13/run_0_platoon",
+  "recorders": [
+   "A",
+   "B"
+  ],
+  "collisions": {
+   "true": 1,
+   "reportable": 1,
+   "detected": 1,
+   "identified": 1,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 2058.9870717749,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 4,
+   "recorders": 2,
+   "observable": 4,
+   "represented_observable": 4,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 0,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "C",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 11.5,
+     "represented": true,
+     "road_users": [
+      "U2"
+     ],
+     "coverage": 0.83
+    },
+    {
+     "vehicle": "D",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 11.5,
+     "represented": true,
+     "road_users": [
+      "U1"
+     ],
+     "coverage": 0.913
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 187,
+    "median": 0.4154,
+    "p95": 1.0977,
+    "mean": 0.5548,
+    "rmse": 0.6487
+   },
+   "speed_error_mps": {
+    "n": 187,
+    "median": 0.0482,
+    "p95": 0.1952,
+    "mean": 0.0813,
+    "rmse": 0.1425
+   },
+   "velocity_error_mps": {
+    "n": 187,
+    "median": 0.136,
+    "p95": 0.9454,
+    "mean": 0.2308,
+    "rmse": 0.3707
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 187,
+    "median": 0.4864,
+    "p95": 3.6761,
+    "mean": 0.8882,
+    "rmse": 1.4762
+   }
+  },
+  "association": {
+   "decisions": {
+    "anonymous": 5,
+    "correct link": 2
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 4,
+    "false": 0,
+    "missed": 0
+   },
+   "fragmented_vehicles": {},
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 6.2,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.0,
+     "justified": true,
+     "oracle_lead_time_s": 1.0
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 6.2,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 0.75,
+     "justified": true,
+     "oracle_lead_time_s": 0.8
+    }
+   ],
+   "justified_warnings": 2,
+   "justified_warned_in_time": 2,
+   "lead_time_s": [
+    1.0,
+    0.75
+   ],
+   "path_intrusions": {
+    "expected": 1,
+    "found": 1,
+    "missed": [],
+    "extra": [
+     "A/B@6.30"
+    ]
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S13/run_0_passing",
+  "recorders": [
+   "A",
+   "B"
+  ],
+  "collisions": {
+   "true": 1,
+   "reportable": 1,
+   "detected": 1,
+   "identified": 1,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 2074.639360882342,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 4,
+   "recorders": 2,
+   "observable": 4,
+   "represented_observable": 4,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 0,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "C",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 11.5,
+     "represented": true,
+     "road_users": [
+      "U2"
+     ],
+     "coverage": 0.887
+    },
+    {
+     "vehicle": "D",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 11.5,
+     "represented": true,
+     "road_users": [
+      "U1"
+     ],
+     "coverage": 0.843
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 201,
+    "median": 0.3126,
+    "p95": 0.5762,
+    "mean": 0.3348,
+    "rmse": 0.3622
+   },
+   "speed_error_mps": {
+    "n": 201,
+    "median": 0.0425,
+    "p95": 0.19,
+    "mean": 0.0668,
+    "rmse": 0.0992
+   },
+   "velocity_error_mps": {
+    "n": 201,
+    "median": 0.1008,
+    "p95": 0.396,
+    "mean": 0.1735,
+    "rmse": 0.3496
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 201,
+    "median": 0.3275,
+    "p95": 1.9009,
+    "mean": 0.6616,
+    "rmse": 1.562
+   }
+  },
+  "association": {
+   "decisions": {
+    "anonymous": 5,
+    "correct link": 2
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 4,
+    "false": 0,
+    "missed": 0
+   },
+   "fragmented_vehicles": {},
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 6.2,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.0,
+     "justified": true,
+     "oracle_lead_time_s": 1.0
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 6.2,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 0.75,
+     "justified": true,
+     "oracle_lead_time_s": 0.8
+    }
+   ],
+   "justified_warnings": 2,
+   "justified_warned_in_time": 2,
+   "lead_time_s": [
+    1.0,
+    0.75
+   ],
+   "path_intrusions": {
+    "expected": 1,
+    "found": 1,
+    "missed": [],
+    "extra": [
+     "A/B@6.30"
+    ]
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S14/run_0_surrounded",
+  "recorders": [
+   "A",
+   "B"
+  ],
+  "collisions": {
+   "true": 1,
+   "reportable": 1,
+   "detected": 1,
+   "identified": 1,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 2091.7585748136044,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 10,
+   "recorders": 2,
+   "observable": 10,
+   "represented_observable": 10,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 4,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "C",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U2"
+     ],
+     "coverage": 0.996
+    },
+    {
+     "vehicle": "D",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U3"
+     ],
+     "coverage": 0.996
+    },
+    {
+     "vehicle": "E",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U5"
+     ],
+     "coverage": 0.992
+    },
+    {
+     "vehicle": "F",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 11.85,
+     "represented": true,
+     "road_users": [
+      "U4"
+     ],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "G",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U7"
+     ],
+     "coverage": 0.929
+    },
+    {
+     "vehicle": "H",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 1.9,
+     "represented": true,
+     "road_users": [
+      "U6",
+      "U8",
+      "U10",
+      "U12"
+     ],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "J",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 4.55,
+     "represented": true,
+     "road_users": [
+      "U9",
+      "U11"
+     ],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "P",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U1"
+     ],
+     "coverage": 0.996
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 743,
+    "median": 0.1502,
+    "p95": 0.7481,
+    "mean": 0.2688,
+    "rmse": 0.3734
+   },
+   "speed_error_mps": {
+    "n": 743,
+    "median": 0.0256,
+    "p95": 0.1229,
+    "mean": 0.0414,
+    "rmse": 0.0634
+   },
+   "velocity_error_mps": {
+    "n": 743,
+    "median": 0.0762,
+    "p95": 0.6469,
+    "mean": 0.1873,
+    "rmse": 0.3941
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 743,
+    "median": 0.3409,
+    "p95": 3.1727,
+    "mean": 0.9023,
+    "rmse": 1.8934
+   }
+  },
+  "association": {
+   "decisions": {
+    "anonymous": 21,
+    "correct link": 2
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 11,
+    "false": 0,
+    "missed": 8
+   },
+   "fragmented_vehicles": {
+    "H": [
+     "U10",
+     "U12",
+     "U6",
+     "U8"
+    ],
+    "J": [
+     "U11",
+     "U9"
+    ]
+   },
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 7.75,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.4,
+     "justified": true,
+     "oracle_lead_time_s": 1.4
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 7.75,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 0.75,
+     "justified": true,
+     "oracle_lead_time_s": 1.05
+    }
+   ],
+   "justified_warnings": 2,
+   "justified_warned_in_time": 2,
+   "lead_time_s": [
+    1.4,
+    0.75
+   ],
+   "path_intrusions": {
+    "expected": 2,
+    "found": 2,
+    "missed": [],
+    "extra": [
+     "A/G@11.35",
+     "A/J@7.50"
+    ]
+   },
+   "unconfirmed_critical_ttc": [
+    "A/E@10.15",
+    "A/P@10.45"
+   ]
+  }
+ },
+ {
+  "run": "S15/run_0_dense_platoon",
+  "recorders": [
+   "A",
+   "B"
+  ],
+  "collisions": {
+   "true": 1,
+   "reportable": 1,
+   "detected": 1,
+   "identified": 1,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 2107.467048022896,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 10,
+   "recorders": 2,
+   "observable": 10,
+   "represented_observable": 10,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 3,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "C",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 2.4,
+     "represented": true,
+     "road_users": [
+      "U9"
+     ],
+     "coverage": 0.979
+    },
+    {
+     "vehicle": "D",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U2"
+     ],
+     "coverage": 0.987
+    },
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "E",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 11.05,
+     "represented": true,
+     "road_users": [
+      "U5",
+      "U10"
+     ],
+     "coverage": 0.928
+    },
+    {
+     "vehicle": "F",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 11.45,
+     "represented": true,
+     "road_users": [
+      "U1",
+      "U11"
+     ],
+     "coverage": 0.969
+    },
+    {
+     "vehicle": "G",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U6"
+     ],
+     "coverage": 0.996
+    },
+    {
+     "vehicle": "H",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U4",
+      "U8"
+     ],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "I",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U3"
+     ],
+     "coverage": 0.992
+    },
+    {
+     "vehicle": "J",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U7"
+     ],
+     "coverage": 0.996
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 841,
+    "median": 0.2019,
+    "p95": 0.8846,
+    "mean": 0.2563,
+    "rmse": 0.3716
+   },
+   "speed_error_mps": {
+    "n": 841,
+    "median": 0.0327,
+    "p95": 0.3536,
+    "mean": 0.0809,
+    "rmse": 0.1543
+   },
+   "velocity_error_mps": {
+    "n": 841,
+    "median": 0.0709,
+    "p95": 0.8238,
+    "mean": 0.213,
+    "rmse": 0.384
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 841,
+    "median": 0.2384,
+    "p95": 3.4986,
+    "mean": 0.8604,
+    "rmse": 1.6641
+   }
+  },
+  "association": {
+   "decisions": {
+    "anonymous": 18,
+    "correct link": 1
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 8,
+    "false": 0,
+    "missed": 7
+   },
+   "fragmented_vehicles": {
+    "E": [
+     "U10",
+     "U5"
+    ],
+    "F": [
+     "U1",
+     "U11"
+    ],
+    "H": [
+     "U4",
+     "U8"
+    ]
+   },
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 7.45,
+     "warned": false,
+     "in_time": false,
+     "lead_time_s": null,
+     "justified": false,
+     "oracle_lead_time_s": null
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 7.45,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 6.9,
+     "justified": true,
+     "oracle_lead_time_s": 6.95
+    }
+   ],
+   "justified_warnings": 1,
+   "justified_warned_in_time": 1,
+   "lead_time_s": [
+    6.9
+   ],
+   "path_intrusions": {
+    "expected": 0,
+    "found": 0,
+    "missed": [],
+    "extra": []
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S16/run_0_overtaking",
+  "recorders": [
+   "A",
+   "B"
+  ],
+  "collisions": {
+   "true": 1,
+   "reportable": 1,
+   "detected": 1,
+   "identified": 1,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 2122.923477526754,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 9,
+   "recorders": 2,
+   "observable": 9,
+   "represented_observable": 9,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 5,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "C",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 6.3,
+     "represented": true,
+     "road_users": [
+      "U9",
+      "U10"
+     ],
+     "coverage": 0.857
+    },
+    {
+     "vehicle": "D",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U4"
+     ],
+     "coverage": 0.996
+    },
+    {
+     "vehicle": "E",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 9.8,
+     "represented": true,
+     "road_users": [
+      "U5",
+      "U6",
+      "U12"
+     ],
+     "coverage": 0.954
+    },
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "F",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U3"
+     ],
+     "coverage": 0.996
+    },
+    {
+     "vehicle": "G",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U7",
+      "U8"
+     ],
+     "coverage": 0.737
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "H",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U1"
+     ],
+     "coverage": 0.933
+    },
+    {
+     "vehicle": "I",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 11.75,
+     "represented": true,
+     "road_users": [
+      "U2",
+      "U11"
+     ],
+     "coverage": 0.451
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 614,
+    "median": 0.3887,
+    "p95": 0.9774,
+    "mean": 0.4441,
+    "rmse": 0.6525
+   },
+   "speed_error_mps": {
+    "n": 614,
+    "median": 0.0576,
+    "p95": 0.3421,
+    "mean": 0.0929,
+    "rmse": 0.1418
+   },
+   "velocity_error_mps": {
+    "n": 614,
+    "median": 0.1358,
+    "p95": 0.9304,
+    "mean": 0.2592,
+    "rmse": 0.4473
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 614,
+    "median": 0.5715,
+    "p95": 4.5933,
+    "mean": 1.2022,
+    "rmse": 2.2288
+   }
+  },
+  "association": {
+   "decisions": {
+    "anonymous": 19,
+    "correct link": 2
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 8,
+    "false": 0,
+    "missed": 10
+   },
+   "fragmented_vehicles": {
+    "C": [
+     "U10",
+     "U9"
+    ],
+    "E": [
+     "U12",
+     "U5",
+     "U6"
+    ],
+    "G": [
+     "U7",
+     "U8"
+    ],
+    "I": [
+     "U11",
+     "U2"
+    ]
+   },
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 6.75,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.6,
+     "justified": true,
+     "oracle_lead_time_s": 1.7
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 6.75,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.1,
+     "justified": true,
+     "oracle_lead_time_s": 1.3
+    }
+   ],
+   "justified_warnings": 2,
+   "justified_warned_in_time": 2,
+   "lead_time_s": [
+    1.6,
+    1.1
+   ],
+   "path_intrusions": {
+    "expected": 3,
+    "found": 2,
+    "missed": [
+     "A/I@6.45"
+    ],
+    "extra": [
+     "A/G@6.50",
+     "A/I@9.20"
+    ]
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S17/run_0_occlusion_reappearance",
+  "recorders": [
+   "A",
+   "B"
+  ],
+  "collisions": {
+   "true": 1,
+   "reportable": 1,
+   "detected": 1,
+   "identified": 1,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 2139.5441546477377,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 6,
+   "recorders": 2,
+   "observable": 6,
+   "represented_observable": 6,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 1,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "V",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U1"
+     ],
+     "coverage": 0.996
+    },
+    {
+     "vehicle": "C",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U4"
+     ],
+     "coverage": 0.996
+    },
+    {
+     "vehicle": "D",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U2"
+     ],
+     "coverage": 0.996
+    },
+    {
+     "vehicle": "E",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 11.4,
+     "represented": true,
+     "road_users": [
+      "U3",
+      "U5"
+     ],
+     "coverage": 0.632
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 425,
+    "median": 0.2944,
+    "p95": 0.679,
+    "mean": 0.3533,
+    "rmse": 0.4228
+   },
+   "speed_error_mps": {
+    "n": 425,
+    "median": 0.0339,
+    "p95": 0.1954,
+    "mean": 0.0554,
+    "rmse": 0.0909
+   },
+   "velocity_error_mps": {
+    "n": 425,
+    "median": 0.11,
+    "p95": 0.438,
+    "mean": 0.1608,
+    "rmse": 0.2562
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 425,
+    "median": 0.4897,
+    "p95": 1.7776,
+    "mean": 0.7253,
+    "rmse": 1.146
+   }
+  },
+  "association": {
+   "decisions": {
+    "anonymous": 12,
+    "correct link": 2
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 11,
+    "false": 0,
+    "missed": 2
+   },
+   "fragmented_vehicles": {
+    "E": [
+     "U3",
+     "U5"
+    ]
+   },
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 7.3,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.85,
+     "justified": true,
+     "oracle_lead_time_s": 1.9
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 7.3,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.75,
+     "justified": true,
+     "oracle_lead_time_s": 1.75
+    }
+   ],
+   "justified_warnings": 2,
+   "justified_warned_in_time": 2,
+   "lead_time_s": [
+    1.85,
+    1.75
+   ],
+   "path_intrusions": {
+    "expected": 5,
+    "found": 3,
+    "missed": [
+     "A/E@6.30",
+     "B/E@6.35"
+    ],
+    "extra": []
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S18/run_0_collision_ambiguity",
+  "recorders": [
+   "A",
+   "B"
+  ],
+  "collisions": {
+   "true": 1,
+   "reportable": 1,
+   "detected": 1,
+   "identified": 1,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 2156.0147395692766,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 8,
+   "recorders": 2,
+   "observable": 8,
+   "represented_observable": 8,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 3,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "C",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U1"
+     ],
+     "coverage": 0.996
+    },
+    {
+     "vehicle": "D",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U5"
+     ],
+     "coverage": 0.996
+    },
+    {
+     "vehicle": "E",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 10.3,
+     "represented": true,
+     "road_users": [
+      "U2",
+      "U7"
+     ],
+     "coverage": 0.932
+    },
+    {
+     "vehicle": "F",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 9.3,
+     "represented": true,
+     "road_users": [
+      "U3",
+      "U8",
+      "U9"
+     ],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "G",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U4"
+     ],
+     "coverage": 0.996
+    },
+    {
+     "vehicle": "H",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U6"
+     ],
+     "coverage": 0.963
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 677,
+    "median": 0.1616,
+    "p95": 0.7366,
+    "mean": 0.2593,
+    "rmse": 0.3898
+   },
+   "speed_error_mps": {
+    "n": 677,
+    "median": 0.0324,
+    "p95": 0.4006,
+    "mean": 0.1044,
+    "rmse": 0.1655
+   },
+   "velocity_error_mps": {
+    "n": 677,
+    "median": 0.0896,
+    "p95": 0.6908,
+    "mean": 0.1852,
+    "rmse": 0.3039
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 677,
+    "median": 0.2978,
+    "p95": 3.0899,
+    "mean": 0.7337,
+    "rmse": 1.3963
+   }
+  },
+  "association": {
+   "decisions": {
+    "anonymous": 15,
+    "correct link": 1
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 7,
+    "false": 0,
+    "missed": 5
+   },
+   "fragmented_vehicles": {
+    "E": [
+     "U2",
+     "U7"
+    ],
+    "F": [
+     "U3",
+     "U8",
+     "U9"
+    ]
+   },
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 7.65,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 7.15,
+     "justified": true,
+     "oracle_lead_time_s": 7.15
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 7.65,
+     "warned": false,
+     "in_time": false,
+     "lead_time_s": null,
+     "justified": false,
+     "oracle_lead_time_s": null
+    }
+   ],
+   "justified_warnings": 1,
+   "justified_warned_in_time": 1,
+   "lead_time_s": [
+    7.15
+   ],
+   "path_intrusions": {
+    "expected": 0,
+    "found": 0,
+    "missed": [],
+    "extra": []
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ },
+ {
+  "run": "S19/run_0_highway_curve",
+  "recorders": [
+   "A",
+   "B"
+  ],
+  "collisions": {
+   "true": 1,
+   "reportable": 1,
+   "detected": 1,
+   "identified": 1,
+   "invented": 0,
+   "recontact_splits": 0,
+   "recall": 1.0,
+   "participants_correct_rate": 1.0,
+   "precision": 1.0,
+   "max_abs_timing_error_s": 0.0,
+   "contacts": [
+    {
+     "pair": "A-B",
+     "sim_time": 31.07733303681016,
+     "involves_recorder": true,
+     "recontacts": 0,
+     "detected": true,
+     "participants_correct": true,
+     "timing_error_s": 0.0
+    }
+   ],
+   "invented_list": [],
+   "recontact_split_list": []
+  },
+  "completeness": {
+   "true_vehicles": 7,
+   "recorders": 2,
+   "observable": 7,
+   "represented_observable": 7,
+   "unobservable": [],
+   "missed_observable": [],
+   "represented_unobservable": [],
+   "duplicates": 4,
+   "recorder_ghosts": [],
+   "phantoms": [],
+   "phantoms_near": [],
+   "phantoms_far": [],
+   "min_track_frames": 5,
+   "vehicles": [
+    {
+     "vehicle": "A",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "B",
+     "role": "recorder",
+     "observable": true,
+     "represented": true,
+     "road_users": [],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "C",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 11.55,
+     "represented": true,
+     "road_users": [
+      "U1"
+     ],
+     "coverage": 0.965
+    },
+    {
+     "vehicle": "D",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 12.0,
+     "represented": true,
+     "road_users": [
+      "U2"
+     ],
+     "coverage": 0.996
+    },
+    {
+     "vehicle": "E",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 7.85,
+     "represented": true,
+     "road_users": [
+      "U5",
+      "U6"
+     ],
+     "coverage": 1.0
+    },
+    {
+     "vehicle": "F",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 6.1,
+     "represented": true,
+     "road_users": [
+      "U4",
+      "U8"
+     ],
+     "coverage": 0.918
+    },
+    {
+     "vehicle": "G",
+     "role": "non-recorder",
+     "observable": true,
+     "visible_s": 9.0,
+     "represented": true,
+     "road_users": [
+      "U3",
+      "U7",
+      "U9"
+     ],
+     "coverage": 0.961
+    }
+   ]
+  },
+  "errors": {
+   "centre_error_m": {
+    "n": 461,
+    "median": 0.2701,
+    "p95": 0.7559,
+    "mean": 0.3272,
+    "rmse": 0.412
+   },
+   "speed_error_mps": {
+    "n": 461,
+    "median": 0.0445,
+    "p95": 0.4298,
+    "mean": 0.1009,
+    "rmse": 0.1654
+   },
+   "velocity_error_mps": {
+    "n": 461,
+    "median": 0.1271,
+    "p95": 1.007,
+    "mean": 0.2986,
+    "rmse": 0.5217
+   },
+   "heading_error_deg_diagnostic": {
+    "n": 461,
+    "median": 0.8285,
+    "p95": 3.2198,
+    "mean": 1.1455,
+    "rmse": 1.7054
+   }
+  },
+  "association": {
+   "decisions": {
+    "anonymous": 16,
+    "correct link": 2
+   },
+   "wrong_links": 0,
+   "missed_links": 0,
+   "merges": {
+    "correct": 10,
+    "false": 0,
+    "missed": 11
+   },
+   "fragmented_vehicles": {
+    "E": [
+     "U5",
+     "U6"
+    ],
+    "F": [
+     "U4",
+     "U8"
+    ],
+    "G": [
+     "U3",
+     "U7",
+     "U9"
+    ]
+   },
+   "phantoms": 0
+  },
+  "semantics": {
+   "available": true,
+   "critical_ttc_warnings": [
+    {
+     "recorder": "A",
+     "partner": "B",
+     "contact_t_local": 7.5,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 2.0,
+     "justified": true,
+     "oracle_lead_time_s": 2.2
+    },
+    {
+     "recorder": "B",
+     "partner": "A",
+     "contact_t_local": 7.5,
+     "warned": true,
+     "in_time": true,
+     "lead_time_s": 1.55,
+     "justified": true,
+     "oracle_lead_time_s": 0.8
+    }
+   ],
+   "justified_warnings": 2,
+   "justified_warned_in_time": 2,
+   "lead_time_s": [
+    2.0,
+    1.55
+   ],
+   "path_intrusions": {
+    "expected": 2,
+    "found": 2,
+    "missed": [],
+    "extra": []
+   },
+   "unconfirmed_critical_ttc": []
+  }
+ }
+]

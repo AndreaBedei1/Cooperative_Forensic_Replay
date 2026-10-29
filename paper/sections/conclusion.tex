@@ -1,0 +1,29 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented a method that reconstructs road collisions from independent
+onboard recordings by connecting evidence across recorders through clock
+recovery, physical vehicle association and retrospective motion
+estimation. This includes observations of vehicles without their own
+logs. Through semantic conversion, the resulting chronology relates
+manoeuvres and conflicts to recorded control actions and contacts while
+keeping source observations and the evidence behind identity decisions
+traceable.
+
+In the reference condition, the method correctly identified all 26
+collision participant sets and represented all 45 observable
+non-recording vehicles across 19 simulated scenarios. Across the
+1816-job evaluation, tested positioning and nominal radar errors
+preserved collision identification and high local conflict precision.
+When every recorder underwent extreme radar corruption, 95.4\% of
+collision participant sets remained correct while local conflict
+precision fell to 31.3\%, revealing the limit of semantic interpretation
+under dense clutter. This chronology supports investigators in
+examining competing accounts of a collision.
+
+Future work will extend validation to real onboard recordings and
+examine how motion and identity uncertainty can inform confidence
+estimates for semantic events under dense radar clutter. We will also
+investigate large language models for abductive reasoning over kinematic
+and semantic traces, generating and comparing candidate collision
+explanations against supporting and contradicting recorded evidence.

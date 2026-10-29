@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "carla-raw-acquisition"
+version = "0.1.0"
+description = "Raw CARLA scenario acquisition with separate vehicle and simulator traces."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { file = "LICENSE" }
+dependencies = ["PyYAML>=5.4", "numpy>=1.23,<1.25", "scipy>=1.10,<1.11", "matplotlib>=3.7,<3.8", "Pillow>=9.0,<11",
+                "opencv-python>=4.5"]
+
+[project.optional-dependencies]
+sim = ["carla==0.9.15"]
+replay = ["pygame>=2.1,<2.7"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

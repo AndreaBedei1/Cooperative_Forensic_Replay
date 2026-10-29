@@ -1,0 +1,54 @@
+scenario:
+  scenario_id: S01
+  name: rear_end
+  description: 'B travels ahead of A in the same lane and brakes hard. A reacts late
+    and strikes B.
+
+    '
+  map: Town05
+  context:
+    road_environment: urban road, vehicles in the same lane
+    speed_limit_kmh: 50
+  default_variant: crash
+  max_duration_s: 26.0
+  participants:
+  - id: A
+    blueprint: vehicle.tesla.model3
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 0.0
+      lane_offset: 0
+    route:
+      length_m: 150.0
+      step_m: 2.0
+    initial_speed: 14.0
+    target_speed: 14.0
+    actions:
+    - action_id: A_late_brake
+      kind: brake
+      t_start: 5.6
+      duration: 6.0
+      params:
+        intensity: 0.85
+  - id: B
+    blueprint: vehicle.audi.tt
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 28.0
+      lane_offset: 0
+    route:
+      length_m: 120.0
+      step_m: 2.0
+    initial_speed: 14.0
+    target_speed: 14.0
+    actions:
+    - action_id: B_emergency_brake
+      kind: brake
+      t_start: 4.0
+      duration: 8.0
+      params:
+        intensity: 1.0
+  variants:
+    crash: {}

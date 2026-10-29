@@ -1,0 +1,141 @@
+scenario:
+  scenario_id: S17
+  name: occlusion_reappearance
+  description: 'Dense three-lane traffic.  The recorder A drives in the right lane, the recorder B in the left lane
+    slightly ahead and slower; a van V in the middle lane between them hides B from A for the first seconds.  V
+    then accelerates and draws ahead, B re-appears to A, and later A and B both move into the middle lane at the
+    same time and collide (the only contact); A signals its lane change and leaves the indicator on, B changes
+    lane without signalling.  Similar cars drive around and ahead of them; nobody follows
+    them.
+
+    '
+  research_question: Does an identity survive an occlusion and re-appearance among similar cars, up to a collision?
+  map: Town05
+  context:
+    road_environment: urban arterial, three lanes one direction
+    speed_limit_kmh: 50
+  max_duration_s: 12.0
+  default_variant: occlusion_reappearance
+  participants:
+  - id: A
+    blueprint: vehicle.audi.tt
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 20.0
+      lane_offset: 1
+    route:
+      length_m: 260.0
+      step_m: 2.0
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: stop
+    actions:
+    - action_id: A_moves_left
+      kind: lane_shift
+      t_start: 4.8
+      duration: 2.0
+      params:
+        lateral_m: -3.5
+    - action_id: A_indicator_left_left_on
+      kind: indicator
+      t_start: 4.0
+      duration: 20.0
+      params:
+        side: -1
+  - id: B
+    blueprint: vehicle.tesla.model3
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 32.0
+      lane_offset: -1
+    route:
+      length_m: 260.0
+      step_m: 2.0
+    initial_speed: 10.0
+    target_speed: 10.0
+    post_impact_mode: stop
+    actions:
+    - action_id: B_moves_right
+      kind: lane_shift
+      t_start: 4.8
+      duration: 2.0
+      params:
+        lateral_m: 3.5
+  - id: V
+    blueprint: vehicle.mercedes.sprinter
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 27.0
+      lane_offset: 0
+    route:
+      length_m: 260.0
+      step_m: 2.0
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: drive
+    actions:
+    - action_id: V_accelerates
+      kind: set_speed
+      t_start: 3.0
+      duration: 2.0
+      params:
+        target_speed: 15.0
+  - id: C
+    blueprint: vehicle.tesla.model3
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 50.0
+      lane_offset: -1
+    route:
+      length_m: 260.0
+      step_m: 2.0
+    initial_speed: 10.0
+    target_speed: 10.0
+    post_impact_mode: drive
+    actions:
+    - action_id: C_keeps_speed
+      kind: hold
+      t_start: 10.0
+      duration: 2.0
+      params:
+        target_speed: 10.0
+  - id: D
+    blueprint: vehicle.tesla.model3
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 45.0
+      lane_offset: 1
+    route:
+      length_m: 260.0
+      step_m: 2.0
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: drive
+    actions: []
+  - id: E
+    blueprint: vehicle.toyota.prius
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 62.0
+      lane_offset: 0
+    route:
+      length_m: 260.0
+      step_m: 2.0
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: drive
+    actions: []
+  variants:
+    occlusion_reappearance: {}
+simulation:
+  min_spawn_gap_m: 3.0

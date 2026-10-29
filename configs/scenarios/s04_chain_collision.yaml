@@ -1,0 +1,102 @@
+scenario:
+  scenario_id: S04
+  name: chain_collision
+  description: 'Three vehicles in a single lane: C leads, B follows, A is last. C
+    brakes hard. Which pair collides first depends on how B responds.  a_front_pushed:
+    B brakes hard enough to stop short of C, but A, following B far too closely, runs
+    into it while it is still slowing and pushes it into C.  b_rear_first: B does not
+    react, runs into C, and A then runs into B.
+
+    '
+  map: Town05
+  context:
+    road_environment: urban road, single lane
+    speed_limit_kmh: 50
+  default_variant: a_front_pushed
+  max_duration_s: 30.0
+  participants:
+  - id: A
+    blueprint: vehicle.tesla.model3
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 0.0
+      lane_offset: 0
+    route:
+      length_m: 150.0
+      step_m: 2.0
+    initial_speed: 14.0
+    target_speed: 14.0
+    actions: []
+  - id: B
+    blueprint: vehicle.audi.tt
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 26.0
+      lane_offset: 0
+    route:
+      length_m: 130.0
+      step_m: 2.0
+    initial_speed: 14.0
+    target_speed: 14.0
+    actions: []
+  - id: C
+    blueprint: vehicle.nissan.patrol
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 44.0
+      lane_offset: 0
+    route:
+      length_m: 110.0
+      step_m: 2.0
+    initial_speed: 14.0
+    target_speed: 14.0
+    actions:
+    - action_id: C_emergency_brake
+      kind: brake
+      t_start: 3.0
+      duration: 10.0
+      params:
+        intensity: 1.0
+  variants:
+    a_front_pushed:
+      participant_overrides:
+        B:
+          post_impact_mode: coast
+          actions:
+          - action_id: B_reaction_brake
+            kind: brake
+            t_start: 3.75
+            duration: 10.0
+            params:
+              intensity: 1.0
+        A:
+          spawn:
+            forward_m: 17.0
+          actions:
+          - action_id: A_late_brake
+            kind: brake
+            t_start: 4.6
+            duration: 8.0
+            params:
+              intensity: 0.5
+    b_rear_first:
+      participant_overrides:
+        B:
+          actions:
+          - action_id: B_no_reaction
+            kind: brake
+            t_start: 5.6
+            duration: 8.0
+            params:
+              intensity: 0.35
+        A:
+          actions:
+          - action_id: A_late_brake
+            kind: brake
+            t_start: 6.2
+            duration: 8.0
+            params:
+              intensity: 0.8

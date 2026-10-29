@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+*.log
+.env
+
+# Outputs written by the reproduction commands of the README.
+/results/paper_evaluation/
+/results/g0/
+/results/robustness/campaign_v3/jobs.jsonl
+/out/
+/scratch/
+
+# LaTeX build files (paper/main.pdf is kept).
+/paper/*.aux
+/paper/*.bbl
+/paper/*.blg
+/paper/*.fdb_latexmk
+/paper/*.fls
+/paper/*.out
+/paper/*.synctex.gz

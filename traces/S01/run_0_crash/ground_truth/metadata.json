@@ -1,0 +1,16 @@
+{
+  "map": "Town05",
+  "participants": [
+    {
+      "participant_id": "A",
+      "record": true
+    },
+    {
+      "participant_id": "B",
+      "record": true
+    }
+  ],
+  "scenario_id": "S01",
+  "seed": 0,
+  "variant": "crash"
+}

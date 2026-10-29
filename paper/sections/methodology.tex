@@ -1,0 +1,221 @@
+\section{Methodology}
+\label{sec:methodology}
+
+The method combines independent onboard recordings to reconstruct a collision
+retrospectively. Each recording vehicle, or recorder, contributes a GNSS/INS
+pose stream with declared accuracy, control and indicator logs, radar
+detections, and collision reports, all on its own clock. Radar supplies
+range, azimuth, elevation, and radial velocity without identity, while an
+impact report supplies contact time and impulse magnitude without naming
+the partner. Each recorder also knows its footprint and sensor mounts; the
+investigation supplies the road map and speed limit. Radar observations
+from the recorders provide the evidence for reconstructing road users
+without accessible recordings. The four stages of
+Fig.~\ref{fig:pipeline} read only the inputs shown there.
+
+\begin{figure}[!t]
+  \centering
+  \input{figures/pipeline}
+  \caption{Reconstruction stages and inputs. Local events are extracted
+  independently before temporal and identity integration.}
+  \label{fig:pipeline}
+\end{figure}
+
+
+\subsection{Local Reconstruction}
+\label{subsec:local-reconstruction}
+
+Local processing retains each recorder's clock and uses a frame anchored
+at its initial pose. Within this frame, sensor mounting geometry and
+recorded ego-motion transform radar positions and compensate Doppler,
+including the radar mount's lever arm. Tracks follow the constant-velocity
+model of~\eqref{eq:state-space} and are updated with the median position of
+associated returns and their Doppler measurements. Before a detection can
+update a track, it must pass both spatial and radial-velocity gates. The
+position innovation uses~\eqref{eq:association-distance}, with covariance
+\begin{equation}
+  \begin{aligned}
+    \mathbf{S} &= \mathbf{P}_{pp}+2\mathbf{B}+\mathbf{R}(\phi)\operatorname{diag}
+      (\sigma_\rho^2,\rho^2\sigma_\phi^2)\mathbf{R}(\phi)^{\mathsf T},\\
+    \mathbf{B} &= \mathbf{R}(\hat\theta)\operatorname{diag}
+      (L^2/12,W^2/12)\mathbf{R}(\hat\theta)^{\mathsf T},
+  \end{aligned}
+  \label{eq:gate}
+\end{equation}
+where $\mathbf{P}_{pp}$ is the predicted position covariance and
+$\mathbf{R}(\alpha)$ is a planar rotation. The radar term depends on range
+$\rho$, bearing $\phi$, and their measurement standard deviations, while
+$\mathbf{B}$ models a uniform point over a nominal $L\times W$ vehicle at
+heading $\hat\theta$, with isotropic spread when heading is unavailable.
+The factor two accounts for the return and tracked point lying at different
+positions on that body. Consequently, the gate widens laterally with range,
+while Doppler constrains only line-of-sight velocity.
+
+When several tracks pass both gates, their spatial and Doppler likelihoods
+decide the assignment. A detection without a clear likelihood margin
+updates no track and starts none, avoiding a forced association. New
+tracks require sustained support and are suppressed within a
+confirmed body's region. Track continuation ends when prediction
+uncertainty prevents separation of vehicle-width bodies, subject to a gap
+cap. To accommodate abrupt manoeuvres and impacts, the affected tracks'
+motion uncertainty is increased. RTS smoothing~\cite{rauch1965smoothing}
+is then applied within segments separated by gaps or detected impacts,
+preserving velocity discontinuities.
+
+\subsection{Temporal Alignment}
+\label{subsec:temporal-alignment}
+
+Temporal alignment brings these independent local reconstructions onto
+a common clock. Collisions provide the main anchors because a contact
+between two recorders appears in both reports, with consecutive sensor
+callbacks grouped into local contact episodes. Reports from different
+recorders are matched on impulse magnitude: the two bodies receive equal
+and opposite impulses, so the magnitudes must agree within their
+measurement uncertainty. Impulse agreement alone, however, cannot
+distinguish unrelated contacts of similar strength. A candidate match
+must therefore also satisfy geometric consistency: placed by their own
+pose streams, the two footprints must touch within the declared
+positioning uncertainty. Where available, pre-contact radar motion must
+not contradict the candidate partner's recorded speed, and every
+candidate must agree with the clock offsets already established.
+If these checks still permit more than one pairing, a match is accepted
+only when every feasible one-to-one assignment with the greatest number
+of matches contains it. Each accepted match constrains relative clock
+offsets, while chains of matched collisions extend the alignment to
+recorders that never collided with each other. The strongest matched
+collision defines the global time origin, giving
+$t_{\mathrm{g}}=t+o_R$ for recorder $R$, where $o_R$ is its
+estimated constant offset. The constant-offset model assumes recorder
+clocks disciplined by GNSS time, so that drift within one incident can
+be neglected.
+
+For a recorder without a shared collision, radar observations of
+recording vehicles may still provide alignment. Candidate offsets are
+scored by comparing the vehicle surfaces seen by radar with the footprint
+and trajectory of the corresponding recorder, within the measurement
+uncertainty. The best fit is accepted only when it is consistent and
+distinguishable from competing offset intervals; otherwise the recorder
+remains unaligned. When no recorder shares a collision at all, one
+recorder's clock is taken as the reference.
+
+\subsection{Identity Association}
+\label{subsec:identity-association}
+
+With the recorders on a common clock, their tracks can be compared
+against the known trajectories of the recorders themselves. These are
+the first association candidates; each radar track keeps its local
+identifier until it is associated with a road user. A track observed by
+recorder $X$ is associated with recorder $Y$ when its reconstructed
+position and line-of-sight velocity agree with $Y$'s recorded trajectory
+and vehicle footprint. This comparison accounts for radar noise, the
+declared positioning accuracy of both recorders, and the displacement
+that a heading error causes at range. Linking requires agreement that
+lasts long enough and is precise enough to distinguish nearby vehicles,
+with a clear likelihood margin when two matches compete. Tracks
+approaching a matched collision provide further association evidence.
+When positioning uncertainty is declared, observations of recorder
+footprints refine relative translation offsets before association and
+fusion are repeated; unconstrained components retain their positioning
+priors.
+
+Road users without a recorder have no trajectory of their own against
+which observations can be checked, so reconstruction instead associates
+the tracks of different observers with each other. Direct comparison of
+their tracked points would be misleading because each observer sees a
+different face of the body. The method therefore tests whether one
+vehicle body explains both sets of radar returns. For an estimated
+heading, returns are assigned to faces visible from their radar origins;
+constraints normal to and along each face then enter a weighted
+least-squares fit of the centre, length and width. Measurement and pose
+uncertainty determine the constraint weights, while nominal dimensions
+provide size priors. Face assignment and fitting are performed iteratively.
+The $\chi^2$ terms
+below are the resulting weighted residual sums, including the dimension
+priors. At each shared observation, the compatibility cost is
+\begin{equation}
+  D_{\mathrm{body}}=\max\!\left(0,
+    \chi^2_{\mathrm{joint}}-\chi^2_a-\chi^2_b\right),
+  \label{eq:body-compatibility}
+\end{equation}
+where the terms are the normalized fitting costs for one joint body and
+two separate bodies. This cost is tested against a $\chi^2_2$ gate,
+together with velocity compatibility; after either observer's impact,
+geometry alone is used. Agreement must persist, and a link is refused
+when a rival remains plausible or a \emph{cannot-link} constraint would
+be violated: tracks that one observer simultaneously distinguishes as
+separate bodies cannot be fused.
+
+Across short gaps, track continuation is evaluated against rival tracks
+and a new-road-user hypothesis. Retrospective resolution requires a later
+group supported by sustained cross-observer evidence: its first measured
+position and velocity are propagated backward with the motion model and
+compared with earlier fragments' last measured states, including process
+and relative-pose uncertainty. A candidate must pass a $\chi^2_4$
+state-compatibility gate and reach model posterior support of at least
+0.95 against both competing successors and competing predecessors, with
+a new-road-user alternative in each comparison. Merging also requires
+that the cannot-link constraints hold and that the earlier fragment ends
+without a confusable neighbour. Successful resolution updates identity
+attribution while preserving the original observations and event times,
+and records when the resolving evidence became available.
+
+Tracks not linked to a recorder form anonymous global road users
+$U_1,U_2,\ldots$. Their positions come from the body fitted to the
+observed surfaces, and the velocity estimates of different observers
+are combined by covariance intersection~\cite{julier1997intersection},
+minimizing the trace of the fused covariance. This handles unknown
+cross-correlations and also provides the position fallback when no joint
+body fit is available. Fused trajectories are smoothed without crossing
+gaps or impacts.
+
+\subsection{Semantic Events and Shared Chronology}
+\label{subsec:semantic-events}
+
+As part of local reconstruction, semantic events are extracted
+independently from each recorder's tracks, motion, controls, lights, and
+road context, ready for integration on the recovered clock in the final
+stage. Pedal and light logs provide braking and indicator events
+directly, whereas interactions are judged against the map-matched path
+of the recorder, following lane curvature and its recorded branch at
+junctions. An \texttt{EGO\_PATH\_ENTRY} marks
+the instant at which the estimated body of another road user enters
+this corridor. Since occupancy is computed from the reconstructed
+footprint with its position and heading uncertainty, a transition
+needs persistent evidence beyond that uncertainty rather than a
+single observation. Each entry is then attributed to the target's
+lateral motion, the recorder's own manoeuvre, or both, and this
+attribution separates a cut-in from a lane change of the recorder:
+a \texttt{CUT\_IN} needs a sustained lateral approach from another
+lane and is confirmed only by a path entry to which the target's
+motion contributes.
+
+Alongside path entries and cut-ins, which describe where other road users
+are, a \texttt{CRITICAL\_TTC} event marks when such a situation becomes
+critical through either of two triggering conditions. The first is a predicted
+overlap between the recorder's safety envelope and another vehicle's
+estimated body that cannot be avoided with the assumed deceleration
+after a response delay~\cite{green2000stop}. Avoidance is evaluated by
+braking the recorder, or the target when recorder braking cannot remove
+the overlap. Predictions account for road curvature and estimated target
+braking. The second is an unsafe forward gap below a speed-dependent
+following-distance reference derived from the time-gap table of UN
+Regulation No.~157~\cite{unece2021r157}. This condition applies only to a
+leader in the recorder's path or a confirmed cut-in, never to
+traffic in adjacent lanes, and unlike a predicted overlap, a short
+following gap does not by itself give a
+time-to-collision~\cite{vogel2003headway}. Both conditions require
+sufficiently mature tracks with bounded position and velocity uncertainty.
+The experiments use a 1.0~s response delay, 6.0~m/s$^2$ available
+deceleration and a 6.0~s prediction horizon.
+
+Fused trajectories describe the estimated physical motion, while the
+shared chronology integrates events already extracted independently by
+each recorder. Local semantic events, matched collisions, and associated
+identities form a graph on the global clock; each node keeps its recorder,
+local event, local timestamp, and provenance. A matched pair of collision
+reports becomes one shared node with both participants, while an
+unmatched report stays a node of its own recorder. Brief recontacts of
+the same pair are grouped with the preceding collision when the two
+footprints barely separated in between. Temporal edges then order events
+with different reconstructed timestamps, leaving events that share a
+timestamp unordered.

@@ -1,0 +1,88 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Disputed accounts of a crash are a practical problem in collision
+investigation. Practitioner guidance describes lane-change and
+multi-vehicle cases in which competing driver accounts must be checked
+against witness statements, vehicle data and scene
+evidence~\cite{maier2026threecar,daviskelin2024unclear}. Establishing what
+happened requires recovering the interactions that preceded the impact.
+Consider a common rear-end collision on a multilane road
+(Fig.~\ref{fig:cut-in-example}). A travels faster in the right lane; B is
+slightly ahead in the lane to its left. B moves into A's lane. A brakes,
+but strikes B from behind. \emph{Who caused the crash?} A could say B cut in
+so close that the collision could not be avoided. B could say there was
+room and A failed to slow in time. Both accounts fit the scene after the crash.
+
+\begin{figure}[!h]
+  \centering
+  \input{figures/cut_in_example}
+  \caption{A cut-in followed by a collision. The outcome alone does not
+  distinguish an insufficient gap from a delayed response; both may occur.}
+  \label{fig:cut-in-example}
+\end{figure}
+
+The disagreement concerns the few seconds before impact, which the collision
+itself does not preserve. B might have crossed just ahead of A, leaving
+almost no room even if A braked immediately. Or B might have completed the
+merge with a comfortable gap that A then closed while responding late,
+perhaps because the driver was distracted. A narrow gap and delayed braking
+could also combine, each using up part of the distance available before
+contact. The drivers may agree that B changed lanes and A braked, yet still
+disagree on whether A ever had room to avoid the crash. All these sequences
+end with A striking B from behind. Damage and final vehicle positions do
+not reveal the original gap, how quickly it closed, or when A began to brake.
+The collision is undisputed; what made it happen remains uncertain.
+
+Onboard recordings can preserve parts of this missing history. Their
+forensic value has been demonstrated through sensor-processing pipelines
+and reconstruction from vehicle logs and
+dashcams~\cite{beck2023pipeline,matsumura2024precrash}. Combining
+independent recordings, however, requires recovering correspondences in
+both time and physical identity. Unknown clock offsets complicate temporal
+alignment, while radar returns do not name the vehicles that produced
+them and different observers see different surfaces of the same body.
+Occlusion can interrupt tracking, and impacts abruptly change
+motion; a relevant road user may provide no recording at all. A shared
+chronology must therefore connect
+physical vehicles across observers and relate their observed
+interactions to recorded responses.
+
+We present a method for retrospective forensic reconstruction from
+independently collected onboard recordings. Reconstruction begins by
+processing each recorder independently, using Kalman filtering and RTS smoothing
+to estimate radar-track motion and derive local events. To combine these
+histories, shared contacts are checked against geometry and motion to
+anchor a common clock; observed motion can also align recorders without
+a shared contact. Association and body geometry then connect different
+views of recording and non-recording road users, allowing later evidence
+to resolve earlier identities while preserving the original local
+observations and event times. The resulting semantic
+chronology relates path entries, cut-ins and conflicts to recorded
+controls and contacts, retaining each recorder's provenance. It provides
+evidence for examining competing accounts, while judgments about driver
+awareness and responsibility remain with the investigator.
+
+The contributions are:
+\begin{itemize}
+  \item A reconstruction method that recovers clock offsets and physical
+  vehicle associations across independent radar and vehicle recordings,
+  using common-body evidence and retrospective identity resolution to
+  reconstruct road users with and without their own logs.
+  \item A semantic chronology that connects manoeuvres and conflict
+  onsets to recorded responses and contacts, preserving the source
+  observations and the provenance of later identity decisions.
+  \item A reproducible evaluation of 19 scenarios, 22 runs and
+  1816 reconstruction jobs with paired positioning and radar errors,
+  including asymmetric degradation, measuring collision identification,
+  association consistency, geometry and local conflict recovery separately.
+\end{itemize}
+
+\emph{The forensic reconstruction code and experimental campaign are publicly available~\cite{causaldrive2026code}.}
+
+The paper is organised as follows. Section~\ref{sec:background} introduces estimation, tracking and conflict
+measures. Section~\ref{sec:methodology} describes the method, and
+Section~\ref{sec:evaluation} evaluates its reconstruction quality and
+robustness. Section~\ref{sec:related-work} discusses related research,
+Section~\ref{sec:threat} examines threats to validity, and
+Section~\ref{sec:conclusion} concludes.

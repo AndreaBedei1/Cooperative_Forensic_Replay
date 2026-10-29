@@ -1,0 +1,927 @@
+{
+ "run": "S15/run_0_dense_platoon",
+ "events": {
+  "PERFECT": {
+   "A": [
+    {
+     "type": "CRITICAL_TTC_START",
+     "side": "CRITICAL_TTC_START",
+     "subject": "B",
+     "t_local": 6.65,
+     "track": "B#all"
+    },
+    {
+     "type": "CRITICAL_TTC_END",
+     "side": "CRITICAL_TTC_END",
+     "subject": "B",
+     "t_local": 7.45,
+     "track": "B#all"
+    },
+    {
+     "type": "CRITICAL_TTC_START",
+     "side": "CRITICAL_TTC_START",
+     "subject": "D",
+     "t_local": 0.5,
+     "track": "D#all"
+    },
+    {
+     "type": "CRITICAL_TTC_END",
+     "side": "CRITICAL_TTC_END",
+     "subject": "D",
+     "t_local": 6.8,
+     "track": "D#all"
+    }
+   ],
+   "B": [
+    {
+     "type": "CRITICAL_TTC_START",
+     "side": "CRITICAL_TTC_START",
+     "subject": "A",
+     "t_local": 0.5,
+     "track": "A#all"
+    },
+    {
+     "type": "CRITICAL_TTC_END",
+     "side": "CRITICAL_TTC_END",
+     "subject": "A",
+     "t_local": 7.45,
+     "track": "A#all"
+    }
+   ]
+  },
+  "COVERAGE": {
+   "A": [
+    {
+     "type": "TRACK_APPEARED",
+     "side": "TRACK_APPEARED_FRONT",
+     "subject": "C",
+     "t_local": 7.9,
+     "track": "C#1"
+    },
+    {
+     "type": "CRITICAL_TTC_START",
+     "side": "CRITICAL_TTC_START",
+     "subject": "D",
+     "t_local": 0.5,
+     "track": "D#1"
+    },
+    {
+     "type": "CRITICAL_TTC_END",
+     "side": "CRITICAL_TTC_END",
+     "subject": "D",
+     "t_local": 6.8,
+     "track": "D#1"
+    },
+    {
+     "type": "TRACK_APPEARED",
+     "side": "TRACK_APPEARED_LEFT",
+     "subject": "E",
+     "t_local": 10.05,
+     "track": "E#2"
+    },
+    {
+     "type": "TRACK_APPEARED",
+     "side": "TRACK_APPEARED_LEFT",
+     "subject": "F",
+     "t_local": 10.4,
+     "track": "F#2"
+    }
+   ],
+   "B": [
+    {
+     "type": "CRITICAL_TTC_START",
+     "side": "CRITICAL_TTC_START",
+     "subject": "A",
+     "t_local": 0.5,
+     "track": "A#1"
+    },
+    {
+     "type": "CRITICAL_TTC_END",
+     "side": "CRITICAL_TTC_END",
+     "subject": "A",
+     "t_local": 7.45,
+     "track": "A#1"
+    },
+    {
+     "type": "TRACK_APPEARED",
+     "side": "TRACK_APPEARED_FRONT",
+     "subject": "E",
+     "t_local": 11.05,
+     "track": "E#2"
+    },
+    {
+     "type": "TRACK_APPEARED",
+     "side": "TRACK_APPEARED_FRONT",
+     "subject": "F",
+     "t_local": 11.7,
+     "track": "F#2"
+    }
+   ]
+  },
+  "COVERAGE_TRACKED": {
+   "A": [
+    {
+     "type": "TRACK_APPEARED",
+     "side": "TRACK_APPEARED_FRONT",
+     "subject": "C",
+     "t_local": 7.9,
+     "track": "C#1"
+    },
+    {
+     "type": "CRITICAL_TTC_START",
+     "side": "CRITICAL_TTC_START",
+     "subject": "D",
+     "t_local": 0.5,
+     "track": "D#1"
+    },
+    {
+     "type": "CRITICAL_TTC_END",
+     "side": "CRITICAL_TTC_END",
+     "subject": "D",
+     "t_local": 6.8,
+     "track": "D#1"
+    },
+    {
+     "type": "TRACK_APPEARED",
+     "side": "TRACK_APPEARED_LEFT",
+     "subject": "E",
+     "t_local": 10.05,
+     "track": "E#2"
+    },
+    {
+     "type": "TRACK_APPEARED",
+     "side": "TRACK_APPEARED_LEFT",
+     "subject": "F",
+     "t_local": 10.4,
+     "track": "F#2"
+    }
+   ],
+   "B": [
+    {
+     "type": "CRITICAL_TTC_START",
+     "side": "CRITICAL_TTC_START",
+     "subject": "A",
+     "t_local": 0.5,
+     "track": "A#1"
+    },
+    {
+     "type": "CRITICAL_TTC_END",
+     "side": "CRITICAL_TTC_END",
+     "subject": "A",
+     "t_local": 7.45,
+     "track": "A#1"
+    },
+    {
+     "type": "TRACK_APPEARED",
+     "side": "TRACK_APPEARED_FRONT",
+     "subject": "E",
+     "t_local": 11.05,
+     "track": "E#2"
+    },
+    {
+     "type": "TRACK_APPEARED",
+     "side": "TRACK_APPEARED_FRONT",
+     "subject": "F",
+     "t_local": 11.7,
+     "track": "F#2"
+    }
+   ]
+  },
+  "RECONSTRUCTION": {
+   "A": [
+    {
+     "type": "CRITICAL_TTC_START",
+     "side": "CRITICAL_TTC_START",
+     "subject": "D",
+     "t_local": 0.5,
+     "track": "track_002"
+    },
+    {
+     "type": "CRITICAL_TTC_END",
+     "side": "CRITICAL_TTC_END",
+     "subject": "D",
+     "t_local": 6.8,
+     "track": "track_002"
+    },
+    {
+     "type": "TRACK_APPEARED",
+     "side": "TRACK_APPEARED_FRONT",
+     "subject": "C",
+     "t_local": 7.9,
+     "track": "track_008"
+    },
+    {
+     "type": "TRACK_APPEARED",
+     "side": "TRACK_APPEARED_LEFT",
+     "subject": "E",
+     "t_local": 10.05,
+     "track": "track_009"
+    },
+    {
+     "type": "TRACK_APPEARED",
+     "side": "TRACK_APPEARED_LEFT",
+     "subject": "F",
+     "t_local": 10.4,
+     "track": "track_010"
+    }
+   ],
+   "B": [
+    {
+     "type": "CRITICAL_TTC_START",
+     "side": "CRITICAL_TTC_START",
+     "subject": "A",
+     "t_local": 0.55,
+     "track": "track_007"
+    },
+    {
+     "type": "TRACK_APPEARED",
+     "side": "TRACK_APPEARED_LEFT",
+     "subject": "E",
+     "t_local": 6.15,
+     "track": "track_008"
+    },
+    {
+     "type": "TRACK_APPEARED",
+     "side": "TRACK_APPEARED_RIGHT",
+     "subject": "H",
+     "t_local": 6.35,
+     "track": "track_009"
+    },
+    {
+     "type": "CRITICAL_TTC_END",
+     "side": "CRITICAL_TTC_END",
+     "subject": "A",
+     "t_local": 7.45,
+     "track": "track_007"
+    }
+   ]
+  }
+ },
+ "first_contact_t_local": {
+  "A": 7.45,
+  "B": 7.45
+ },
+ "comparison": {
+  "RECONSTRUCTION vs COVERAGE": {
+   "TRACK_APPEARED": {
+    "found": 5,
+    "expected": 5,
+    "matched": 3,
+    "deltas": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "side_agree": 3,
+    "missed": [
+     "B/E@11.05",
+     "B/F@11.70"
+    ],
+    "extra": [
+     "B/E@6.15",
+     "B/H@6.35"
+    ]
+   },
+   "EGO_PATH_ENTRY": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_LEFT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_RIGHT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CRITICAL_TTC_START": {
+    "found": 2,
+    "expected": 2,
+    "matched": 2,
+    "deltas": [
+     0.0,
+     0.05
+    ],
+    "side_agree": 2,
+    "missed": [],
+    "extra": []
+   },
+   "CRITICAL_TTC_END": {
+    "found": 2,
+    "expected": 2,
+    "matched": 2,
+    "deltas": [
+     0.0,
+     0.0
+    ],
+    "side_agree": 2,
+    "missed": [],
+    "extra": []
+   }
+  },
+  "RECONSTRUCTION vs COVERAGE_TRACKED": {
+   "TRACK_APPEARED": {
+    "found": 5,
+    "expected": 5,
+    "matched": 3,
+    "deltas": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "side_agree": 3,
+    "missed": [
+     "B/E@11.05",
+     "B/F@11.70"
+    ],
+    "extra": [
+     "B/E@6.15",
+     "B/H@6.35"
+    ]
+   },
+   "EGO_PATH_ENTRY": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_LEFT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_RIGHT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CRITICAL_TTC_START": {
+    "found": 2,
+    "expected": 2,
+    "matched": 2,
+    "deltas": [
+     0.0,
+     0.05
+    ],
+    "side_agree": 2,
+    "missed": [],
+    "extra": []
+   },
+   "CRITICAL_TTC_END": {
+    "found": 2,
+    "expected": 2,
+    "matched": 2,
+    "deltas": [
+     0.0,
+     0.0
+    ],
+    "side_agree": 2,
+    "missed": [],
+    "extra": []
+   }
+  },
+  "RECONSTRUCTION vs PERFECT": {
+   "TRACK_APPEARED": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "EGO_PATH_ENTRY": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_LEFT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_RIGHT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CRITICAL_TTC_START": {
+    "found": 2,
+    "expected": 3,
+    "matched": 2,
+    "deltas": [
+     0.0,
+     0.05
+    ],
+    "side_agree": 2,
+    "missed": [
+     "A/B@6.65"
+    ],
+    "extra": []
+   },
+   "CRITICAL_TTC_END": {
+    "found": 2,
+    "expected": 3,
+    "matched": 2,
+    "deltas": [
+     0.0,
+     0.0
+    ],
+    "side_agree": 2,
+    "missed": [
+     "A/B@7.45"
+    ],
+    "extra": []
+   }
+  },
+  "COVERAGE_TRACKED vs COVERAGE": {
+   "TRACK_APPEARED": {
+    "found": 5,
+    "expected": 5,
+    "matched": 5,
+    "deltas": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "side_agree": 5,
+    "missed": [],
+    "extra": []
+   },
+   "EGO_PATH_ENTRY": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_LEFT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_RIGHT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CRITICAL_TTC_START": {
+    "found": 2,
+    "expected": 2,
+    "matched": 2,
+    "deltas": [
+     0.0,
+     0.0
+    ],
+    "side_agree": 2,
+    "missed": [],
+    "extra": []
+   },
+   "CRITICAL_TTC_END": {
+    "found": 2,
+    "expected": 2,
+    "matched": 2,
+    "deltas": [
+     0.0,
+     0.0
+    ],
+    "side_agree": 2,
+    "missed": [],
+    "extra": []
+   }
+  },
+  "COVERAGE vs PERFECT": {
+   "TRACK_APPEARED": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "EGO_PATH_ENTRY": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_LEFT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_RIGHT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CRITICAL_TTC_START": {
+    "found": 2,
+    "expected": 3,
+    "matched": 2,
+    "deltas": [
+     0.0,
+     0.0
+    ],
+    "side_agree": 2,
+    "missed": [
+     "A/B@6.65"
+    ],
+    "extra": []
+   },
+   "CRITICAL_TTC_END": {
+    "found": 2,
+    "expected": 3,
+    "matched": 2,
+    "deltas": [
+     0.0,
+     0.0
+    ],
+    "side_agree": 2,
+    "missed": [
+     "A/B@7.45"
+    ],
+    "extra": []
+   }
+  }
+ },
+ "comparison_pre_contact": {
+  "RECONSTRUCTION vs COVERAGE": {
+   "TRACK_APPEARED": {
+    "found": 2,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": [
+     "B/E@6.15",
+     "B/H@6.35"
+    ]
+   },
+   "EGO_PATH_ENTRY": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_LEFT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_RIGHT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CRITICAL_TTC_START": {
+    "found": 2,
+    "expected": 2,
+    "matched": 2,
+    "deltas": [
+     0.0,
+     0.05
+    ],
+    "side_agree": 2,
+    "missed": [],
+    "extra": []
+   },
+   "CRITICAL_TTC_END": {
+    "found": 1,
+    "expected": 1,
+    "matched": 1,
+    "deltas": [
+     0.0
+    ],
+    "side_agree": 1,
+    "missed": [],
+    "extra": []
+   }
+  },
+  "RECONSTRUCTION vs COVERAGE_TRACKED": {
+   "TRACK_APPEARED": {
+    "found": 2,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": [
+     "B/E@6.15",
+     "B/H@6.35"
+    ]
+   },
+   "EGO_PATH_ENTRY": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_LEFT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_RIGHT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CRITICAL_TTC_START": {
+    "found": 2,
+    "expected": 2,
+    "matched": 2,
+    "deltas": [
+     0.0,
+     0.05
+    ],
+    "side_agree": 2,
+    "missed": [],
+    "extra": []
+   },
+   "CRITICAL_TTC_END": {
+    "found": 1,
+    "expected": 1,
+    "matched": 1,
+    "deltas": [
+     0.0
+    ],
+    "side_agree": 1,
+    "missed": [],
+    "extra": []
+   }
+  },
+  "RECONSTRUCTION vs PERFECT": {
+   "TRACK_APPEARED": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "EGO_PATH_ENTRY": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_LEFT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_RIGHT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CRITICAL_TTC_START": {
+    "found": 2,
+    "expected": 3,
+    "matched": 2,
+    "deltas": [
+     0.0,
+     0.05
+    ],
+    "side_agree": 2,
+    "missed": [
+     "A/B@6.65"
+    ],
+    "extra": []
+   },
+   "CRITICAL_TTC_END": {
+    "found": 1,
+    "expected": 1,
+    "matched": 1,
+    "deltas": [
+     0.0
+    ],
+    "side_agree": 1,
+    "missed": [],
+    "extra": []
+   }
+  },
+  "COVERAGE_TRACKED vs COVERAGE": {
+   "TRACK_APPEARED": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "EGO_PATH_ENTRY": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_LEFT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_RIGHT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CRITICAL_TTC_START": {
+    "found": 2,
+    "expected": 2,
+    "matched": 2,
+    "deltas": [
+     0.0,
+     0.0
+    ],
+    "side_agree": 2,
+    "missed": [],
+    "extra": []
+   },
+   "CRITICAL_TTC_END": {
+    "found": 1,
+    "expected": 1,
+    "matched": 1,
+    "deltas": [
+     0.0
+    ],
+    "side_agree": 1,
+    "missed": [],
+    "extra": []
+   }
+  },
+  "COVERAGE vs PERFECT": {
+   "TRACK_APPEARED": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "EGO_PATH_ENTRY": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_LEFT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CUT_IN_FROM_RIGHT_START": {
+    "found": 0,
+    "expected": 0,
+    "matched": 0,
+    "deltas": [],
+    "side_agree": 0,
+    "missed": [],
+    "extra": []
+   },
+   "CRITICAL_TTC_START": {
+    "found": 2,
+    "expected": 3,
+    "matched": 2,
+    "deltas": [
+     0.0,
+     0.0
+    ],
+    "side_agree": 2,
+    "missed": [
+     "A/B@6.65"
+    ],
+    "extra": []
+   },
+   "CRITICAL_TTC_END": {
+    "found": 1,
+    "expected": 1,
+    "matched": 1,
+    "deltas": [
+     0.0
+    ],
+    "side_agree": 1,
+    "missed": [],
+    "extra": []
+   }
+  }
+ }
+}

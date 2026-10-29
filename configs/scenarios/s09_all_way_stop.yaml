@@ -1,0 +1,81 @@
+scenario:
+  scenario_id: S09
+  name: all_way_stop
+  description: 'Both A and B face stop signs and arrive almost together.  Each comes to
+    a complete stop at its stop line for about 1.5 s; both then pull away almost at the
+    same moment, A turning left across B''s path, and they collide in the junction.
+
+    '
+  map: Town05
+  context:
+    road_environment: urban all-way-stop junction
+    speed_limit_kmh: 50
+  default_variant: near_simultaneous
+  max_duration_s: 18.0
+  participants:
+  - id: A
+    blueprint: vehicle.tesla.model3
+    spawn:
+      anchor: junction_approach
+      junction_x: -283.42
+      junction_y: 1.23
+      bearing_deg: 180.0
+      back_m: 66.0
+      lane_offset: -1
+    route:
+      length_m: 240.0
+      step_m: 2.0
+      turns:
+      - left
+      turn_lookahead: true
+    initial_speed: 9.0
+    target_speed: 9.0
+    actions: []
+  - id: B
+    blueprint: vehicle.audi.tt
+    spawn:
+      anchor: junction_approach
+      junction_x: -283.42
+      junction_y: 1.23
+      bearing_deg: -90.0
+      back_m: 50.0
+    route:
+      length_m: 240.0
+      step_m: 2.0
+      turns:
+      - straight
+      turn_lookahead: true
+    initial_speed: 9.0
+    target_speed: 9.0
+    actions: []
+  variants:
+    near_simultaneous:
+      participant_overrides:
+        A:
+          actions:
+          - action_id: A_stop
+            kind: brake
+            t_start: 2.42
+            duration: 2.45
+            params:
+              intensity: 0.3
+          - action_id: A_proceed
+            kind: set_speed
+            t_start: 4.87
+            duration: 8.0
+            params:
+              target_speed: 8.0
+        B:
+          actions:
+          - action_id: B_stop
+            kind: brake
+            t_start: 2.53
+            duration: 2.2
+            params:
+              intensity: 0.3
+          - action_id: B_proceed
+            kind: set_speed
+            t_start: 4.73
+            duration: 8.0
+            params:
+              target_speed: 9.5

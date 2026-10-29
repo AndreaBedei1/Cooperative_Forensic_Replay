@@ -1,0 +1,16 @@
+{
+  "map": "Town03_Opt",
+  "participants": [
+    {
+      "participant_id": "A",
+      "record": true
+    },
+    {
+      "participant_id": "B",
+      "record": true
+    }
+  ],
+  "scenario_id": "S07",
+  "seed": 0,
+  "variant": "merge_conflict"
+}

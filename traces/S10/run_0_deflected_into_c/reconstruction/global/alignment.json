@@ -1,0 +1,110 @@
+{
+  "method": "matched_collisions",
+  "definition": "t_global = t_local + offset_to_global; t_global = 0 at the reference collision; a graph is aligned through any chain of matched collisions linking it to the reference one, or else through its own trajectory observed by aligned recorders (observed_alignment)",
+  "reference_event": "collision_001",
+  "graphs": {
+    "A": {
+      "status": "ALIGNED",
+      "anchor_node": "A:e09",
+      "anchor_t_local": 3.8,
+      "offset_to_global": -3.8,
+      "method": "matched_collisions",
+      "chain": [
+        "collision_001"
+      ],
+      "reason": "reported the reference collision collision_001"
+    },
+    "B": {
+      "status": "ALIGNED",
+      "anchor_node": "B:e15",
+      "anchor_t_local": 3.8,
+      "offset_to_global": -3.8,
+      "method": "matched_collisions",
+      "chain": [
+        "collision_001"
+      ],
+      "reason": "reported the reference collision collision_001"
+    },
+    "C": {
+      "status": "ALIGNED",
+      "anchor_node": "C:e09",
+      "anchor_t_local": 4.7,
+      "offset_to_global": -3.8,
+      "method": "matched_collisions",
+      "chain": [
+        "collision_001",
+        "collision_002"
+      ],
+      "reason": "shares collision_002 with A, aligned through collision_001 -> collision_002"
+    }
+  },
+  "relative_clock_offsets_s": {
+    "B - A": 0.0,
+    "C - A": 0.0,
+    "C - B": 0.0
+  },
+  "matched_events": [
+    {
+      "event_id": "collision_001",
+      "graphs": [
+        "A",
+        "B"
+      ],
+      "nodes": {
+        "A": "A:e09",
+        "B": "B:e15"
+      },
+      "t_local": {
+        "A": 3.8,
+        "B": 3.8
+      },
+      "peak_impulse": {
+        "A": 10358.22,
+        "B": 10358.22
+      },
+      "impulse_similarity": 1.0,
+      "impulse_z": 0.0,
+      "confidence": 1.0,
+      "evidence": [
+        "A and B both recorded a collision",
+        "peak impulses 10358.22 vs 10358.22 N*s (similarity 1.000, tolerance 0.10)",
+        "no competing report within tolerance",
+        "the two bodies touch at their reports (0.00 m apart, tolerance 1.0 m)",
+        "independent relative impulse std 0.100; combined z 0.000 (gate 3.0); engineering assumption",
+        "pre-contact radar view of each recorder checked against the candidate partner's own speed: not contradicted"
+      ]
+    },
+    {
+      "event_id": "collision_002",
+      "graphs": [
+        "A",
+        "C"
+      ],
+      "nodes": {
+        "A": "A:e15",
+        "C": "C:e09"
+      },
+      "t_local": {
+        "A": 4.7,
+        "C": 4.7
+      },
+      "peak_impulse": {
+        "A": 2250.28,
+        "C": 2250.28
+      },
+      "impulse_similarity": 1.0,
+      "impulse_z": 0.0,
+      "confidence": 1.0,
+      "evidence": [
+        "A and C both recorded a collision",
+        "peak impulses 2250.28 vs 2250.28 N*s (similarity 1.000, tolerance 0.10)",
+        "no competing report within tolerance",
+        "the two bodies touch at their reports (0.00 m apart, tolerance 1.0 m)",
+        "independent relative impulse std 0.100; combined z 0.000 (gate 3.0); engineering assumption",
+        "pre-contact radar view of each recorder checked against the candidate partner's own speed: not contradicted"
+      ]
+    }
+  ],
+  "rejected_matches": [],
+  "observed_alignment": []
+}

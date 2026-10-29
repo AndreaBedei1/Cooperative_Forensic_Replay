@@ -1,0 +1,97 @@
+% IEEE T-ITS submission draft: two-column, single-spaced journal format.
+% Compile from paper/ with: latexmk -pdf main.tex
+\documentclass[journal]{IEEEtran}
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+
+\title{Forensic Reconstruction of Road Collisions from Independent Onboard Recordings}
+
+\author{Lorenzo Bacchiani, Andrea Bedei, Mario Bravetti, Roberto Girau, and Giovanni Pau%
+\thanks{L. Bacchiani, A. Bedei, M. Bravetti, R. Girau, and G. Pau are with the University of Bologna, Bologna, Italy.}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Reconstructing the interactions preceding a road collision is difficult
+when recordings have independent clocks, partial views and unrelated
+local track identifiers. We present a retrospective method that combines
+onboard radar, vehicle motion, controls and impact reports into a shared
+forensic chronology. The method estimates local motion through Kalman
+filtering and smoothing, then recovers clock offsets from contact
+correspondences or observed motion. Geometric association connects
+observations across recorders to reconstruct vehicles without their own
+logs and allows later evidence to resolve earlier identities. Semantic
+conversion relates manoeuvres and conflicts to recorded responses
+and contacts, preserving source observations and the provenance of
+identity decisions. Evaluation on 19 CARLA scenarios comprises 22 runs
+and 1816 reconstruction jobs with positioning and radar perturbations,
+including asymmetric degradation. In the
+reference condition, all 26 collision participant sets are correct and
+all 45 observable non-recording vehicles are represented. With nominal
+radar errors, the method preserves complete collision identification and
+local conflict precision of 0.954. When extreme radar corruption affects every recorder,
+95.4\% of collision participant sets remain correct, while local conflict
+precision falls to 0.313. The resulting chronology provides an auditable
+evidence base for examining competing accounts of a collision.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Partial observability, collision reconstruction, automotive radar, multi-vehicle fusion, forensic analysis.
+\end{IEEEkeywords}
+
+\input{sections/intro}
+\input{sections/background}
+\input{sections/methodology}
+\input{sections/evaluation}
+\input{sections/related_work}
+\input{sections/limitations}
+\input{sections/conclusion}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{figures/bacchiani.jpeg}}]{Lorenzo Bacchiani}
+    received his Ph.D. in Computer Science and Engineering from the University of Bologna in 2025. He is currently a
+    Research Fellow at the Department of Computer Science and Engineering, University of Bologna. His  interests include behavioral-based
+    methodologies for component interaction, adaptation, and deployment, as well as digital twin technologies in the automotive domain.
+    In particular, his work explores the development and integration of vehicle, driver and road digital twins to improve system reliability and safety.
+\end{IEEEbiography}
+
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{figures/bedei.JPG}}]{Andrea Bedei}
+is a Ph.D. candidate in Automotive Engineering for Intelligent Mobility at the University of Bologna, Cesena Campus. He received
+the M.S. degree in Computer Science and Engineering from the same University in 2025. His research interests include computer vision, machine
+learning, simulation frameworks for autonomous vehicle safety, and the use of virtual environments for marine robotics and underwater drone experimentation.
+\end{IEEEbiography}
+
+
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{figures/bravetti.jpeg}}]{Mario Bravetti} is a
+    Full Professor at the Department of Computer Science and Engineering of the University of Bologna. His research spans
+    formal methods for distributed systems, concurrency and probability theory, and applications to service-oriented and cloud
+    computing. He has contributed to numerous international research projects, served on editorial boards of international
+    computer science journals, and authored more than 100 peer-reviewed publications. He has held key roles in major international
+    conferences, including CONCUR, SEFM, SAC, and QEST, as well as in several international PhD schools and scientific committees.
+\end{IEEEbiography}
+
+
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{figures/girau.jpg}}]{Roberto Girau} (Senior Member, IEEE)
+    has been an associate professor at the University of Bologna, Department of Computer Science and Engineering, since 2021. He received the M.S. degree in
+    Telecommunication Engineering and his Ph.D. degree in electronic engineering and computer science from the University of Cagliari,
+    Italy in 2012 and in 2017, respectively. From 2012 to 2020, he worked as researcher at the Department of Electrical and Electronic
+    Engineering of the University of Cagliari, developing an experimental platform for the social Internet of Things.
+    His main research areas of interest are IoT and vehicular and human digital twins with particular emphasis on safety applications.
+\end{IEEEbiography}
+
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{figures/GPAU-OfficialSmall.jpeg}}]{Giovanni Pau} is a full professor at the University of Bologna, Department of Computer Science and Engineering (DISI). He also serves as Technical Director at the Technology Innovation Institute of Abu Dhabi and Adjunct Faculty at the University of California, Los Angeles. Previously, Dr. Pau held the ATOS/Renault smart mobility chair of excellence as a professor at Sorbonne Université, Paris, France.
+He received his Laurea in Computer Science and his PhD in Computer Engineering from the University of Bologna in 1998 and 2002, respectively, and completed his “Habilitation à diriger des recherches” (HDR) at Sorbonne Université in 2018.
+His research interests focus on vehicular robotics and IoT. His earlier work addressed network systems, particularly vehicular ad-hoc networks (VANETs), pervasive mobile sensor systems, and the application of information-centric networking (ICN) architectures to mobility and vehicular communication. His work on vehicular networks and mobile edge has been widely cited by the community and reported on in the general media, including BBC Radio, Discovery Channel, The Guardian, Wired, Corriere della Sera, and the Italian National Television.
+Over the years, he has published more than 100 peer-reviewed journal and conference articles.
+\end{IEEEbiography}
+
+\end{document}

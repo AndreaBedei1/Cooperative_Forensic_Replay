@@ -1,0 +1,10 @@
+# The project's single environment: conda env create -f environment.yml && conda activate carla
+name: carla
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8.20
+  - pip
+  - pip:
+    - -r requirements.txt
+    - -e .

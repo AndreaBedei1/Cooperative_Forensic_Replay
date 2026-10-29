@@ -1,0 +1,111 @@
+{
+  "run": "S01/run_0_crash",
+  "headline": "collision reconstructed: yes (1/1 vehicle contacts); associations correct: 1/1; anonymous: 0; max |t_global error| 0.0 s",
+  "privileged_assumption": "recorder raw clocks are CARLA simulator time",
+  "collisions": [
+    {
+      "participants": [
+        "A",
+        "B"
+      ],
+      "sim_time": 1826.086835294962,
+      "peak_impulse": 14394.111443951086,
+      "recontacts": [],
+      "reconstructed_as": "g14",
+      "reconstructed_participants": [
+        "A",
+        "B"
+      ],
+      "participants_correct": true,
+      "report_timing_error_s": 0.0
+    }
+  ],
+  "extra_collisions": [],
+  "alignment": [
+    {
+      "graph": "A",
+      "status": "ALIGNED",
+      "method": "matched_collisions",
+      "chain": [
+        "collision_001"
+      ],
+      "estimated_reference_t_local": 6.75,
+      "true_reference_t_local": 6.75,
+      "error_s": 0.0
+    },
+    {
+      "graph": "B",
+      "status": "ALIGNED",
+      "method": "matched_collisions",
+      "chain": [
+        "collision_001"
+      ],
+      "estimated_reference_t_local": 6.75,
+      "true_reference_t_local": 6.75,
+      "error_s": 0.0
+    }
+  ],
+  "relative_clock_offsets": [
+    {
+      "pair": "B - A",
+      "estimated_s": 0.0,
+      "true_s": 0.0,
+      "error_s": 0.0
+    }
+  ],
+  "event_timing": {
+    "nodes": 18,
+    "max_abs_error_s": 0.0,
+    "order_pairs": 136,
+    "order_concordant": 136
+  },
+  "tracks": [
+    {
+      "track": "A:track_001",
+      "decision": "B",
+      "status": "ASSOCIATED",
+      "true_identity": "B",
+      "median_box_distance_m": {
+        "B": 0.0
+      },
+      "verdict": "correct",
+      "samples": 115,
+      "raw_rmse_to_surface_m": 0.332,
+      "smoothed_rmse_to_surface_m": 0.442,
+      "smoothed_rmse_to_centre_m": 1.657,
+      "raw_difference_speed_rmse_mps": 6.851,
+      "speed_rmse_mps": 0.09
+    }
+  ],
+  "contact_clearances": [
+    {
+      "contact": "A + B",
+      "recorder": "A",
+      "partner": "B",
+      "track": "A:track_001",
+      "seen_s_before_contact": -0.05,
+      "clearance_m": 0.26,
+      "true_gap_m": 0.005,
+      "error_m": 0.255,
+      "range_m": 0.354,
+      "ttc_s": null
+    },
+    {
+      "contact": "A + B",
+      "recorder": "B",
+      "partner": "A",
+      "track": null
+    }
+  ],
+  "clock_shift_check": {
+    "shifted_recorder": "B",
+    "shift_s": 0.73,
+    "shifted_local_collision_times": [
+      7.48
+    ],
+    "global_graph_identical": true,
+    "offset_to_global_before": -6.75,
+    "offset_to_global_after": -7.48,
+    "offset_change_s": -0.73
+  }
+}

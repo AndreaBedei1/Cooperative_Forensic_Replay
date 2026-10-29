@@ -1,0 +1,147 @@
+scenario:
+  scenario_id: S18
+  name: collision_ambiguity
+  description: 'Dense three-lane traffic at 11 m/s, on the straight after a 90-degree bend (the whole group
+    starts past the bend: nobody follows a curve during the scenario).  The recorder B drives in the middle lane between two similar
+    cars, C (left lane) and D (right lane), abreast of it with about 1.6 m between the bodies.  The recorder A,
+    behind B in the middle lane and 2 m/s faster, closes in and hits B from behind (the only contact).  Two more
+    cars drive abreast of A, two further ahead.
+
+    '
+  research_question: When several similar cars are within the pose uncertainty of a contact, does the collision
+    association follow the radar history rather than GNSS proximity?
+  map: Town05
+  context:
+    road_environment: urban arterial, three lanes one direction
+    speed_limit_kmh: 50
+  max_duration_s: 12.0
+  default_variant: collision_ambiguity
+  participants:
+  - id: A
+    blueprint: vehicle.audi.tt
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 320.0
+      lane_offset: 0
+    route:
+      length_m: 260.0
+      step_m: 2.0
+    initial_speed: 13.0
+    target_speed: 13.0
+    post_impact_mode: stop
+    actions: []
+  - id: B
+    blueprint: vehicle.tesla.model3
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 340.0
+      lane_offset: 0
+    route:
+      length_m: 260.0
+      step_m: 2.0
+    initial_speed: 11.0
+    target_speed: 11.0
+    post_impact_mode: stop
+    actions: []
+  - id: C
+    blueprint: vehicle.tesla.model3
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 341.0
+      lane_offset: -1
+    route:
+      length_m: 260.0
+      step_m: 2.0
+    initial_speed: 11.0
+    target_speed: 11.0
+    post_impact_mode: drive
+    actions: []
+  - id: D
+    blueprint: vehicle.tesla.model3
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 339.0
+      lane_offset: 1
+    route:
+      length_m: 260.0
+      step_m: 2.0
+    initial_speed: 11.0
+    target_speed: 11.0
+    post_impact_mode: drive
+    actions: []
+  - id: E
+    blueprint: vehicle.toyota.prius
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 322.0
+      lane_offset: -1
+    route:
+      length_m: 260.0
+      step_m: 2.0
+    initial_speed: 11.0
+    target_speed: 11.0
+    post_impact_mode: drive
+    actions: []
+  - id: F
+    blueprint: vehicle.audi.tt
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 321.0
+      lane_offset: 1
+    route:
+      length_m: 260.0
+      step_m: 2.0
+    initial_speed: 11.0
+    target_speed: 11.0
+    post_impact_mode: drive
+    actions: []
+  - id: G
+    blueprint: vehicle.toyota.prius
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 358.0
+      lane_offset: 0
+    route:
+      length_m: 260.0
+      step_m: 2.0
+    initial_speed: 11.0
+    target_speed: 11.0
+    post_impact_mode: drive
+    actions: []
+  - id: H
+    blueprint: vehicle.audi.tt
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 360.0
+      lane_offset: -1
+    route:
+      length_m: 260.0
+      step_m: 2.0
+    initial_speed: 11.0
+    target_speed: 11.0
+    post_impact_mode: drive
+    actions:
+    - action_id: H_keeps_speed
+      kind: hold
+      t_start: 10.0
+      duration: 2.0
+      params:
+        target_speed: 11.0
+  variants:
+    collision_ambiguity: {}
+simulation:
+  min_spawn_gap_m: 3.0

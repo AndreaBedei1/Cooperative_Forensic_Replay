@@ -1,0 +1,17 @@
+{
+  "finished_at": "2026-10-22T18:44:32",
+  "fixed_delta_seconds": 0.05,
+  "late_impact_notifications": 0,
+  "participants": [
+    "A",
+    "B"
+  ],
+  "platform": "Windows-10-10.0.26200-SP0",
+  "python": "3.8.20 (default, Oct  3 2024, 15:19:54) [MSC v.1929 64 bit (AMD64)]",
+  "recorded_duration_s": 11.000000163912773,
+  "scenario_id": "S12",
+  "seed": 0,
+  "simulation_end_timestamp": 2033.2015312425792,
+  "simulation_start_timestamp": 2022.2015310786664,
+  "variant": "crash"
+}

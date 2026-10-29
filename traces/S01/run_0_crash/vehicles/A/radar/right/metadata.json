@@ -1,0 +1,40 @@
+{
+  "callbacks_received": 271,
+  "columns": [
+    "depth_m",
+    "azimuth_rad",
+    "altitude_rad",
+    "radial_velocity_mps"
+  ],
+  "first_frame": 115296,
+  "frame": "azimuth and altitude in this radar's own frame; returns beyond range_m (radial) dropped",
+  "frames_delivered": 240,
+  "frames_without_measurement": 0,
+  "frames_written": 240,
+  "horizontal_fov_deg": 140.0,
+  "last_frame": 115535,
+  "missing_frame_count": 0,
+  "mount": {
+    "anchor": "right",
+    "gap_m": 0.05
+  },
+  "points_per_second": 12000,
+  "queue_drops": 0,
+  "radial_velocity_definition": "carla_range_rate",
+  "radial_velocity_sign": "positive_away_from_sensor",
+  "radial_velocity_status": "measured",
+  "range_m": 90.0,
+  "returns_beyond_range_dropped": 643,
+  "schema_version": 1,
+  "sensor_id": "right",
+  "sensor_tick_s": 0.05,
+  "sensor_transform": {
+    "pitch_deg": 0.0,
+    "x": 0.0292,
+    "y": 1.1317,
+    "yaw_deg": 90.0,
+    "z": 0.6
+  },
+  "source": "radar",
+  "vertical_fov_deg": 20.0
+}

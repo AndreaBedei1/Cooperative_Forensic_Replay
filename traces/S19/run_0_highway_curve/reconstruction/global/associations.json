@@ -1,0 +1,497 @@
+[
+  {
+    "local_graph": "A",
+    "local_track": "track_001",
+    "global_entity": "U1",
+    "status": "ANONYMOUS",
+    "confidence": null,
+    "candidate": "B",
+    "collision_event": "collision_001",
+    "evidence": [
+      "A and B both reported collision_001 (peak impulse 7479.37 vs 7479.37 N*s)",
+      "tracked for 7.50 s before the matched collision",
+      "continuous up to the contact: last observed 0.00 s before it (window 1.00 s)",
+      "not approaching before the contact: clearance 10.3 m -> 14.4 m over the last 1.0 s",
+      "track motion contradicts B's own speed in the observed direction (3 sigma; full-speed RMSE 6.84 m/s for reference)",
+      "clearance at the contact 10.27 m (beyond 3.50 m: confidence factor 0.08)",
+      "anonymous road user U1: A:track_001, B:track_003"
+    ],
+    "blocking": [
+      "not approaching before the contact: clearance 10.3 m -> 14.4 m over the last 1.0 s",
+      "track motion contradicts B's own speed in the observed direction (3 sigma; full-speed RMSE 6.84 m/s for reference)"
+    ],
+    "source_graphs": [
+      "A",
+      "B"
+    ],
+    "identity_confidence": 0.9858,
+    "retrospective": true,
+    "identity_resolved_from": -6.9
+  },
+  {
+    "local_graph": "A",
+    "local_track": "track_002",
+    "global_entity": "U2",
+    "status": "ANONYMOUS",
+    "confidence": null,
+    "candidate": "B",
+    "collision_event": "collision_001",
+    "evidence": [
+      "A and B both reported collision_001 (peak impulse 7479.37 vs 7479.37 N*s)",
+      "tracked for 7.50 s before the matched collision",
+      "continuous up to the contact: last observed 0.00 s before it (window 1.00 s)",
+      "approaching before the contact: clearance 5.9 m -> 5.1 m over the last 1.0 s",
+      "track motion compatible with B's own speed in the observed direction (3 sigma; full-speed RMSE 1.89 m/s for reference)",
+      "clearance at the contact 5.04 m (beyond 3.50 m: confidence factor 0.88)",
+      "ambiguous: 2 persistent tracks of A are compatible with the contact (track_002, track_006)",
+      "anonymous road user U2: A:track_002, B:track_004"
+    ],
+    "blocking": [
+      "ambiguous: 2 persistent tracks of A are compatible with the contact (track_002, track_006)"
+    ],
+    "source_graphs": [
+      "A",
+      "B"
+    ],
+    "identity_confidence": 0.9842,
+    "retrospective": true,
+    "identity_resolved_from": -7.05
+  },
+  {
+    "local_graph": "A",
+    "local_track": "track_003",
+    "global_entity": "U3",
+    "status": "ANONYMOUS",
+    "confidence": null,
+    "candidate": "B",
+    "collision_event": "collision_001",
+    "evidence": [
+      "A and B both reported collision_001 (peak impulse 7479.37 vs 7479.37 N*s)",
+      "tracked for 7.50 s before the matched collision",
+      "lost 1.30 s before the matched collision (window 1.00 s)",
+      "not approaching before the contact: clearance 63.9 m -> 67.9 m over the last 1.0 s",
+      "track motion contradicts B's own speed in the observed direction (3 sigma; full-speed RMSE 5.77 m/s for reference)",
+      "anonymous road user U3: A:track_003, B:track_001"
+    ],
+    "blocking": [
+      "lost 1.30 s before the matched collision (window 1.00 s)",
+      "not approaching before the contact: clearance 63.9 m -> 67.9 m over the last 1.0 s",
+      "track motion contradicts B's own speed in the observed direction (3 sigma; full-speed RMSE 5.77 m/s for reference)"
+    ],
+    "source_graphs": [
+      "A",
+      "B"
+    ],
+    "identity_confidence": 0.9887,
+    "retrospective": true,
+    "identity_resolved_from": -7.0
+  },
+  {
+    "local_graph": "A",
+    "local_track": "track_004",
+    "global_entity": "U4",
+    "status": "ANONYMOUS",
+    "confidence": null,
+    "candidate": "B",
+    "collision_event": "collision_001",
+    "evidence": [
+      "A and B both reported collision_001 (peak impulse 7479.37 vs 7479.37 N*s)",
+      "tracked for 7.50 s before the matched collision",
+      "lost 5.15 s before the matched collision (window 1.00 s)",
+      "not approaching before the contact: clearance 12.3 m -> 15.3 m over the last 1.0 s",
+      "speed not comparable with B's own speed before the collision",
+      "anonymous road user U4: A:track_004"
+    ],
+    "blocking": [
+      "lost 5.15 s before the matched collision (window 1.00 s)",
+      "not approaching before the contact: clearance 12.3 m -> 15.3 m over the last 1.0 s",
+      "speed not comparable with B's own speed before the collision"
+    ],
+    "source_graphs": [
+      "A",
+      "B"
+    ]
+  },
+  {
+    "local_graph": "A",
+    "local_track": "track_005",
+    "global_entity": "U6",
+    "status": "ANONYMOUS",
+    "confidence": null,
+    "candidate": "B",
+    "collision_event": "collision_001",
+    "evidence": [
+      "A and B both reported collision_001 (peak impulse 7479.37 vs 7479.37 N*s)",
+      "tracked for 7.45 s before the matched collision",
+      "lost 6.90 s before the matched collision (window 1.00 s)",
+      "approaching before the contact: clearance 84.2 m -> 83.9 m over the last 1.0 s",
+      "speed not comparable with B's own speed before the collision",
+      "anonymous road user U6: A:track_005"
+    ],
+    "blocking": [
+      "lost 6.90 s before the matched collision (window 1.00 s)",
+      "speed not comparable with B's own speed before the collision"
+    ],
+    "source_graphs": [
+      "A",
+      "B"
+    ]
+  },
+  {
+    "local_graph": "A",
+    "local_track": "track_006",
+    "global_entity": "B",
+    "status": "ASSOCIATED",
+    "confidence": 1.0,
+    "candidate": "B",
+    "collision_event": "collision_001",
+    "evidence": [
+      "A and B both reported collision_001 (peak impulse 7479.37 vs 7479.37 N*s)",
+      "tracked for 7.20 s before the matched collision",
+      "continuous up to the contact: last observed 0.00 s before it (window 1.00 s)",
+      "approaching before the contact: clearance 5.0 m -> 0.2 m over the last 1.0 s",
+      "track motion compatible with B's own speed in the observed direction (3 sigma; full-speed RMSE 0.09 m/s for reference)",
+      "clearance at the contact 0.16 m",
+      "the only compatible track of A touching it at the contact (clearance 0.16 m; track_002 at 5.09 m)"
+    ],
+    "blocking": [],
+    "source_graphs": [
+      "A",
+      "B"
+    ]
+  },
+  {
+    "local_graph": "A",
+    "local_track": "track_007",
+    "global_entity": "U5",
+    "status": "ANONYMOUS",
+    "confidence": null,
+    "candidate": "B",
+    "collision_event": "collision_001",
+    "evidence": [
+      "A and B both reported collision_001 (peak impulse 7479.37 vs 7479.37 N*s)",
+      "tracked for 6.10 s before the matched collision",
+      "lost 5.45 s before the matched collision (window 1.00 s)",
+      "not approaching before the contact: clearance 84.9 m -> 84.9 m over the last 1.0 s",
+      "speed not comparable with B's own speed before the collision",
+      "anonymous road user U5: B:track_002, A:track_007, A:track_008, A:track_009"
+    ],
+    "blocking": [
+      "lost 5.45 s before the matched collision (window 1.00 s)",
+      "not approaching before the contact: clearance 84.9 m -> 84.9 m over the last 1.0 s",
+      "speed not comparable with B's own speed before the collision"
+    ],
+    "source_graphs": [
+      "A",
+      "B"
+    ],
+    "identity_confidence": 0.9819
+  },
+  {
+    "local_graph": "A",
+    "local_track": "track_008",
+    "global_entity": "U5",
+    "status": "ANONYMOUS",
+    "confidence": null,
+    "candidate": "B",
+    "collision_event": "collision_001",
+    "evidence": [
+      "A and B both reported collision_001 (peak impulse 7479.37 vs 7479.37 N*s)",
+      "tracked for 5.00 s before the matched collision",
+      "lost 4.50 s before the matched collision (window 1.00 s)",
+      "not approaching before the contact: clearance 85.2 m -> 85.2 m over the last 1.0 s",
+      "speed not comparable with B's own speed before the collision",
+      "anonymous road user U5: B:track_002, A:track_007, A:track_008, A:track_009"
+    ],
+    "blocking": [
+      "lost 4.50 s before the matched collision (window 1.00 s)",
+      "not approaching before the contact: clearance 85.2 m -> 85.2 m over the last 1.0 s",
+      "speed not comparable with B's own speed before the collision"
+    ],
+    "source_graphs": [
+      "A",
+      "B"
+    ],
+    "identity_confidence": 0.9819,
+    "retrospective": true,
+    "identity_resolved_from": -4.7
+  },
+  {
+    "local_graph": "A",
+    "local_track": "track_009",
+    "global_entity": "U5",
+    "status": "ANONYMOUS",
+    "confidence": null,
+    "candidate": "B",
+    "collision_event": "collision_001",
+    "evidence": [
+      "A and B both reported collision_001 (peak impulse 7479.37 vs 7479.37 N*s)",
+      "tracked for 4.15 s before the matched collision",
+      "lost 3.80 s before the matched collision (window 1.00 s)",
+      "not approaching before the contact: clearance 85.6 m -> 85.7 m over the last 1.0 s",
+      "speed not comparable with B's own speed before the collision",
+      "anonymous road user U5: B:track_002, A:track_007, A:track_008, A:track_009"
+    ],
+    "blocking": [
+      "lost 3.80 s before the matched collision (window 1.00 s)",
+      "not approaching before the contact: clearance 85.6 m -> 85.7 m over the last 1.0 s",
+      "speed not comparable with B's own speed before the collision"
+    ],
+    "source_graphs": [
+      "A",
+      "B"
+    ],
+    "identity_confidence": 0.9819
+  },
+  {
+    "local_graph": "A",
+    "local_track": "track_010",
+    "global_entity": "U7",
+    "status": "ANONYMOUS",
+    "confidence": null,
+    "candidate": "B",
+    "collision_event": "collision_001",
+    "evidence": [
+      "A and B both reported collision_001 (peak impulse 7479.37 vs 7479.37 N*s)",
+      "tracked for 0.00 s before the matched collision (needs 1.00 s)",
+      "first seen 0.25 s after the matched collision",
+      "range trend before the contact not measurable",
+      "speed not comparable with B's own speed before the collision",
+      "anonymous road user U7: A:track_010"
+    ],
+    "blocking": [
+      "tracked for 0.00 s before the matched collision (needs 1.00 s)",
+      "first seen 0.25 s after the matched collision",
+      "range trend before the contact not measurable",
+      "speed not comparable with B's own speed before the collision"
+    ],
+    "source_graphs": [
+      "A",
+      "B"
+    ]
+  },
+  {
+    "local_graph": "A",
+    "local_track": "track_011",
+    "global_entity": "U8",
+    "status": "ANONYMOUS",
+    "confidence": null,
+    "candidate": "B",
+    "collision_event": "collision_001",
+    "evidence": [
+      "A and B both reported collision_001 (peak impulse 7479.37 vs 7479.37 N*s)",
+      "tracked for 0.00 s before the matched collision (needs 1.00 s)",
+      "first seen 1.20 s after the matched collision",
+      "range trend before the contact not measurable",
+      "speed not comparable with B's own speed before the collision",
+      "anonymous road user U8: A:track_011, B:track_007"
+    ],
+    "blocking": [
+      "tracked for 0.00 s before the matched collision (needs 1.00 s)",
+      "first seen 1.20 s after the matched collision",
+      "range trend before the contact not measurable",
+      "speed not comparable with B's own speed before the collision"
+    ],
+    "source_graphs": [
+      "A",
+      "B"
+    ],
+    "identity_confidence": 0.9896,
+    "retrospective": true,
+    "identity_resolved_from": 2.45
+  },
+  {
+    "local_graph": "B",
+    "local_track": "track_001",
+    "global_entity": "U3",
+    "status": "ANONYMOUS",
+    "confidence": null,
+    "candidate": "A",
+    "collision_event": "collision_001",
+    "evidence": [
+      "B and A both reported collision_001 (peak impulse 7479.37 vs 7479.37 N*s)",
+      "tracked for 7.50 s before the matched collision",
+      "continuous up to the contact: last observed 0.00 s before it (window 1.00 s)",
+      "not approaching before the contact: clearance 60.4 m -> 69.1 m over the last 1.0 s",
+      "track motion contradicts A's own speed in the observed direction (3 sigma; full-speed RMSE 4.05 m/s for reference)",
+      "clearance at the contact 60.41 m (beyond 3.50 m: confidence factor 0.00)",
+      "anonymous road user U3: A:track_003, B:track_001"
+    ],
+    "blocking": [
+      "not approaching before the contact: clearance 60.4 m -> 69.1 m over the last 1.0 s",
+      "track motion contradicts A's own speed in the observed direction (3 sigma; full-speed RMSE 4.05 m/s for reference)"
+    ],
+    "source_graphs": [
+      "B",
+      "A"
+    ],
+    "identity_confidence": 0.9887,
+    "retrospective": true,
+    "identity_resolved_from": -7.0
+  },
+  {
+    "local_graph": "B",
+    "local_track": "track_002",
+    "global_entity": "U5",
+    "status": "ANONYMOUS",
+    "confidence": null,
+    "candidate": "A",
+    "collision_event": "collision_001",
+    "evidence": [
+      "B and A both reported collision_001 (peak impulse 7479.37 vs 7479.37 N*s)",
+      "tracked for 7.50 s before the matched collision",
+      "continuous up to the contact: last observed 0.00 s before it (window 1.00 s)",
+      "not approaching before the contact: clearance 75.2 m -> 79.8 m over the last 1.0 s",
+      "track motion compatible with A's own speed in the observed direction (3 sigma; full-speed RMSE 1.02 m/s for reference)",
+      "clearance at the contact 75.19 m (beyond 3.50 m: confidence factor 0.00)",
+      "anonymous road user U5: B:track_002, A:track_007, A:track_008, A:track_009"
+    ],
+    "blocking": [
+      "not approaching before the contact: clearance 75.2 m -> 79.8 m over the last 1.0 s"
+    ],
+    "source_graphs": [
+      "B",
+      "A"
+    ],
+    "identity_confidence": 0.9819,
+    "retrospective": true,
+    "identity_resolved_from": -4.7
+  },
+  {
+    "local_graph": "B",
+    "local_track": "track_003",
+    "global_entity": "U1",
+    "status": "ANONYMOUS",
+    "confidence": null,
+    "candidate": "A",
+    "collision_event": "collision_001",
+    "evidence": [
+      "B and A both reported collision_001 (peak impulse 7479.37 vs 7479.37 N*s)",
+      "tracked for 7.50 s before the matched collision",
+      "continuous up to the contact: last observed 0.00 s before it (window 1.00 s)",
+      "not approaching before the contact: clearance 3.3 m -> 10.6 m over the last 1.0 s",
+      "track motion compatible with A's own speed in the observed direction (3 sigma; full-speed RMSE 3.56 m/s for reference)",
+      "clearance at the contact 3.31 m",
+      "anonymous road user U1: A:track_001, B:track_003"
+    ],
+    "blocking": [
+      "not approaching before the contact: clearance 3.3 m -> 10.6 m over the last 1.0 s"
+    ],
+    "source_graphs": [
+      "B",
+      "A"
+    ],
+    "identity_confidence": 0.9858,
+    "retrospective": true,
+    "identity_resolved_from": -6.9
+  },
+  {
+    "local_graph": "B",
+    "local_track": "track_004",
+    "global_entity": "U2",
+    "status": "ANONYMOUS",
+    "confidence": null,
+    "candidate": "A",
+    "collision_event": "collision_001",
+    "evidence": [
+      "B and A both reported collision_001 (peak impulse 7479.37 vs 7479.37 N*s)",
+      "tracked for 7.50 s before the matched collision",
+      "continuous up to the contact: last observed 0.00 s before it (window 1.00 s)",
+      "not approaching before the contact: clearance 2.8 m -> 4.5 m over the last 1.0 s",
+      "track motion contradicts A's own speed in the observed direction (3 sigma; full-speed RMSE 2.47 m/s for reference)",
+      "clearance at the contact 2.84 m",
+      "anonymous road user U2: A:track_002, B:track_004"
+    ],
+    "blocking": [
+      "not approaching before the contact: clearance 2.8 m -> 4.5 m over the last 1.0 s",
+      "track motion contradicts A's own speed in the observed direction (3 sigma; full-speed RMSE 2.47 m/s for reference)"
+    ],
+    "source_graphs": [
+      "B",
+      "A"
+    ],
+    "identity_confidence": 0.9842,
+    "retrospective": true,
+    "identity_resolved_from": -7.05
+  },
+  {
+    "local_graph": "B",
+    "local_track": "track_005",
+    "global_entity": "A",
+    "status": "ASSOCIATED",
+    "confidence": 0.9,
+    "candidate": "A",
+    "collision_event": "collision_001",
+    "evidence": [
+      "B and A both reported collision_001 (peak impulse 7479.37 vs 7479.37 N*s)",
+      "tracked for 2.05 s before the matched collision",
+      "continuous up to the contact: last observed 0.90 s before it (window 1.00 s)",
+      "approaching before the contact: clearance 7.9 m -> 4.8 m over the last 1.0 s",
+      "track motion compatible with A's own speed in the observed direction (3 sigma; full-speed RMSE 0.07 m/s for reference)",
+      "clearance at the contact 4.85 m (beyond 3.50 m: confidence factor 0.90)",
+      "the only track of B compatible with the contact"
+    ],
+    "blocking": [],
+    "source_graphs": [
+      "B",
+      "A"
+    ]
+  },
+  {
+    "local_graph": "B",
+    "local_track": "track_006",
+    "global_entity": "U9",
+    "status": "ANONYMOUS",
+    "confidence": null,
+    "candidate": "A",
+    "collision_event": "collision_001",
+    "evidence": [
+      "B and A both reported collision_001 (peak impulse 7479.37 vs 7479.37 N*s)",
+      "tracked for 0.00 s before the matched collision (needs 1.00 s)",
+      "first seen 1.25 s after the matched collision",
+      "range trend before the contact not measurable",
+      "speed not comparable with A's own speed before the collision",
+      "anonymous road user U9: B:track_006"
+    ],
+    "blocking": [
+      "tracked for 0.00 s before the matched collision (needs 1.00 s)",
+      "first seen 1.25 s after the matched collision",
+      "range trend before the contact not measurable",
+      "speed not comparable with A's own speed before the collision"
+    ],
+    "source_graphs": [
+      "B",
+      "A"
+    ]
+  },
+  {
+    "local_graph": "B",
+    "local_track": "track_007",
+    "global_entity": "U8",
+    "status": "ANONYMOUS",
+    "confidence": null,
+    "candidate": "A",
+    "collision_event": "collision_001",
+    "evidence": [
+      "B and A both reported collision_001 (peak impulse 7479.37 vs 7479.37 N*s)",
+      "tracked for 0.00 s before the matched collision (needs 1.00 s)",
+      "first seen 2.00 s after the matched collision",
+      "range trend before the contact not measurable",
+      "speed not comparable with A's own speed before the collision",
+      "anonymous road user U8: A:track_011, B:track_007"
+    ],
+    "blocking": [
+      "tracked for 0.00 s before the matched collision (needs 1.00 s)",
+      "first seen 2.00 s after the matched collision",
+      "range trend before the contact not measurable",
+      "speed not comparable with A's own speed before the collision"
+    ],
+    "source_graphs": [
+      "B",
+      "A"
+    ],
+    "identity_confidence": 0.9896,
+    "retrospective": true,
+    "identity_resolved_from": 2.45
+  }
+]

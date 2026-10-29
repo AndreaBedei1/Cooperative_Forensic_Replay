@@ -1,0 +1,152 @@
+scenario:
+  scenario_id: S19
+  name: highway_curve
+  description: 'Four-lane motorway carriageway on a sustained left-hand curve.  Every vehicle follows its lane through the curve; only B changes lane.  The
+    recorder A drives in lane -2 at 20 m/s with a car C abreast of it in lane -1 (C accelerates away after 3 s).
+    The recorder B drives in lane -3, 25 m ahead of A and 2 m/s slower, with a car D abreast of it in lane -4.
+    At 5 s B changes lane to the left into A''s lane, 15 m ahead of A, and then slows to 13 m/s; A does not
+    react and runs into B from behind (the only contact).  Cars E (lane -2, 20 m/s) and G (lane -1, 24 m/s, the
+    speed C reaches) drive far ahead, F in lane -4 behind D; nobody follows A or B in their lanes.
+
+    '
+  research_question: On a sustained curve with side-by-side traffic, does the reconstruction separate curve
+    following from lateral manoeuvres (the recorder's and the target's) and keep close parallel vehicles apart?
+  map: Town04
+  context:
+    road_environment: motorway curve, four lanes one direction
+    speed_limit_kmh: 90
+  max_duration_s: 12.0
+  default_variant: highway_curve
+  participants:
+  - id: A
+    blueprint: vehicle.audi.tt
+    spawn:
+      anchor: location
+      x: -506.52
+      y: 266.00
+      forward_m: 0.0
+      lane_offset: 0
+    route:
+      length_m: 300.0
+      step_m: 2.0
+    initial_speed: 20.0
+    target_speed: 20.0
+    post_impact_mode: stop
+    actions: []
+  - id: B
+    blueprint: vehicle.tesla.model3
+    spawn:
+      anchor: location
+      x: -506.52
+      y: 266.00
+      forward_m: 25.0
+      lane_offset: 1
+    route:
+      length_m: 300.0
+      step_m: 2.0
+    initial_speed: 18.0
+    target_speed: 18.0
+    post_impact_mode: stop
+    actions:
+    - action_id: B_changes_lane_left
+      kind: lane_shift
+      t_start: 5.0
+      duration: 1.6
+      params:
+        lateral_m: -3.5
+    - action_id: B_slows
+      kind: set_speed
+      t_start: 6.6
+      duration: 1.5
+      params:
+        target_speed: 13.0
+  - id: C
+    blueprint: vehicle.tesla.model3
+    record: false
+    spawn:
+      anchor: location
+      x: -506.52
+      y: 266.00
+      forward_m: 1.0
+      lane_offset: -1
+    route:
+      length_m: 320.0
+      step_m: 2.0
+    initial_speed: 20.0
+    target_speed: 20.0
+    post_impact_mode: drive
+    actions:
+    - action_id: C_accelerates_away
+      kind: set_speed
+      t_start: 3.0
+      duration: 3.0
+      params:
+        target_speed: 24.0
+  - id: D
+    blueprint: vehicle.toyota.prius
+    record: false
+    spawn:
+      anchor: location
+      x: -506.52
+      y: 266.00
+      forward_m: 24.0
+      lane_offset: 2
+    route:
+      length_m: 300.0
+      step_m: 2.0
+    initial_speed: 18.0
+    target_speed: 18.0
+    post_impact_mode: drive
+    actions: []
+  - id: E
+    blueprint: vehicle.audi.tt
+    record: false
+    spawn:
+      anchor: location
+      x: -506.52
+      y: 266.00
+      forward_m: 85.0
+      lane_offset: 0
+    route:
+      length_m: 330.0
+      step_m: 2.0
+    initial_speed: 20.0
+    target_speed: 20.0
+    post_impact_mode: drive
+    actions: []
+  - id: F
+    blueprint: vehicle.tesla.model3
+    record: false
+    spawn:
+      anchor: location
+      x: -506.52
+      y: 266.00
+      forward_m: -10.0
+      lane_offset: 2
+    route:
+      length_m: 300.0
+      step_m: 2.0
+    initial_speed: 18.0
+    target_speed: 18.0
+    post_impact_mode: drive
+    actions: []
+  - id: G
+    blueprint: vehicle.toyota.prius
+    record: false
+    spawn:
+      anchor: location
+      x: -506.52
+      y: 266.00
+      forward_m: 45.0
+      lane_offset: -1
+    route:
+      length_m: 330.0
+      step_m: 2.0
+    initial_speed: 24.0
+    target_speed: 24.0
+    post_impact_mode: drive
+    actions: []
+  variants:
+    highway_curve: {}
+simulation:
+  min_spawn_gap_m: 3.0

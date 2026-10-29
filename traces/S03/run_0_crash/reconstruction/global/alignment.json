@@ -1,0 +1,66 @@
+{
+  "method": "matched_collisions",
+  "definition": "t_global = t_local + offset_to_global; t_global = 0 at the reference collision; a graph is aligned through any chain of matched collisions linking it to the reference one, or else through its own trajectory observed by aligned recorders (observed_alignment)",
+  "reference_event": "collision_001",
+  "graphs": {
+    "A": {
+      "status": "ALIGNED",
+      "anchor_node": "A:e07",
+      "anchor_t_local": 4.1,
+      "offset_to_global": -4.1,
+      "method": "matched_collisions",
+      "chain": [
+        "collision_001"
+      ],
+      "reason": "reported the reference collision collision_001"
+    },
+    "B": {
+      "status": "ALIGNED",
+      "anchor_node": "B:e07",
+      "anchor_t_local": 4.1,
+      "offset_to_global": -4.1,
+      "method": "matched_collisions",
+      "chain": [
+        "collision_001"
+      ],
+      "reason": "reported the reference collision collision_001"
+    }
+  },
+  "relative_clock_offsets_s": {
+    "B - A": 0.0
+  },
+  "matched_events": [
+    {
+      "event_id": "collision_001",
+      "graphs": [
+        "A",
+        "B"
+      ],
+      "nodes": {
+        "A": "A:e07",
+        "B": "B:e07"
+      },
+      "t_local": {
+        "A": 4.1,
+        "B": 4.1
+      },
+      "peak_impulse": {
+        "A": 12137.59,
+        "B": 12137.59
+      },
+      "impulse_similarity": 1.0,
+      "impulse_z": 0.0,
+      "confidence": 1.0,
+      "evidence": [
+        "A and B both recorded a collision",
+        "peak impulses 12137.59 vs 12137.59 N*s (similarity 1.000, tolerance 0.10)",
+        "no competing report within tolerance",
+        "the two bodies touch at their reports (0.00 m apart, tolerance 1.0 m)",
+        "independent relative impulse std 0.100; combined z 0.000 (gate 3.0); engineering assumption",
+        "pre-contact radar view of each recorder checked against the candidate partner's own speed: not contradicted"
+      ]
+    }
+  ],
+  "rejected_matches": [],
+  "observed_alignment": []
+}

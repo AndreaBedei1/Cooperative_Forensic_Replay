@@ -1,0 +1,42 @@
+radar:
+  profile_name: "baseline"
+  sensors:
+    - sensor_id: "front"
+      blueprint: "sensor.other.radar"
+      horizontal_fov_deg: 150.0
+      vertical_fov_deg: 20.0
+      range_m: 90.0
+      points_per_second: 12000
+      sensor_tick_s: 0.05
+      mount:
+        anchor: front
+        gap_m: 0.05
+        z: 0.6
+        yaw_deg: 0.0
+        pitch_deg: 0.0
+    - sensor_id: "left"
+      blueprint: "sensor.other.radar"
+      horizontal_fov_deg: 140.0
+      vertical_fov_deg: 20.0
+      range_m: 90.0
+      points_per_second: 12000
+      sensor_tick_s: 0.05
+      mount:
+        anchor: left
+        gap_m: 0.05
+        z: 0.6
+        yaw_deg: -90.0
+        pitch_deg: 0.0
+    - sensor_id: "right"
+      blueprint: "sensor.other.radar"
+      horizontal_fov_deg: 140.0
+      vertical_fov_deg: 20.0
+      range_m: 90.0
+      points_per_second: 12000
+      sensor_tick_s: 0.05
+      mount:
+        anchor: right
+        gap_m: 0.05
+        z: 0.6
+        yaw_deg: 90.0
+        pitch_deg: 0.0

@@ -1,0 +1,184 @@
+scenario:
+  scenario_id: S15
+  name: dense_platoon
+  description: 'Dense three-lane traffic, ten cars at the same speed with headways of about 12 m: a column of four
+    in the middle lane (C, D, then the recorders A and B) and three cars in each side lane, staggered, so that every
+    car has neighbours ahead, behind or beside it and many lines of sight are blocked.  After six seconds A brakes
+    hard; B, behind it, does not react in time and hits A (the only contact).  Everyone else drives on.  A correct
+    reconstruction survives the occlusions and re-appearances without merging two same-lane or adjacent-lane road
+    users, and names the contact partner.
+
+    '
+  research_question: In a dense platoon with adjacent traffic, are fragmented and re-appearing tracks recovered
+    without identity confusion?
+  map: Town05
+  context:
+    road_environment: urban arterial, three lanes one direction
+    speed_limit_kmh: 50
+  max_duration_s: 12.0
+  default_variant: dense_platoon
+  participants:
+  - id: C
+    blueprint: vehicle.tesla.model3
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 62.0
+      lane_offset: 0
+    route:
+      length_m: 240.0
+      step_m: 2.0
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: drive
+    actions: []
+  - id: D
+    blueprint: vehicle.toyota.prius
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 50.0
+      lane_offset: 0
+    route:
+      length_m: 240.0
+      step_m: 2.0
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: drive
+    actions: []
+  - id: A
+    blueprint: vehicle.audi.tt
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 38.0
+      lane_offset: 0
+    route:
+      length_m: 240.0
+      step_m: 2.0
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: coast
+    actions:
+    - action_id: A_brakes
+      kind: brake
+      t_start: 6.0
+      duration: 3.0
+      params:
+        intensity: 0.8
+  - id: B
+    blueprint: vehicle.nissan.patrol
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 26.0
+      lane_offset: 0
+    route:
+      length_m: 240.0
+      step_m: 2.0
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: coast
+    actions: []
+  - id: E
+    blueprint: vehicle.tesla.model3
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 56.0
+      lane_offset: -1
+    route:
+      length_m: 240.0
+      step_m: 2.0
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: drive
+    actions: []
+  - id: F
+    blueprint: vehicle.toyota.prius
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 44.0
+      lane_offset: -1
+    route:
+      length_m: 240.0
+      step_m: 2.0
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: drive
+    actions: []
+  - id: G
+    blueprint: vehicle.audi.tt
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 32.0
+      lane_offset: -1
+    route:
+      length_m: 240.0
+      step_m: 2.0
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: drive
+    actions: []
+  - id: H
+    blueprint: vehicle.tesla.model3
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 58.0
+      lane_offset: 1
+    route:
+      length_m: 240.0
+      step_m: 2.0
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: drive
+    actions: []
+  - id: I
+    blueprint: vehicle.audi.tt
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 46.0
+      lane_offset: 1
+    route:
+      length_m: 240.0
+      step_m: 2.0
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: drive
+    actions: []
+  - id: J
+    blueprint: vehicle.toyota.prius
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 34.0
+      lane_offset: 1
+    route:
+      length_m: 240.0
+      step_m: 2.0
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: drive
+    actions:
+    - action_id: J_keeps_speed
+      kind: hold
+      t_start: 10.0
+      duration: 2.0
+      params:
+        target_speed: 12.0
+  variants:
+    dense_platoon: {}
+simulation:
+  min_spawn_gap_m: 3.0

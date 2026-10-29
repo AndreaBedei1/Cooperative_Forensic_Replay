@@ -1,0 +1,1 @@
+{"action_id":"A_evasive_swerve_left","action_t_start":3.65,"frame":121753,"measured":{"front_clearance_m":2.542},"participant_id":"A","t_scenario":3.3,"timestamp":2025.5015311278403,"trigger":{"clearance_m":3.0,"kind":"corridor_clearance","lateral_margin_m":0.3,"reaction_s":0.35,"target":"C","window_s":[0.0,8.0]}}

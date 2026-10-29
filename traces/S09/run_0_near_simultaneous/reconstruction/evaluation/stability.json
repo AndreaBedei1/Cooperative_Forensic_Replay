@@ -1,0 +1,86 @@
+{
+ "run": "S09/run_0_near_simultaneous",
+ "recorders": {
+  "A": {
+   "tracks": {
+    "tracks": 1,
+    "births": 1,
+    "losses": [],
+    "phantoms": [],
+    "duplicates": [],
+    "tracks_per_true": {
+     "B": 1
+    }
+   },
+   "ego_path": {},
+   "reference_path": {
+    "road": "Town05",
+    "checked": 257,
+    "jumps": 0,
+    "flip_flops": 0,
+    "examples": []
+   },
+   "critical": {
+    "B": 1
+   },
+   "trajectory": {
+    "implausible_steps": 0,
+    "max_implied_accel_mps2": 23.8
+   }
+  },
+  "B": {
+   "tracks": {
+    "tracks": 1,
+    "births": 1,
+    "losses": [],
+    "phantoms": [],
+    "duplicates": [],
+    "tracks_per_true": {
+     "A": 1
+    }
+   },
+   "ego_path": {
+    "A": {
+     "entries": 1,
+     "exits": 1,
+     "oscillations": 0,
+     "tracks": [
+      "track_001"
+     ]
+    }
+   },
+   "reference_path": {
+    "road": "Town05",
+    "checked": 257,
+    "jumps": 0,
+    "flip_flops": 0,
+    "examples": []
+   },
+   "critical": {
+    "A": 1
+   },
+   "trajectory": {
+    "implausible_steps": 0,
+    "max_implied_accel_mps2": 17.6
+   }
+  }
+ },
+ "cut_in": {
+  "found": 0,
+  "true": 0,
+  "tp": 0,
+  "fp": [],
+  "missed": [],
+  "onset_errors_s": []
+ },
+ "closure_violations": 0,
+ "fusion": {
+  "merges": {
+   "correct": 0,
+   "false": 0,
+   "missed": 0
+  },
+  "wrong_links": 0,
+  "missed_links": 0
+ }
+}

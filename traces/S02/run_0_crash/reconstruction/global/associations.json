@@ -1,0 +1,25 @@
+[
+  {
+    "local_graph": "A",
+    "local_track": "track_001",
+    "global_entity": "B",
+    "status": "ASSOCIATED",
+    "confidence": 0.99,
+    "candidate": "B",
+    "collision_event": "collision_001",
+    "evidence": [
+      "A and B both reported collision_001 (peak impulse 2604.14 vs 2604.14 N*s)",
+      "tracked for 5.00 s before the matched collision",
+      "continuous up to the contact: last observed 0.00 s before it (window 1.00 s)",
+      "approaching before the contact: clearance 6.2 m -> 0.1 m over the last 1.0 s",
+      "track motion compatible with B's own speed in the observed direction (3 sigma; full-speed RMSE 0.16 m/s for reference)",
+      "clearance at the contact 0.06 m",
+      "the only track of A compatible with the contact"
+    ],
+    "blocking": [],
+    "source_graphs": [
+      "A",
+      "B"
+    ]
+  }
+]

@@ -1,0 +1,48 @@
+{
+  "map": "Town05",
+  "participants": [
+    {
+      "participant_id": "C",
+      "record": false
+    },
+    {
+      "participant_id": "D",
+      "record": false
+    },
+    {
+      "participant_id": "A",
+      "record": true
+    },
+    {
+      "participant_id": "B",
+      "record": true
+    },
+    {
+      "participant_id": "E",
+      "record": false
+    },
+    {
+      "participant_id": "F",
+      "record": false
+    },
+    {
+      "participant_id": "G",
+      "record": false
+    },
+    {
+      "participant_id": "H",
+      "record": false
+    },
+    {
+      "participant_id": "I",
+      "record": false
+    },
+    {
+      "participant_id": "J",
+      "record": false
+    }
+  ],
+  "scenario_id": "S15",
+  "seed": 0,
+  "variant": "dense_platoon"
+}

@@ -1,0 +1,24 @@
+{
+  "map": "Town05",
+  "participants": [
+    {
+      "participant_id": "A",
+      "record": true
+    },
+    {
+      "participant_id": "B",
+      "record": true
+    },
+    {
+      "participant_id": "C",
+      "record": false
+    },
+    {
+      "participant_id": "D",
+      "record": false
+    }
+  ],
+  "scenario_id": "S13",
+  "seed": 0,
+  "variant": "passing"
+}

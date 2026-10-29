@@ -1,0 +1,103 @@
+simulation:
+  host: "127.0.0.1"
+  port: 3000
+  timeout_s: 60.0
+  synchronous_mode: true
+  fixed_delta_seconds: 0.05
+  substepping: true
+  max_substep_delta_time: 0.01
+  max_substeps: 10
+  traffic_manager_enabled: false
+  traffic_manager_port: 8100
+  map_switch_settle_s: 60.0
+  spawn_z_offset: 0.3
+  sync_settle_ticks: 10
+  warmup_ticks: 20
+  impact_reaction_ticks: 1
+  launch_ticks: 12
+  launch_throttle: 0.5
+  min_spawn_gap_m: 5.0
+  max_duration_s: 45.0
+  real_time_pacing: true
+  gpu: auto
+  quality_level: Epic
+  unattended: true
+sensors:
+  profile: "radar_baseline"
+  camera:
+    enabled: true
+    sensor_id: "front_rgb"
+    blueprint: "sensor.camera.rgb"
+    width: 1280
+    height: 720
+    fov_deg: 110.0
+    sensor_tick_s: 0.10
+    mounts:
+      vehicle.tesla.model3: {x: 0.50, y: 0.0, z: 1.30}
+      vehicle.audi.tt: {x: 0.40, y: 0.0, z: 1.18}
+      vehicle.nissan.patrol: {x: 0.60, y: 0.0, z: 1.62}
+      vehicle.mercedes.sprinter: {x: 1.80, y: 0.0, z: 2.10}
+    mount_x: 0.5
+    mount_y: 0.0
+    mount_z: 1.3
+    mount_pitch_deg: 0.0
+    mount_yaw_deg: 0.0
+    mount_roll_deg: 0.0
+  depth_camera:
+    enabled: false
+    sensor_id: "front_depth"
+    blueprint: "sensor.camera.depth"
+    width: 800
+    height: 600
+    fov_deg: 90.0
+    sensor_tick_s: 0.05
+    mount_x: 1.4
+    mount_y: 0.0
+    mount_z: 1.4
+    mount_pitch_deg: 0.0
+    mount_yaw_deg: 0.0
+    mount_roll_deg: 0.0
+depth_observations:
+  max_range_m: 90.0
+  horizontal_fov_deg: 90.0
+  vertical_fov_deg: 10.0
+  azimuth_bin_deg: 2.0
+  altitude_bin_deg: 2.0
+  suppress_ground: true
+  min_relative_height_m: -0.9
+traffic_signs:
+  min_area_px: 100
+  min_saturation: 90
+  min_value: 50
+  close_kernel_px: 5
+  border_margin_px: 2
+  max_centre_row_fraction: 0.56
+  approx_epsilon: 0.03
+  stop_aspect: [0.70, 1.15]
+  stop_min_compactness: 0.85
+  stop_min_vertices: 6
+  stop_small_px: 24
+  stop_red_fraction: [0.55, 0.88]
+  stop_min_letters: 0.30
+  yield_aspect: [0.80, 1.40]
+  yield_box_fill: [0.38, 0.62]
+  yield_min_solidity: 0.80
+  yield_red_fraction: [0.30, 0.78]
+  yield_min_white: 0.30
+  yield_top_bottom_ratio: 1.6
+  min_confidence: 0.0
+  max_centre_gap_fraction: 0.08
+  max_size_ratio: 1.8
+  max_time_gap_s: 0.6
+  min_detections_per_track: 3
+  max_aspect_spread: 0.35
+  relevance_bearing_deg: 30.0
+depth_radial_velocity:
+  enabled: true
+  max_dt_s: 0.20
+  max_azimuth_difference_deg: 6.0
+  max_altitude_difference_deg: 4.0
+  max_abs_radial_velocity_mps: 60.0
+  range_gate_margin_m: 0.50
+  require_mutual_match: true
+  max_velocity_jump_mps: 20.0

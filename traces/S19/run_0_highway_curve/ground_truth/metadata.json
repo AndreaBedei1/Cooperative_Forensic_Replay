@@ -1,0 +1,36 @@
+{
+  "map": "Town04",
+  "participants": [
+    {
+      "participant_id": "A",
+      "record": true
+    },
+    {
+      "participant_id": "B",
+      "record": true
+    },
+    {
+      "participant_id": "C",
+      "record": false
+    },
+    {
+      "participant_id": "D",
+      "record": false
+    },
+    {
+      "participant_id": "E",
+      "record": false
+    },
+    {
+      "participant_id": "F",
+      "record": false
+    },
+    {
+      "participant_id": "G",
+      "record": false
+    }
+  ],
+  "scenario_id": "S19",
+  "seed": 0,
+  "variant": "highway_curve"
+}

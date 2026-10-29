@@ -1,0 +1,57 @@
+scenario:
+  scenario_id: S14
+  name: dense_abreast
+  description: 'Dense three-lane traffic, one direction, ten cars: the recorders A (right lane) and B
+    (middle lane, slightly behind and slightly faster) drive behind the pack.  Three abreast rows are ahead
+    of them (15, 30 and 45 m) and a car is just ahead of A in the right lane; nobody follows them.  For six
+    seconds nothing happens: every car keeps its lane.  Then A drifts left into B (over 2 s) and they
+    collide (the only contact); everyone else drives on.
+
+    '
+  research_question: In dense abreast traffic around the recorders, does the identity reconstruction keep
+    adjacent road users apart and name the single collision partner?
+  map: Town05
+  context:
+    road_environment: urban arterial, three lanes one direction
+    speed_limit_kmh: 50
+  max_duration_s: 12.0
+  default_variant: surrounded
+  participants:
+  - id: A
+    blueprint: vehicle.audi.tt
+    spawn: {anchor: spawn_index, index: 265, forward_m: 25.0, lane_offset: 1}
+    route: {length_m: 220.0, step_m: 2.0}
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: coast
+    actions:
+    - {action_id: A_drifts_left, kind: lane_shift, t_start: 6.0, duration: 2.0, params: {lateral_m: -3.5}}
+  - id: B
+    blueprint: vehicle.nissan.patrol
+    spawn: {anchor: spawn_index, index: 265, forward_m: 21.0, lane_offset: 0}
+    route: {length_m: 220.0, step_m: 2.0}
+    initial_speed: 12.5
+    target_speed: 12.5
+    post_impact_mode: coast
+    actions: []
+  - {id: C, blueprint: vehicle.tesla.model3, record: false, spawn: {anchor: spawn_index, index: 265, forward_m: 40.0, lane_offset: -1}, route: {length_m: 240.0, step_m: 2.0}, initial_speed: 12.0, target_speed: 12.0, post_impact_mode: drive, actions: []}
+  - {id: D, blueprint: vehicle.toyota.prius, record: false, spawn: {anchor: spawn_index, index: 265, forward_m: 40.0, lane_offset: 0}, route: {length_m: 240.0, step_m: 2.0}, initial_speed: 12.0, target_speed: 12.0, post_impact_mode: drive, actions: []}
+  - {id: E, blueprint: vehicle.tesla.model3, record: false, spawn: {anchor: spawn_index, index: 265, forward_m: 40.5, lane_offset: 1}, route: {length_m: 240.0, step_m: 2.0}, initial_speed: 12.0, target_speed: 12.0, post_impact_mode: drive, actions: []}
+  - {id: F, blueprint: vehicle.audi.tt, record: false, spawn: {anchor: spawn_index, index: 265, forward_m: 55.0, lane_offset: -1}, route: {length_m: 240.0, step_m: 2.0}, initial_speed: 12.0, target_speed: 12.0, post_impact_mode: drive, actions: []}
+  - {id: G, blueprint: vehicle.toyota.prius, record: false, spawn: {anchor: spawn_index, index: 265, forward_m: 55.5, lane_offset: 1}, route: {length_m: 240.0, step_m: 2.0}, initial_speed: 12.0, target_speed: 12.0, post_impact_mode: drive, actions: []}
+  - {id: H, blueprint: vehicle.tesla.model3, record: false, spawn: {anchor: spawn_index, index: 265, forward_m: 70.5, lane_offset: -1}, route: {length_m: 240.0, step_m: 2.0}, initial_speed: 12.0, target_speed: 12.0, post_impact_mode: drive, actions: []}
+  - id: J
+    blueprint: vehicle.audi.tt
+    record: false
+    spawn: {anchor: spawn_index, index: 265, forward_m: 70.0, lane_offset: 0}
+    route: {length_m: 240.0, step_m: 2.0}
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: drive
+    actions:
+    - {action_id: J_keeps_speed, kind: hold, t_start: 10.0, duration: 2.0, params: {target_speed: 12.0}}
+  - {id: P, blueprint: vehicle.toyota.prius, record: false, spawn: {anchor: spawn_index, index: 265, forward_m: 32.5, lane_offset: 1}, route: {length_m: 240.0, step_m: 2.0}, initial_speed: 12.0, target_speed: 12.0, post_impact_mode: drive, actions: []}
+  variants:
+    surrounded: {}
+simulation:
+  min_spawn_gap_m: 3.0

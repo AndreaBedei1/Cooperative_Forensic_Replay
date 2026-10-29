@@ -1,0 +1,78 @@
+simulation:
+  traffic_manager_enabled: false
+scenario:
+  scenario_id: S07
+  name: roundabout
+  description: 'A enters the roundabout from the west entry and circulates on the outer circulating lane,
+    going round to the left; B approaches from the south entry, fails to give way, and collides with A while
+    entering the circulating area.  Both start 72 m (9.0 s at 8 m/s) further back along their routes than the
+    earlier recording, which began with A already circulating: A on the straight west approach, B on the
+    straight south approach beyond the junction it crosses, so the run records a normal approach before the
+    first critical situation and A switching its indicator on before any turning movement.  Turn indicators
+    (recorded light state): A signals left from 1.0 s on the approach, before the entry and the left-turning
+    circulation, and is still circulating with the indicator on when B hits it (never switched off); B signals
+    right from 13.0 s, before its right turn into the roundabout, and switches it off at 19.1 s, once the
+    entry turn is complete (steering back to centre at 18.95 s), 0.2 s before the contact.
+
+    '
+  map: Town03_Opt
+  context:
+    road_environment: urban roundabout
+    speed_limit_kmh: 50
+  default_variant: merge_conflict
+  max_duration_s: 33.0
+  participants:
+  - id: A
+    blueprint: vehicle.tesla.model3
+    spawn:
+      anchor: location
+      x: -63.7
+      y: 1.0
+    route:
+      length_m: 262.0
+      step_m: 2.0
+      turns:
+      - straight
+      - straight
+      - straight
+      - straight
+    initial_speed: 8.0
+    target_speed: 8.0
+    actions:
+    - action_id: A_indicator_left
+      kind: indicator
+      t_start: 1.0
+      duration: 60.0
+      params:
+        side: -1
+  - id: B
+    blueprint: vehicle.audi.tt
+    spawn:
+      anchor: location
+      x: -4.0
+      y: -171.7
+    route:
+      length_m: 262.0
+      step_m: 2.0
+      turns:
+      - straight
+      - straight
+      - straight
+      turn_lookahead: true
+    initial_speed: 8.0
+    target_speed: 8.0
+    actions:
+    - action_id: B_fail_to_give_way
+      kind: set_speed
+      t_start: 18.4
+      duration: 14.0
+      params:
+        target_speed: 9.5
+    - action_id: B_indicator_right
+      kind: indicator
+      t_start: 13.0
+      duration: 6.1
+      params:
+        side: 1
+  variants:
+    merge_conflict: {}

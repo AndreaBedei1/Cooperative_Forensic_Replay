@@ -1,0 +1,33 @@
+\begin{tikzpicture}[x=1cm,y=1cm,>=Latex,
+  every node/.style={font=\scriptsize},
+  stage/.style={draw=black!70, rounded corners=1.5pt, fill=black!5,
+    text width=3.55cm, minimum height=0.66cm, align=left, inner sep=2.5pt},
+  reads/.style={text width=4.15cm, align=left, inner sep=1pt, text=black!80},
+  flow/.style={->, line width=.6pt, draw=black!75}]
+  % Inputs available to the method; the simulator's ground truth is not among them.
+  \node[draw=black!70, rounded corners=1.5pt, fill=blue!6, text width=8.05cm,
+        align=left, inner sep=2.5pt, anchor=north west] (in) at (0.1,0)
+    {\textbf{Recordings} of each recorder, on its own clock and frame:
+     GNSS/INS pose, radar detections, collision reports, controls, lights,
+     footprint. \\ \textbf{Incident context}: road map, speed limit.};
+  \node[stage, anchor=north west] (A) at (0.1,-1.30)
+    {\textbf{A.} Local reconstruction\\ Kalman/RTS tracks, local events};
+  \node[stage, anchor=north west] (B) at (0.1,-2.30)
+    {\textbf{B.} Temporal alignment\\ impacts or observed motion};
+  \node[stage, anchor=north west] (C) at (0.1,-3.30)
+    {\textbf{C.} Identity association\\ recorder links, fused road users};
+  \node[stage, anchor=north west] (D) at (0.1,-4.30)
+    {\textbf{D.} Shared chronology\\ local events and global identities};
+  \node[reads, anchor=west] at (3.95,-1.64)
+    {its radar, pose, pedals, lights, collision reports, road map};
+  \node[reads, anchor=west] at (3.95,-2.64)
+    {collision reports, poses, footprints of all recorders, local tracks};
+  \node[reads, anchor=west] at (3.95,-3.64)
+    {aligned local tracks, poses with declared accuracy};
+  \node[reads, anchor=west] at (3.95,-4.64)
+    {local events, matched collisions, identities};
+  \draw[flow] (in.south -| A.north) -- (A.north);
+  \draw[flow] (A) -- (B);
+  \draw[flow] (B) -- (C);
+  \draw[flow] (C) -- (D);
+\end{tikzpicture}

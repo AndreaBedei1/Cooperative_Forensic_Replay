@@ -1,0 +1,79 @@
+scenario:
+  scenario_id: S10
+  name: intersection_pileup
+  description: 'B fails to stop and strikes A in the junction. The impact deflects
+    A into C, which is approaching the same junction from a third direction.
+
+    '
+  map: Town05
+  context:
+    road_environment: urban junction, three approaches
+    speed_limit_kmh: 50
+  default_variant: deflected_into_c
+  max_duration_s: 14.0
+  participants:
+  - id: A
+    blueprint: vehicle.tesla.model3
+    spawn:
+      anchor: junction_approach
+      junction_x: 152.54
+      junction_y: -0.23
+      bearing_deg: 90.0
+      back_m: 48.0
+    route:
+      length_m: 240.0
+      step_m: 2.0
+      turns:
+      - straight
+      turn_lookahead: true
+    initial_speed: 11.0
+    target_speed: 11.0
+    post_impact_mode: deflect
+    post_impact_lateral_m: -5.2
+    post_impact_deflect_s: 0.7
+    actions: []
+  - id: B
+    blueprint: vehicle.audi.tt
+    spawn:
+      anchor: junction_approach
+      junction_x: 152.54
+      junction_y: -0.23
+      bearing_deg: 0.0
+      back_m: 45.0
+    route:
+      length_m: 110.0
+      step_m: 2.0
+      turns:
+      - left
+      turn_lookahead: true
+    initial_speed: 10.0
+    target_speed: 10.0
+    actions: []
+  - id: C
+    blueprint: vehicle.audi.tt
+    spawn:
+      anchor: junction_approach
+      junction_x: 152.54
+      junction_y: -0.23
+      bearing_deg: -90.0
+      back_m: 30.0
+    route:
+      length_m: 160.0
+      step_m: 2.0
+      turns:
+      - straight
+      turn_lookahead: true
+    initial_speed: 6.0
+    target_speed: 6.0
+    actions: []
+  variants:
+    deflected_into_c:
+      participant_overrides:
+        B:
+          actions:
+          - action_id: B_roll_through
+            kind: set_speed
+            t_start: 3.0
+            duration: 12.0
+            params:
+              target_speed: 7.0

@@ -1,0 +1,138 @@
+{
+  "method": "matched_collisions",
+  "definition": "t_global = t_local + offset_to_global; t_global = 0 at the reference collision; a graph is aligned through any chain of matched collisions linking it to the reference one, or else through its own trajectory observed by aligned recorders (observed_alignment)",
+  "reference_event": "collision_001",
+  "graphs": {
+    "A": {
+      "status": "ALIGNED",
+      "anchor_node": "A:e08",
+      "anchor_t_local": 4.8,
+      "offset_to_global": -4.8,
+      "method": "matched_collisions",
+      "chain": [
+        "collision_001"
+      ],
+      "reason": "reported the reference collision collision_001"
+    },
+    "B": {
+      "status": "ALIGNED",
+      "anchor_node": "B:e08",
+      "anchor_t_local": 4.8,
+      "offset_to_global": -4.8,
+      "method": "matched_collisions",
+      "chain": [
+        "collision_001"
+      ],
+      "reason": "reported the reference collision collision_001"
+    },
+    "C": {
+      "status": "ALIGNED",
+      "anchor_node": "C:e07",
+      "anchor_t_local": 5.3,
+      "offset_to_global": -4.8,
+      "method": "matched_collisions",
+      "chain": [
+        "collision_001",
+        "collision_003"
+      ],
+      "reason": "shares collision_003 with B, aligned through collision_001 -> collision_003"
+    }
+  },
+  "relative_clock_offsets_s": {
+    "B - A": 0.0,
+    "C - A": 0.0,
+    "C - B": 0.0
+  },
+  "matched_events": [
+    {
+      "event_id": "collision_001",
+      "graphs": [
+        "A",
+        "B"
+      ],
+      "nodes": {
+        "A": "A:e08",
+        "B": "B:e08"
+      },
+      "t_local": {
+        "A": 4.8,
+        "B": 4.8
+      },
+      "peak_impulse": {
+        "A": 10281.41,
+        "B": 10281.41
+      },
+      "impulse_similarity": 1.0,
+      "impulse_z": 0.0,
+      "confidence": 1.0,
+      "evidence": [
+        "A and B both recorded a collision",
+        "peak impulses 10281.41 vs 10281.41 N*s (similarity 1.000, tolerance 0.10)",
+        "1 competing report(s) within tolerance; best match kept",
+        "the two bodies touch at their reports (0.00 m apart, tolerance 1.0 m)",
+        "independent relative impulse std 0.100; combined z 0.000 (gate 3.0); engineering assumption",
+        "pre-contact radar view of each recorder checked against the candidate partner's own speed: not contradicted"
+      ]
+    },
+    {
+      "event_id": "collision_002",
+      "graphs": [
+        "A",
+        "B"
+      ],
+      "nodes": {
+        "A": "A:e13",
+        "B": "B:e10"
+      },
+      "t_local": {
+        "A": 5.45,
+        "B": 5.45
+      },
+      "peak_impulse": {
+        "A": 1509.76,
+        "B": 1509.76
+      },
+      "impulse_similarity": 1.0,
+      "confidence": 1.0,
+      "merged_burst_of": "B",
+      "evidence": [
+        "A recorded a collision; B recorded the same impulse as a burst within its contact B:e10, merged there by its own sensor",
+        "peak impulses 1509.76 vs 1509.76 N*s (similarity 1.000, tolerance 0.10)",
+        "consistent with the clock offset between A and B that earlier matches fix (+0.000 s, tolerance 0.10 s)",
+        "pre-contact radar view of each recorder checked against the candidate partner's own speed: not contradicted"
+      ]
+    },
+    {
+      "event_id": "collision_003",
+      "graphs": [
+        "B",
+        "C"
+      ],
+      "nodes": {
+        "B": "B:e10",
+        "C": "C:e07"
+      },
+      "t_local": {
+        "B": 5.3,
+        "C": 5.3
+      },
+      "peak_impulse": {
+        "B": 8788.05,
+        "C": 8788.05
+      },
+      "impulse_similarity": 1.0,
+      "impulse_z": 0.0,
+      "confidence": 1.0,
+      "evidence": [
+        "B and C both recorded a collision",
+        "peak impulses 8788.05 vs 8788.05 N*s (similarity 1.000, tolerance 0.10)",
+        "1 competing report(s) within tolerance; best match kept",
+        "the two bodies touch at their reports (0.00 m apart, tolerance 1.0 m)",
+        "independent relative impulse std 0.100; combined z 0.000 (gate 3.0); engineering assumption",
+        "pre-contact radar view of each recorder checked against the candidate partner's own speed: not contradicted"
+      ]
+    }
+  ],
+  "rejected_matches": [],
+  "observed_alignment": []
+}

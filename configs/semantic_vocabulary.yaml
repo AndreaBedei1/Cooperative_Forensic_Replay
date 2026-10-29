@@ -1,0 +1,170 @@
+version: 1
+events:
+- name: MOVING_START
+  description: The recorder starts moving, or is already moving when its recording begins.
+  actor: recorder
+  subject: none
+- name: MOVING_END
+  description: The recorder stops moving.
+  actor: recorder
+  subject: none
+- name: STOP_START
+  description: The recorder comes to a standstill.
+  actor: recorder
+  subject: none
+- name: STOP_END
+  description: The recorder leaves a standstill.
+  actor: recorder
+  subject: none
+- name: BRAKE_START
+  description: The recorder's driver starts pressing the brake pedal.
+  actor: recorder
+  subject: none
+- name: BRAKE_END
+  description: The recorder's driver releases the brake pedal.
+  actor: recorder
+  subject: none
+- name: THROTTLE_START
+  description: The recorder's driver starts pressing the accelerator pedal.
+  actor: recorder
+  subject: none
+- name: THROTTLE_END
+  description: The recorder's driver releases the accelerator pedal.
+  actor: recorder
+  subject: none
+- name: INDICATOR_LEFT_START
+  description: The recorder's left turn indicator switches on (its own light state, CARLA VehicleLightState LeftBlinker, logged per frame).
+  actor: recorder
+  subject: none
+  note: The signal, not a manoeuvre; never inferred from steering, yaw or a lane change. A recording without the light log has the state UNKNOWN, not off.
+- name: INDICATOR_LEFT_END
+  description: The recorder's left turn indicator switches off.
+  actor: recorder
+  subject: none
+- name: INDICATOR_RIGHT_START
+  description: The recorder's right turn indicator switches on (its own light state, CARLA VehicleLightState RightBlinker, logged per frame).
+  actor: recorder
+  subject: none
+  note: The signal, not a manoeuvre; never inferred from steering, yaw or a lane change. A recording without the light log has the state UNKNOWN, not off.
+- name: INDICATOR_RIGHT_END
+  description: The recorder's right turn indicator switches off.
+  actor: recorder
+  subject: none
+- name: TURN_LEFT_START
+  description: The recorder starts turning to the left.
+  actor: recorder
+  subject: none
+- name: TURN_LEFT_END
+  description: The recorder stops turning to the left.
+  actor: recorder
+  subject: none
+- name: TURN_RIGHT_START
+  description: The recorder starts turning to the right.
+  actor: recorder
+  subject: none
+- name: TURN_RIGHT_END
+  description: The recorder stops turning to the right.
+  actor: recorder
+  subject: none
+- name: SPEED_LIMIT_EXCEEDED_START
+  description: The recorder starts driving faster than the supplied speed limit.
+  actor: recorder
+  subject: none
+- name: SPEED_LIMIT_EXCEEDED_END
+  description: The recorder returns within the supplied speed limit.
+  actor: recorder
+  subject: none
+- name: TRACK_APPEARED_FRONT
+  description: The recorder's radar starts tracking a road user located in front of it.
+  actor: recorder
+  subject: road_user
+- name: TRACK_APPEARED_LEFT
+  description: The recorder's radar starts tracking a road user located on its left.
+  actor: recorder
+  subject: road_user
+- name: TRACK_APPEARED_RIGHT
+  description: The recorder's radar starts tracking a road user located on its right.
+  actor: recorder
+  subject: road_user
+- name: TRACK_LOST
+  description: The recorder's radar stops tracking a road user; what that road user does afterwards is unobserved.
+  actor: recorder
+  subject: road_user
+- name: CLOSING_START
+  description: The recorder observes a road user start getting closer to it.
+  actor: recorder
+  subject: road_user
+- name: CLOSING_END
+  description: The recorder observes a road user stop getting closer to it.
+  actor: recorder
+  subject: road_user
+- name: CRITICAL_TTC_START
+  description: The recorder predicts a contact with a road user that only strong braking could still avoid (critical time to contact).
+  actor: recorder
+  subject: road_user
+- name: CRITICAL_TTC_END
+  description: The recorder no longer predicts such a contact with that road user.
+  actor: recorder
+  subject: road_user
+- name: EGO_PATH_ENTRY
+  description: The recorder observes a road user enter the corridor it is about to drive through.
+  actor: recorder
+  subject: road_user
+- name: EGO_PATH_EXIT
+  description: The recorder observes a road user leave the corridor it is about to drive through.
+  actor: recorder
+  subject: road_user
+- name: CUT_IN_FROM_LEFT_START
+  description: The recorder observes a road user start moving into its lane from the left.
+  actor: recorder
+  subject: road_user
+- name: CUT_IN_FROM_LEFT_END
+  description: The recorder observes a road user's move into its lane from the left come to an end.
+  actor: recorder
+  subject: road_user
+- name: CUT_IN_FROM_RIGHT_START
+  description: The recorder observes a road user start moving into its lane from the right.
+  actor: recorder
+  subject: road_user
+- name: CUT_IN_FROM_RIGHT_END
+  description: The recorder observes a road user's move into its lane from the right come to an end.
+  actor: recorder
+  subject: road_user
+- name: STOP_SIGN_DETECTED_START
+  description: The recorder's camera establishes the detection of a STOP sign.
+  actor: recorder
+  subject: sign
+- name: STOP_SIGN_DETECTED_END
+  description: The recorder's camera stops detecting that STOP sign.
+  actor: recorder
+  subject: sign
+- name: YIELD_SIGN_DETECTED_START
+  description: The recorder's camera establishes the detection of a YIELD sign.
+  actor: recorder
+  subject: sign
+- name: YIELD_SIGN_DETECTED_END
+  description: The recorder's camera stops detecting that YIELD sign.
+  actor: recorder
+  subject: sign
+- name: COLLISION
+  description: A physical contact recorded by the collision sensor of one or more recorders.
+  actor: recorder
+  subject: road_user
+  note: Actor and subject are the two parties of the contact, in either order; the subject is null when the other party is unidentified.
+states:
+  MOVING: [MOVING_START, MOVING_END]
+  STOP: [STOP_START, STOP_END]
+  BRAKE: [BRAKE_START, BRAKE_END]
+  THROTTLE: [THROTTLE_START, THROTTLE_END]
+  TURN_LEFT: [TURN_LEFT_START, TURN_LEFT_END]
+  TURN_RIGHT: [TURN_RIGHT_START, TURN_RIGHT_END]
+  INDICATOR_LEFT: [INDICATOR_LEFT_START, INDICATOR_LEFT_END]
+  INDICATOR_RIGHT: [INDICATOR_RIGHT_START, INDICATOR_RIGHT_END]
+  SPEED_LIMIT_EXCEEDED: [SPEED_LIMIT_EXCEEDED_START, SPEED_LIMIT_EXCEEDED_END]
+  CLOSING: [CLOSING_START, CLOSING_END]
+  CRITICAL_TTC: [CRITICAL_TTC_START, CRITICAL_TTC_END]
+  EGO_PATH: [EGO_PATH_ENTRY, EGO_PATH_EXIT]
+  CUT_IN_FROM_LEFT: [CUT_IN_FROM_LEFT_START, CUT_IN_FROM_LEFT_END]
+  CUT_IN_FROM_RIGHT: [CUT_IN_FROM_RIGHT_START, CUT_IN_FROM_RIGHT_END]
+  STOP_SIGN_DETECTED: [STOP_SIGN_DETECTED_START, STOP_SIGN_DETECTED_END]
+  YIELD_SIGN_DETECTED: [YIELD_SIGN_DETECTED_START, YIELD_SIGN_DETECTED_END]

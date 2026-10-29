@@ -1,0 +1,129 @@
+scenario:
+  scenario_id: S13
+  name: anonymous_pair
+  description: 'Three lanes, one direction.  Two non-recording vehicles, C and D, drive close together ahead of the
+    recorders at about the same speed: side by side in adjacent lanes (abreast), one behind
+    the other in the same lane 8 m apart (platoon), or D slowly overtaking C (passing).  The
+    recorders A (middle lane) and B (left lane, catching up) observe both for several
+    seconds; then A drifts left into B and they collide.  C and D touch nobody and drive on.
+
+    '
+  research_question: Does the fusion of anonymous radar tracks across recorders keep two
+    nearby non-recording road users with similar motion apart?
+  map: Town05
+  context:
+    road_environment: urban road, multiple lanes
+    speed_limit_kmh: 50
+  default_variant: abreast
+  max_duration_s: 12.0
+  participants:
+  - id: A
+    blueprint: vehicle.audi.tt
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 20.0
+      lane_offset: 0
+    route:
+      length_m: 200.0
+      step_m: 2.0
+    initial_speed: 12.0
+    target_speed: 12.0
+    actions:
+    - action_id: A_drifts_left
+      kind: lane_shift
+      t_start: 5.0
+      duration: 1.0
+      params:
+        lateral_m: -3.5
+  - id: B
+    blueprint: vehicle.nissan.patrol
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 12.5
+      lane_offset: -1
+    route:
+      length_m: 200.0
+      step_m: 2.0
+    initial_speed: 13.0
+    target_speed: 13.0
+    actions: []
+  - id: C
+    blueprint: vehicle.tesla.model3
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 40.0
+      lane_offset: 0
+    route:
+      length_m: 220.0
+      step_m: 2.0
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: drive
+    actions:
+    - action_id: C_drives_on
+      kind: set_speed
+      t_start: 8.0
+      duration: 3.0
+      params:
+        target_speed: 14.0
+  - id: D
+    blueprint: vehicle.toyota.prius
+    record: false
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 40.0
+      lane_offset: 1
+    route:
+      length_m: 220.0
+      step_m: 2.0
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: drive
+    actions:
+    - action_id: D_drives_on
+      kind: set_speed
+      t_start: 8.0
+      duration: 3.0
+      params:
+        target_speed: 14.0
+  variants:
+    abreast: {}
+    platoon:
+      description: 'C and D in the middle lane, D 8 m behind C (about 3 m bumper to bumper), both at
+        12 m/s; A follows D.
+
+        '
+      participant_overrides:
+        C:
+          spawn:
+            anchor: spawn_index
+            index: 265
+            forward_m: 46.0
+            lane_offset: 0
+        D:
+          spawn:
+            anchor: spawn_index
+            index: 265
+            forward_m: 38.0
+            lane_offset: 0
+    passing:
+      description: 'D starts 3 m behind C in the right lane at 13 m/s and passes it: they are abreast
+        about 3 s into the run.
+
+        '
+      participant_overrides:
+        D:
+          spawn:
+            anchor: spawn_index
+            index: 265
+            forward_m: 37.0
+            lane_offset: 1
+          initial_speed: 13.0
+          target_speed: 13.0
+simulation:
+  min_spawn_gap_m: 3.0

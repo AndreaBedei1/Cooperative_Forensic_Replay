@@ -1,0 +1,49 @@
+{
+  "run": "S01/run_0_crash",
+  "privileged_assumptions": [
+    "recorder raw clocks are CARLA simulator time",
+    "a vehicle box is centred on its origin in the horizontal plane"
+  ],
+  "identity_max_box_distance_m": 1.5,
+  "track_decisions": [
+    {
+      "track": "A:track_001",
+      "decision": "B",
+      "status": "ASSOCIATED",
+      "by": "collision",
+      "true_identity": "B",
+      "purity": 1.0,
+      "verdict": "correct link"
+    }
+  ],
+  "decision_counts": {
+    "correct link": 1
+  },
+  "entities": [],
+  "merges": {
+    "correct": 0,
+    "false": 0,
+    "missed": 0
+  },
+  "fragmentation": {},
+  "state_errors": {},
+  "road_user_state_errors": {},
+  "state_errors_by_method": {},
+  "calibration": {
+    "states": 0,
+    "observed_within": {
+      "1_sigma": 0.0,
+      "2_sigma": 0.0,
+      "3_sigma": 0.0
+    },
+    "expected_within_gaussian": {
+      "1_sigma": 0.393,
+      "2_sigma": 0.865,
+      "3_sigma": 0.989
+    }
+  },
+  "entity_errors": [],
+  "observed_alignment": [],
+  "states_compared": 0,
+  "impure_states": 0
+}

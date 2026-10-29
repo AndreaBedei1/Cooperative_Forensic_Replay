@@ -1,0 +1,227 @@
+{
+  "run": "S11/run_0_consequential",
+  "headline": "collision reconstructed: yes (2/2 vehicle contacts); associations correct: 4/4; anonymous: 0; max |t_global error| 0.0 s",
+  "privileged_assumption": "recorder raw clocks are CARLA simulator time",
+  "collisions": [
+    {
+      "participants": [
+        "A",
+        "B"
+      ],
+      "sim_time": 2011.4208218492568,
+      "peak_impulse": 4243.514729638987,
+      "recontacts": [],
+      "reconstructed_as": "g24",
+      "reconstructed_participants": [
+        "A",
+        "B"
+      ],
+      "participants_correct": true,
+      "report_timing_error_s": 0.0
+    },
+    {
+      "participants": [
+        "A",
+        "C"
+      ],
+      "sim_time": 2012.470821864903,
+      "peak_impulse": 839.6832322625169,
+      "recontacts": [],
+      "reconstructed_as": "g39",
+      "reconstructed_participants": [
+        "A",
+        "C"
+      ],
+      "participants_correct": true,
+      "report_timing_error_s": 0.0
+    }
+  ],
+  "extra_collisions": [],
+  "alignment": [
+    {
+      "graph": "A",
+      "status": "ALIGNED",
+      "method": "matched_collisions",
+      "chain": [
+        "collision_001"
+      ],
+      "estimated_reference_t_local": 5.55,
+      "true_reference_t_local": 5.55,
+      "error_s": 0.0
+    },
+    {
+      "graph": "B",
+      "status": "ALIGNED",
+      "method": "matched_collisions",
+      "chain": [
+        "collision_001"
+      ],
+      "estimated_reference_t_local": 5.55,
+      "true_reference_t_local": 5.55,
+      "error_s": 0.0
+    },
+    {
+      "graph": "C",
+      "status": "ALIGNED",
+      "method": "matched_collisions",
+      "chain": [
+        "collision_001",
+        "collision_002"
+      ],
+      "estimated_reference_t_local": 5.55,
+      "true_reference_t_local": 5.55,
+      "error_s": 0.0
+    }
+  ],
+  "relative_clock_offsets": [
+    {
+      "pair": "B - A",
+      "estimated_s": 0.0,
+      "true_s": 0.0,
+      "error_s": 0.0
+    },
+    {
+      "pair": "C - A",
+      "estimated_s": 0.0,
+      "true_s": 0.0,
+      "error_s": 0.0
+    },
+    {
+      "pair": "C - B",
+      "estimated_s": 0.0,
+      "true_s": 0.0,
+      "error_s": 0.0
+    }
+  ],
+  "event_timing": {
+    "nodes": 49,
+    "max_abs_error_s": 0.0,
+    "order_pairs": 1071,
+    "order_concordant": 1071
+  },
+  "tracks": [
+    {
+      "track": "A:track_001",
+      "decision": "C",
+      "status": "ASSOCIATED",
+      "true_identity": "C",
+      "median_box_distance_m": {
+        "B": 16.08,
+        "C": 0.0
+      },
+      "verdict": "correct",
+      "samples": 120,
+      "raw_rmse_to_surface_m": 0.134,
+      "smoothed_rmse_to_surface_m": 0.21,
+      "smoothed_rmse_to_centre_m": 2.781,
+      "raw_difference_speed_rmse_mps": 0.983,
+      "speed_rmse_mps": 0.04
+    },
+    {
+      "track": "B:track_001",
+      "decision": "A",
+      "status": "ASSOCIATED",
+      "true_identity": "A",
+      "median_box_distance_m": {
+        "A": 0.0,
+        "C": 4.85
+      },
+      "verdict": "correct",
+      "samples": 120,
+      "raw_rmse_to_surface_m": 0.42,
+      "smoothed_rmse_to_surface_m": 0.412,
+      "smoothed_rmse_to_centre_m": 1.751,
+      "raw_difference_speed_rmse_mps": 2.515,
+      "speed_rmse_mps": 0.145
+    },
+    {
+      "track": "B:track_002",
+      "decision": "C",
+      "status": "ASSOCIATED",
+      "true_identity": "C",
+      "median_box_distance_m": {
+        "A": 1.75,
+        "C": 0.0
+      },
+      "verdict": "correct",
+      "samples": 116,
+      "raw_rmse_to_surface_m": 0.285,
+      "smoothed_rmse_to_surface_m": 0.376,
+      "smoothed_rmse_to_centre_m": 2.61,
+      "raw_difference_speed_rmse_mps": 6.248,
+      "speed_rmse_mps": 0.175
+    },
+    {
+      "track": "C:track_001",
+      "decision": "A",
+      "status": "ASSOCIATED",
+      "true_identity": "A",
+      "median_box_distance_m": {
+        "A": 0.0,
+        "B": 8.26
+      },
+      "verdict": "correct",
+      "samples": 38,
+      "raw_rmse_to_surface_m": 0.162,
+      "smoothed_rmse_to_surface_m": 0.182,
+      "smoothed_rmse_to_centre_m": 1.947,
+      "raw_difference_speed_rmse_mps": 0.292,
+      "speed_rmse_mps": 0.128
+    }
+  ],
+  "contact_clearances": [
+    {
+      "contact": "A + B",
+      "recorder": "A",
+      "partner": "B",
+      "track": null
+    },
+    {
+      "contact": "A + B",
+      "recorder": "B",
+      "partner": "A",
+      "track": "B:track_001",
+      "seen_s_before_contact": -0.05,
+      "clearance_m": 0.042,
+      "true_gap_m": 0.0,
+      "error_m": 0.042,
+      "range_m": 0.36,
+      "ttc_s": null
+    },
+    {
+      "contact": "A + C",
+      "recorder": "A",
+      "partner": "C",
+      "track": "A:track_001",
+      "seen_s_before_contact": 0.0,
+      "clearance_m": 0.0,
+      "true_gap_m": 0.0,
+      "error_m": 0.0,
+      "range_m": 0.338,
+      "ttc_s": null
+    },
+    {
+      "contact": "A + C",
+      "recorder": "C",
+      "partner": "A",
+      "track": "C:track_001",
+      "seen_s_before_contact": 0.2,
+      "clearance_m": 1.064,
+      "true_gap_m": 0.028,
+      "error_m": 1.036,
+      "range_m": 3.148,
+      "ttc_s": null
+    }
+  ],
+  "clock_shift_check": {
+    "shifted_recorder": "C",
+    "shift_s": 0.73,
+    "shifted_local_collision_times": [
+      7.33
+    ],
+    "global_graph_identical": true,
+    "offset_to_global_before": -5.55,
+    "offset_to_global_after": -6.28,
+    "offset_change_s": -0.73
+  }
+}

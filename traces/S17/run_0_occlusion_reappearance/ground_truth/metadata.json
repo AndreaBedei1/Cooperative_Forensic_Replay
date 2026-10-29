@@ -1,0 +1,32 @@
+{
+  "map": "Town05",
+  "participants": [
+    {
+      "participant_id": "A",
+      "record": true
+    },
+    {
+      "participant_id": "B",
+      "record": true
+    },
+    {
+      "participant_id": "V",
+      "record": false
+    },
+    {
+      "participant_id": "C",
+      "record": false
+    },
+    {
+      "participant_id": "D",
+      "record": false
+    },
+    {
+      "participant_id": "E",
+      "record": false
+    }
+  ],
+  "scenario_id": "S17",
+  "seed": 0,
+  "variant": "occlusion_reappearance"
+}

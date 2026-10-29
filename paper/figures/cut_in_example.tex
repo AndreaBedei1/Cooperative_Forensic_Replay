@@ -1,0 +1,33 @@
+\begin{tikzpicture}[x=1cm,y=1cm,>=Latex,
+  every node/.style={font=\scriptsize}]
+  % A compact top-down sketch; the arrows indicate movement, not a fitted path.
+  \fill[black!5] (0,2.05) rectangle (8.25,4.35);
+  \draw[black!55] (0,2.05) -- (8.25,2.05)
+                  (0,4.35) -- (8.25,4.35);
+  \draw[black!40,dashed,line width=.45pt] (0,3.20) -- (8.25,3.20);
+  \node[anchor=west,black!65] at (.12,4.05) {B's lane};
+  \node[anchor=west,black!65] at (.12,2.22) {A's lane};
+
+  \filldraw[fill=blue!22,draw=blue!70!black,rounded corners=1pt]
+    (1.18,2.58) rectangle (2.30,3.02);
+  \node[font=\scriptsize\bfseries] at (1.74,2.80) {A};
+  \filldraw[fill=orange!28,draw=orange!75!black,rounded corners=1pt]
+    (3.02,3.65) rectangle (4.14,4.09);
+  \node[font=\scriptsize\bfseries] at (3.58,3.87) {B};
+
+  \draw[blue!75!black,-{Latex[length=2mm]},line width=1.2pt]
+    (2.35,2.80) -- (6.96,2.80);
+  \draw[orange!85!black,-{Latex[length=2mm]},line width=1.2pt]
+    (4.18,3.87) .. controls (5.22,3.86) and (5.37,2.80) .. (6.87,2.80);
+  \node[orange!80!black,anchor=south] at (5.54,3.52) {cut-in};
+  \draw[red!75!black,line width=.85pt] (7.18,2.55) -- (7.58,3.05)
+                                          (7.18,3.05) -- (7.58,2.55);
+  \node[red!70!black,anchor=west] at (7.60,2.80) {contact};
+
+  \node[draw=orange!75!black,fill=orange!8,rounded corners=2pt,
+        align=center,text width=3.20cm,minimum height=.72cm]
+    at (2.08,1.02) {Did B leave too little room?};
+  \node[draw=blue!70!black,fill=blue!7,rounded corners=2pt,
+        align=center,text width=3.20cm,minimum height=.72cm]
+    at (6.17,1.02) {Did A react too late?};
+\end{tikzpicture}

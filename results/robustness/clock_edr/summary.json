@@ -1,0 +1,725 @@
+{
+ "definition": "``clock``: every recorder's local clock is started a residual offset later, drawn uniformly within\n+-CLOCK_RESIDUAL_S, and the local reconstruction, alignment and fusion are rerun in memory (as the 0.73 s check of\n``cdf.evaluation.reconstruction``).  The recorders of a run start at one instant on one clock, so the true\nrelative offset of two recorders is minus the difference of their residuals; the estimated relative offsets are\ncompared with it, and the order of the global events with that of the unshifted reconstruction.  Shifting the raw\ntimestamps would test nothing: the local clock starts at the first ego sample, so a constant shift cancels.\n\n``edr``: the collision reports of a perturbed copy are rewritten as a crash recorder reports them\n(``CollisionPerturbation``): a delta-V error per burst of callbacks (1-sigma EDR_LEVELS), a mass error per\nrecorder (MASS_REL_STD; reported impulse = mass x delta-V) and a timing error per burst (+-JITTER_S).  The copy is\nreconstructed and evaluated.\n\n``trigger census`` (no reconstruction): whether each recorder of each true contact reaches the 49 CFR Part 563\ntrigger, a delta-V of 8 km/h within 150 ms, from its impulse over a nominal mass and from its recorded velocity\nchange.  A contact below the trigger would not be recorded by a crash recorder at all.\n\nBoth studies run under G0 (exact pose, ideal radar) and G2 + radar severe (``CONDITIONS``).  Results:\n``<results>/jobs.jsonl`` (one line per job, resumable), ``summary.json`` and ``summary.md``.  Copies go to\n``--work`` (never ``traces/``) and are deleted after each job.",
+ "parameters": {
+  "clock_residual_s": 0.05,
+  "edr_delta_v_rel_std": {
+   "dv5": 0.05,
+   "dv10": 0.1
+  },
+  "mass_rel_std": 0.05,
+  "jitter_s": 0.01,
+  "trigger_delta_v_mps": 2.2222,
+  "trigger_window_s": 0.15,
+  "nominal_mass_kg": 1500.0,
+  "conditions": {
+   "G0": {
+    "gnss": null,
+    "radar": null
+   },
+   "G2+severe": {
+    "gnss": "degraded",
+    "radar": "severe"
+   }
+  }
+ },
+ "rows": [
+  {
+   "study": "clock",
+   "condition": "G0",
+   "level": "residual_50ms",
+   "jobs": 66,
+   "failed": 0,
+   "runs": 22,
+   "seeds": 3,
+   "missing_road_map": 0,
+   "pairs": 84,
+   "error_vs_truth_ms": {
+    "median": 0.0285,
+    "p95": 49.983900000000006,
+    "max": 50.097
+   },
+   "within_50ms": 80,
+   "error_vs_unshifted_ms": {
+    "median": 0.025,
+    "p95": 0.07569999999999999,
+    "max": 0.097
+   },
+   "recorders": 150,
+   "unaligned_unshifted": 0,
+   "unaligned_shifted": 0,
+   "max_node_move_s": 0.3,
+   "order": {
+    "jobs_same_nodes": 65,
+    "order_changes": 91,
+    "ordered_pairs": 70072,
+    "jobs_with_order_change": 13,
+    "max_node_move_s": 0.3
+   },
+   "order_recorders": {
+    "jobs_same_nodes": 65,
+    "order_changes": 80,
+    "ordered_pairs": 31821,
+    "jobs_with_order_change": 11,
+    "max_node_move_s": 0.3
+   },
+   "reproduces_committed": 66
+  },
+  {
+   "study": "clock",
+   "condition": "G2+severe",
+   "level": "residual_50ms",
+   "jobs": 66,
+   "failed": 0,
+   "runs": 22,
+   "seeds": 3,
+   "missing_road_map": 0,
+   "pairs": 82,
+   "error_vs_truth_ms": {
+    "median": 0.027,
+    "p95": 0.08395,
+    "max": 50.097
+   },
+   "within_50ms": 80,
+   "error_vs_unshifted_ms": {
+    "median": 0.025,
+    "p95": 0.07590000000000001,
+    "max": 0.097
+   },
+   "recorders": 150,
+   "unaligned_unshifted": 1,
+   "unaligned_shifted": 2,
+   "max_node_move_s": 11.05,
+   "order": {
+    "jobs_same_nodes": 7,
+    "order_changes": 57729,
+    "ordered_pairs": 2359686,
+    "jobs_with_order_change": 64,
+    "max_node_move_s": 11.05
+   },
+   "order_recorders": {
+    "jobs_same_nodes": 52,
+    "order_changes": 134,
+    "ordered_pairs": 33635,
+    "jobs_with_order_change": 18,
+    "max_node_move_s": 0.75
+   }
+  },
+  {
+   "study": "edr",
+   "condition": "G0",
+   "level": "dv10",
+   "jobs": 66,
+   "failed": 0,
+   "runs": 22,
+   "seeds": 3,
+   "missing_road_map": 0,
+   "true": 78,
+   "reportable": 78,
+   "detected": 78,
+   "identified": 78,
+   "invented": 0,
+   "matched_events": 81,
+   "rejected_matches": 0,
+   "identified_rate": 1.0,
+   "impulse_ratio": {
+    "min": 0.69,
+    "p05": 0.7155,
+    "median": 0.877
+   },
+   "unaligned": 0,
+   "max_abs_relative_offset_ms": 64.8
+  },
+  {
+   "study": "edr",
+   "condition": "G0",
+   "level": "dv5",
+   "jobs": 66,
+   "failed": 0,
+   "runs": 22,
+   "seeds": 3,
+   "missing_road_map": 0,
+   "true": 78,
+   "reportable": 78,
+   "detected": 78,
+   "identified": 78,
+   "invented": 0,
+   "matched_events": 81,
+   "rejected_matches": 0,
+   "identified_rate": 1.0,
+   "impulse_ratio": {
+    "min": 0.7843,
+    "p05": 0.8108,
+    "median": 0.9314
+   },
+   "unaligned": 0,
+   "max_abs_relative_offset_ms": 64.8
+  },
+  {
+   "study": "edr",
+   "condition": "G2+severe",
+   "level": "dv10",
+   "jobs": 66,
+   "failed": 0,
+   "runs": 22,
+   "seeds": 3,
+   "missing_road_map": 0,
+   "true": 78,
+   "reportable": 78,
+   "detected": 78,
+   "identified": 78,
+   "invented": 0,
+   "matched_events": 81,
+   "rejected_matches": 0,
+   "identified_rate": 1.0,
+   "impulse_ratio": {
+    "min": 0.69,
+    "p05": 0.7155,
+    "median": 0.877
+   },
+   "unaligned": 1,
+   "max_abs_relative_offset_ms": 58.9
+  },
+  {
+   "study": "edr",
+   "condition": "G2+severe",
+   "level": "dv5",
+   "jobs": 66,
+   "failed": 0,
+   "runs": 22,
+   "seeds": 3,
+   "missing_road_map": 0,
+   "true": 78,
+   "reportable": 78,
+   "detected": 78,
+   "identified": 78,
+   "invented": 0,
+   "matched_events": 81,
+   "rejected_matches": 0,
+   "identified_rate": 1.0,
+   "impulse_ratio": {
+    "min": 0.7843,
+    "p05": 0.8108,
+    "median": 0.9314
+   },
+   "unaligned": 1,
+   "max_abs_relative_offset_ms": 58.9
+  }
+ ],
+ "trigger_census": {
+  "contacts": 26,
+  "threshold_kmh": 8.0,
+  "delta_v_impulse_kmh": {
+   "all_recorders_trigger": 14,
+   "some_recorder_triggers": 14,
+   "none_triggers": 12,
+   "below": [
+    "S02/run_0_crash A-B",
+    "S07/run_0_merge_conflict A-B",
+    "S10/run_0_deflected_into_c A-C",
+    "S11/run_0_consequential A-C",
+    "S12/run_0_crash A-B",
+    "S13/run_0_abreast A-B",
+    "S13/run_0_passing A-B",
+    "S13/run_0_platoon A-B",
+    "S14/run_0_surrounded A-B",
+    "S16/run_0_overtaking A-B",
+    "S17/run_0_occlusion_reappearance A-B",
+    "S18/run_0_collision_ambiguity A-B"
+   ]
+  },
+  "delta_v_recorded_kmh": {
+   "all_recorders_trigger": 9,
+   "some_recorder_triggers": 16,
+   "none_triggers": 10,
+   "below": [
+    "S01/run_0_crash A-B",
+    "S02/run_0_crash A-B",
+    "S04/run_0_a_front_pushed B-C",
+    "S04/run_0_b_rear_first A-B",
+    "S04/run_0_b_rear_first B-C",
+    "S05/run_0_crash A-B",
+    "S07/run_0_merge_conflict A-B",
+    "S11/run_0_consequential A-C",
+    "S12/run_0_crash A-B",
+    "S13/run_0_abreast A-B",
+    "S13/run_0_passing A-B",
+    "S13/run_0_platoon A-B",
+    "S14/run_0_surrounded A-B",
+    "S15/run_0_dense_platoon A-B",
+    "S16/run_0_overtaking A-B",
+    "S17/run_0_occlusion_reappearance A-B",
+    "S18/run_0_collision_ambiguity A-B"
+   ]
+  },
+  "contacts_detail": [
+   {
+    "run": "S01/run_0_crash",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 1826.086835294962,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 34.55,
+      "delta_v_recorded_kmh": 26.06
+     },
+     "B": {
+      "delta_v_impulse_kmh": 34.55,
+      "delta_v_recorded_kmh": 0.02
+     }
+    }
+   },
+   {
+    "run": "S02/run_0_crash",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 1840.7702581882477,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 6.25,
+      "delta_v_recorded_kmh": 9.19
+     },
+     "B": {
+      "delta_v_impulse_kmh": 6.25,
+      "delta_v_recorded_kmh": 7.16
+     }
+    }
+   },
+   {
+    "run": "S03/run_0_crash",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 1859.1364966332912,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 29.13,
+      "delta_v_recorded_kmh": 23.99
+     },
+     "B": {
+      "delta_v_impulse_kmh": 29.13,
+      "delta_v_recorded_kmh": 34.8
+     }
+    }
+   },
+   {
+    "run": "S04/run_0_a_front_pushed",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 1879.3106370046735,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 24.68,
+      "delta_v_recorded_kmh": 21.77
+     },
+     "B": {
+      "delta_v_impulse_kmh": 24.68,
+      "delta_v_recorded_kmh": 24.77
+     }
+    }
+   },
+   {
+    "run": "S04/run_0_a_front_pushed",
+    "participants": [
+     "B",
+     "C"
+    ],
+    "sim_time": 1879.810637012124,
+    "recorders": {
+     "B": {
+      "delta_v_impulse_kmh": 24.71,
+      "delta_v_recorded_kmh": 24.89
+     },
+     "C": {
+      "delta_v_impulse_kmh": 21.09,
+      "delta_v_recorded_kmh": 0.15
+     }
+    }
+   },
+   {
+    "run": "S04/run_0_b_rear_first",
+    "participants": [
+     "B",
+     "C"
+    ],
+    "sim_time": 1897.3789431452751,
+    "recorders": {
+     "B": {
+      "delta_v_impulse_kmh": 52.42,
+      "delta_v_recorded_kmh": 61.83
+     },
+     "C": {
+      "delta_v_impulse_kmh": 52.42,
+      "delta_v_recorded_kmh": 0.4
+     }
+    }
+   },
+   {
+    "run": "S04/run_0_b_rear_first",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 1898.928943168372,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 76.1,
+      "delta_v_recorded_kmh": 58.22
+     },
+     "B": {
+      "delta_v_impulse_kmh": 76.1,
+      "delta_v_recorded_kmh": 0.2
+     }
+    }
+   },
+   {
+    "run": "S05/run_0_crash",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 1917.3297364078462,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 53.24,
+      "delta_v_recorded_kmh": 43.14
+     },
+     "B": {
+      "delta_v_impulse_kmh": 53.24,
+      "delta_v_recorded_kmh": 0.07
+     }
+    }
+   },
+   {
+    "run": "S06/run_0_crash",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 1933.8311952203512,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 29.13,
+      "delta_v_recorded_kmh": 23.99
+     },
+     "B": {
+      "delta_v_impulse_kmh": 29.13,
+      "delta_v_recorded_kmh": 34.8
+     }
+    }
+   },
+   {
+    "run": "S07/run_0_merge_conflict",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 47.503542229533195,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 5.1,
+      "delta_v_recorded_kmh": 3.59
+     },
+     "B": {
+      "delta_v_impulse_kmh": 5.1,
+      "delta_v_recorded_kmh": 6.15
+     }
+    }
+   },
+   {
+    "run": "S08/run_0_rolls_through",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 1955.0870363004506,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 31.06,
+      "delta_v_recorded_kmh": 23.06
+     },
+     "B": {
+      "delta_v_impulse_kmh": 31.06,
+      "delta_v_recorded_kmh": 34.01
+     }
+    }
+   },
+   {
+    "run": "S09/run_0_near_simultaneous",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 1977.2082872018218,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 18.39,
+      "delta_v_recorded_kmh": 14.05
+     },
+     "B": {
+      "delta_v_impulse_kmh": 18.39,
+      "delta_v_recorded_kmh": 25.3
+     }
+    }
+   },
+   {
+    "run": "S10/run_0_deflected_into_c",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 1990.8957802802324,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 24.86,
+      "delta_v_recorded_kmh": 20.4
+     },
+     "B": {
+      "delta_v_impulse_kmh": 24.86,
+      "delta_v_recorded_kmh": 30.36
+     }
+    }
+   },
+   {
+    "run": "S10/run_0_deflected_into_c",
+    "participants": [
+     "A",
+     "C"
+    ],
+    "sim_time": 1991.7957802936435,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 7.42,
+      "delta_v_recorded_kmh": 9.26
+     },
+     "C": {
+      "delta_v_impulse_kmh": 7.42,
+      "delta_v_recorded_kmh": 9.06
+     }
+    }
+   },
+   {
+    "run": "S11/run_0_consequential",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 2011.4208218492568,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 10.18,
+      "delta_v_recorded_kmh": 11.07
+     },
+     "B": {
+      "delta_v_impulse_kmh": 10.18,
+      "delta_v_recorded_kmh": 8.38
+     }
+    }
+   },
+   {
+    "run": "S11/run_0_consequential",
+    "participants": [
+     "A",
+     "C"
+    ],
+    "sim_time": 2012.470821864903,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 2.02,
+      "delta_v_recorded_kmh": 3.78
+     },
+     "C": {
+      "delta_v_impulse_kmh": 2.02,
+      "delta_v_recorded_kmh": 1.38
+     }
+    }
+   },
+   {
+    "run": "S12/run_0_crash",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 2027.2015311531723,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 4.59,
+      "delta_v_recorded_kmh": 4.91
+     },
+     "B": {
+      "delta_v_impulse_kmh": 4.59,
+      "delta_v_recorded_kmh": 3.51
+     }
+    }
+   },
+   {
+    "run": "S13/run_0_abreast",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 2043.459540270269,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 2.78,
+      "delta_v_recorded_kmh": 3.47
+     },
+     "B": {
+      "delta_v_impulse_kmh": 2.78,
+      "delta_v_recorded_kmh": 2.58
+     }
+    }
+   },
+   {
+    "run": "S13/run_0_platoon",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 2058.9870717749,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 2.78,
+      "delta_v_recorded_kmh": 3.47
+     },
+     "B": {
+      "delta_v_impulse_kmh": 2.78,
+      "delta_v_recorded_kmh": 2.58
+     }
+    }
+   },
+   {
+    "run": "S13/run_0_passing",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 2074.639360882342,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 2.78,
+      "delta_v_recorded_kmh": 3.47
+     },
+     "B": {
+      "delta_v_impulse_kmh": 2.78,
+      "delta_v_recorded_kmh": 2.58
+     }
+    }
+   },
+   {
+    "run": "S14/run_0_surrounded",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 2091.7585748136044,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 0.92,
+      "delta_v_recorded_kmh": 3.14
+     },
+     "B": {
+      "delta_v_impulse_kmh": 0.92,
+      "delta_v_recorded_kmh": 1.73
+     }
+    }
+   },
+   {
+    "run": "S15/run_0_dense_platoon",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 2107.467048022896,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 83.61,
+      "delta_v_recorded_kmh": 0.07
+     },
+     "B": {
+      "delta_v_impulse_kmh": 83.61,
+      "delta_v_recorded_kmh": 52.15
+     }
+    }
+   },
+   {
+    "run": "S16/run_0_overtaking",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 2122.923477526754,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 0.92,
+      "delta_v_recorded_kmh": 3.23
+     },
+     "B": {
+      "delta_v_impulse_kmh": 0.92,
+      "delta_v_recorded_kmh": 2.24
+     }
+    }
+   },
+   {
+    "run": "S17/run_0_occlusion_reappearance",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 2139.5441546477377,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 1.24,
+      "delta_v_recorded_kmh": 3.55
+     },
+     "B": {
+      "delta_v_impulse_kmh": 1.24,
+      "delta_v_recorded_kmh": 2.62
+     }
+    }
+   },
+   {
+    "run": "S18/run_0_collision_ambiguity",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 2156.0147395692766,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 3.6,
+      "delta_v_recorded_kmh": 5.16
+     },
+     "B": {
+      "delta_v_impulse_kmh": 3.6,
+      "delta_v_recorded_kmh": 2.9
+     }
+    }
+   },
+   {
+    "run": "S19/run_0_highway_curve",
+    "participants": [
+     "A",
+     "B"
+    ],
+    "sim_time": 31.07733303681016,
+    "recorders": {
+     "A": {
+      "delta_v_impulse_kmh": 17.95,
+      "delta_v_recorded_kmh": 21.48
+     },
+     "B": {
+      "delta_v_impulse_kmh": 17.95,
+      "delta_v_recorded_kmh": 14.11
+     }
+    }
+   }
+  ]
+ }
+}

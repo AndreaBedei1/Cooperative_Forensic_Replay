@@ -1,0 +1,170 @@
+{
+ "run": "S18/run_0_collision_ambiguity",
+ "recorders": {
+  "A": {
+   "tracks": {
+    "tracks": 10,
+    "births": 10,
+    "losses": [
+     {
+      "track": "track_006",
+      "t": 4.6,
+      "true": "H",
+      "kind": "visibility loss",
+      "visible_after": 0.0,
+      "returns_after": 0.0,
+      "reacquired_as": []
+     },
+     {
+      "track": "track_004",
+      "t": 5.65,
+      "true": "F",
+      "kind": "visibility loss",
+      "visible_after": 0.8,
+      "returns_after": 0.0,
+      "reacquired_as": []
+     },
+     {
+      "track": "track_003",
+      "t": 6.35,
+      "true": "E",
+      "kind": "visibility loss",
+      "visible_after": 0.9,
+      "returns_after": 0.0,
+      "reacquired_as": []
+     },
+     {
+      "track": "track_007",
+      "t": 8.35,
+      "true": "H",
+      "kind": "visibility loss",
+      "visible_after": 0.0,
+      "returns_after": 0.0,
+      "reacquired_as": []
+     },
+     {
+      "track": "track_008",
+      "t": 8.35,
+      "true": "G",
+      "kind": "visibility loss",
+      "visible_after": 0.0,
+      "returns_after": 0.0,
+      "reacquired_as": []
+     },
+     {
+      "track": "track_001",
+      "t": 8.95,
+      "true": "C",
+      "kind": "visibility loss",
+      "visible_after": 0.2,
+      "returns_after": 0.0,
+      "reacquired_as": []
+     },
+     {
+      "track": "track_005",
+      "t": 9.1,
+      "true": "D",
+      "kind": "visibility loss",
+      "visible_after": 0.2,
+      "returns_after": 0.0,
+      "reacquired_as": []
+     },
+     {
+      "track": "track_009",
+      "t": 10.6,
+      "true": "E",
+      "kind": "visibility loss",
+      "visible_after": 0.2,
+      "returns_after": 0.0,
+      "reacquired_as": []
+     },
+     {
+      "track": "track_010",
+      "t": 10.75,
+      "true": "F",
+      "kind": "visibility loss",
+      "visible_after": 0.2,
+      "returns_after": 0.0,
+      "reacquired_as": []
+     }
+    ],
+    "phantoms": [],
+    "duplicates": [],
+    "tracks_per_true": {
+     "B": 1,
+     "C": 1,
+     "D": 1,
+     "E": 2,
+     "F": 2,
+     "G": 1,
+     "H": 2
+    }
+   },
+   "ego_path": {},
+   "reference_path": {
+    "road": "Town05",
+    "checked": 239,
+    "jumps": 0,
+    "flip_flops": 0,
+    "examples": []
+   },
+   "critical": {
+    "B": 1
+   },
+   "trajectory": {
+    "implausible_steps": 0,
+    "max_implied_accel_mps2": 29.0
+   }
+  },
+  "B": {
+   "tracks": {
+    "tracks": 6,
+    "births": 6,
+    "losses": [],
+    "phantoms": [],
+    "duplicates": [],
+    "tracks_per_true": {
+     "C": 1,
+     "D": 1,
+     "E": 1,
+     "F": 1,
+     "G": 1,
+     "H": 1
+    }
+   },
+   "ego_path": {},
+   "reference_path": {
+    "road": "Town05",
+    "checked": 239,
+    "jumps": 0,
+    "flip_flops": 0,
+    "examples": []
+   },
+   "critical": {
+    "G": 1
+   },
+   "trajectory": {
+    "implausible_steps": 0,
+    "max_implied_accel_mps2": 5.4
+   }
+  }
+ },
+ "cut_in": {
+  "found": 0,
+  "true": 0,
+  "tp": 0,
+  "fp": [],
+  "missed": [],
+  "onset_errors_s": []
+ },
+ "closure_violations": 0,
+ "fusion": {
+  "merges": {
+   "correct": 7,
+   "false": 0,
+   "missed": 5
+  },
+  "wrong_links": 0,
+  "missed_links": 0
+ }
+}

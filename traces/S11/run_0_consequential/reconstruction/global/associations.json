@@ -1,0 +1,96 @@
+[
+  {
+    "local_graph": "A",
+    "local_track": "track_001",
+    "global_entity": "C",
+    "status": "ASSOCIATED",
+    "confidence": 1.0,
+    "candidate": "C",
+    "collision_event": "collision_002",
+    "evidence": [
+      "A and C both reported collision_002 at 6.60 s (peak impulse 839.68 vs 839.68 N*s)",
+      "tracked for 6.60 s before the matched collision",
+      "continuous up to the contact: last observed 0.00 s before it (window 1.00 s)",
+      "approaching before the contact: clearance 1.2 m -> 0.0 m over the last 1.0 s",
+      "track motion compatible with C's own speed in the observed direction (3 sigma; full-speed RMSE 0.03 m/s for reference)",
+      "clearance at the contact 0.00 m",
+      "the only track of A compatible with the contact",
+      "collision_001 with B at 5.55 s: not compatible (track motion contradicts B's own speed in the observed direction (3 sigma; full-speed RMSE 3.46 m/s for reference))"
+    ],
+    "blocking": [],
+    "source_graphs": [
+      "A",
+      "C"
+    ]
+  },
+  {
+    "local_graph": "B",
+    "local_track": "track_001",
+    "global_entity": "A",
+    "status": "ASSOCIATED",
+    "confidence": 0.98,
+    "candidate": "A",
+    "collision_event": "collision_001",
+    "evidence": [
+      "B and A both reported collision_001 (peak impulse 4243.51 vs 4243.51 N*s)",
+      "tracked for 5.55 s before the matched collision",
+      "continuous up to the contact: last observed 0.00 s before it (window 1.00 s)",
+      "approaching before the contact: clearance 4.3 m -> 0.1 m over the last 1.0 s",
+      "track motion compatible with A's own speed in the observed direction (3 sigma; full-speed RMSE 0.31 m/s for reference)",
+      "clearance at the contact 0.07 m",
+      "the only track of B compatible with the contact"
+    ],
+    "blocking": [],
+    "source_graphs": [
+      "B",
+      "A"
+    ]
+  },
+  {
+    "local_graph": "B",
+    "local_track": "track_002",
+    "global_entity": "C",
+    "status": "ASSOCIATED",
+    "confidence": 1.0,
+    "candidate": "C",
+    "collision_event": null,
+    "evidence": [
+      "B and A both reported collision_001 (peak impulse 4243.51 vs 4243.51 N*s)",
+      "tracked for 5.55 s before the matched collision",
+      "continuous up to the contact: last observed 0.00 s before it (window 1.00 s)",
+      "approaching before the contact: clearance 9.1 m -> 6.1 m over the last 1.0 s",
+      "track motion contradicts A's own speed in the observed direction (3 sigma; full-speed RMSE 2.32 m/s for reference)",
+      "clearance at the contact 6.09 m (beyond 3.50 m: confidence factor 0.69)",
+      "common frame: its returns lie on C's own footprint (median 0.00 m, 0.00 sigma of the relative uncertainty, over 122 samples; 100% within 3 sigma) at C's own velocity"
+    ],
+    "blocking": [],
+    "source_graphs": [
+      "A",
+      "B",
+      "C"
+    ]
+  },
+  {
+    "local_graph": "C",
+    "local_track": "track_001",
+    "global_entity": "A",
+    "status": "ASSOCIATED",
+    "confidence": 1.0,
+    "candidate": "A",
+    "collision_event": "collision_002",
+    "evidence": [
+      "C and A both reported collision_002 (peak impulse 839.68 vs 839.68 N*s)",
+      "tracked for 3.95 s before the matched collision",
+      "continuous up to the contact: last observed 0.15 s before it (window 1.00 s)",
+      "approaching before the contact: clearance 2.2 m -> 1.0 m over the last 1.0 s",
+      "track motion compatible with A's own speed in the observed direction (3 sigma; full-speed RMSE 0.09 m/s for reference)",
+      "clearance at the contact 1.04 m",
+      "the only track of C compatible with the contact"
+    ],
+    "blocking": [],
+    "source_graphs": [
+      "C",
+      "A"
+    ]
+  }
+]

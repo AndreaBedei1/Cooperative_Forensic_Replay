@@ -1,0 +1,101 @@
+digraph "global" {
+  graph [rankdir=LR, labelloc=t, fontname=Helvetica, label="Global graph - S05/run_0_crash (t=0 at the reference collision)"];
+  node [shape=box, style="rounded,filled", fontname=Helvetica, fontsize=10];
+  edge [fontname=Helvetica, fontsize=8];
+  "g01" [label="MOVING_START\nC\nt=-5.95", fillcolor="#e5e7eb"];
+  "g02" [label="THROTTLE_START\nC\nt=-5.95", fillcolor="#fde68a"];
+  "g03" [label="MOVING_START\nA\nt=-5.90", fillcolor="#e5e7eb"];
+  "g04" [label="MOVING_START\nB\nt=-5.90", fillcolor="#e5e7eb"];
+  "g05" [label="THROTTLE_START\nA\nt=-5.90", fillcolor="#fde68a"];
+  "g06" [label="THROTTLE_START\nB\nt=-5.90", fillcolor="#fde68a"];
+  "g07" [label="TRACK_APPEARED_FRONT\nA -> B\nt=-5.90", fillcolor="#bfdbfe"];
+  "g08" [label="TRACK_APPEARED_FRONT\nB -> C\nt=-5.55", fillcolor="#bfdbfe"];
+  "g09" [label="CRITICAL_TTC_START\nA -> B\nt=-5.40", fillcolor="#bfdbfe", peripheries=2];
+  "g10" [label="THROTTLE_END\nC\nt=-3.00", fillcolor="#fde68a"];
+  "g11" [label="BRAKE_START\nC\nt=-3.00", fillcolor="#fde68a"];
+  "g12" [label="CLOSING_START\nB -> C\nt=-2.70", fillcolor="#bfdbfe", peripheries=2];
+  "g13" [label="CRITICAL_TTC_START\nB -> C\nt=-2.50", fillcolor="#bfdbfe", peripheries=2];
+  "g14" [label="THROTTLE_END\nB\nt=-2.25", fillcolor="#fde68a"];
+  "g15" [label="BRAKE_START\nB\nt=-2.25", fillcolor="#fde68a"];
+  "g16" [label="CLOSING_START\nA -> B\nt=-2.05", fillcolor="#bfdbfe", peripheries=2];
+  "g17" [label="MOVING_END\nC\nt=-1.60", fillcolor="#e5e7eb"];
+  "g18" [label="STOP_START\nC\nt=-1.60", fillcolor="#e5e7eb"];
+  "g19" [label="CRITICAL_TTC_END\nB -> C\nt=-1.50", fillcolor="#bfdbfe"];
+  "g20" [label="CLOSING_END\nB -> C\nt=-1.05", fillcolor="#bfdbfe"];
+  "g21" [label="MOVING_END\nB\nt=-1.05", fillcolor="#e5e7eb"];
+  "g22" [label="STOP_START\nB\nt=-1.05", fillcolor="#e5e7eb"];
+  "g23" [label="THROTTLE_END\nA\nt=-0.65", fillcolor="#fde68a"];
+  "g24" [label="BRAKE_START\nA\nt=-0.65", fillcolor="#fde68a"];
+  "g25" [label="COLLISION\nA + B\nt=+0.00", fillcolor="#fca5a5", peripheries=2];
+  "g26" [label="CRITICAL_TTC_END\nA -> B\nt=+0.00", fillcolor="#bfdbfe"];
+  "g27" [label="CLOSING_END\nA -> B\nt=+0.00", fillcolor="#bfdbfe"];
+  "g28" [label="MOVING_END\nA\nt=+0.10", fillcolor="#e5e7eb"];
+  "g29" [label="STOP_START\nA\nt=+0.10", fillcolor="#e5e7eb"];
+  {rank=same; "g01"; "g02";}
+  {rank=same; "g03"; "g04"; "g05"; "g06"; "g07";}
+  {rank=same; "g10"; "g11";}
+  {rank=same; "g14"; "g15";}
+  {rank=same; "g17"; "g18";}
+  {rank=same; "g20"; "g21"; "g22";}
+  {rank=same; "g23"; "g24";}
+  {rank=same; "g25"; "g26"; "g27";}
+  {rank=same; "g28"; "g29";}
+  "g01" -> "g03" [label="PRECEDES"];
+  "g01" -> "g04" [label="PRECEDES"];
+  "g01" -> "g05" [label="PRECEDES"];
+  "g01" -> "g06" [label="PRECEDES"];
+  "g01" -> "g07" [label="PRECEDES"];
+  "g02" -> "g03" [label="PRECEDES"];
+  "g02" -> "g04" [label="PRECEDES"];
+  "g02" -> "g05" [label="PRECEDES"];
+  "g02" -> "g06" [label="PRECEDES"];
+  "g02" -> "g07" [label="PRECEDES"];
+  "g03" -> "g08" [label="PRECEDES"];
+  "g04" -> "g08" [label="PRECEDES"];
+  "g05" -> "g08" [label="PRECEDES"];
+  "g06" -> "g08" [label="PRECEDES"];
+  "g07" -> "g08" [label="PRECEDES"];
+  "g08" -> "g09" [label="PRECEDES"];
+  "g09" -> "g10" [label="PRECEDES"];
+  "g09" -> "g11" [label="PRECEDES"];
+  "g10" -> "g12" [label="PRECEDES"];
+  "g11" -> "g12" [label="PRECEDES"];
+  "g12" -> "g13" [label="PRECEDES"];
+  "g13" -> "g14" [label="PRECEDES"];
+  "g13" -> "g15" [label="PRECEDES"];
+  "g14" -> "g16" [label="PRECEDES"];
+  "g15" -> "g16" [label="PRECEDES"];
+  "g16" -> "g17" [label="PRECEDES"];
+  "g16" -> "g18" [label="PRECEDES"];
+  "g17" -> "g19" [label="PRECEDES"];
+  "g18" -> "g19" [label="PRECEDES"];
+  "g19" -> "g20" [label="PRECEDES"];
+  "g19" -> "g21" [label="PRECEDES"];
+  "g19" -> "g22" [label="PRECEDES"];
+  "g20" -> "g23" [label="PRECEDES"];
+  "g20" -> "g24" [label="PRECEDES"];
+  "g21" -> "g23" [label="PRECEDES"];
+  "g21" -> "g24" [label="PRECEDES"];
+  "g22" -> "g23" [label="PRECEDES"];
+  "g22" -> "g24" [label="PRECEDES"];
+  "g23" -> "g25" [label="PRECEDES"];
+  "g23" -> "g26" [label="PRECEDES"];
+  "g23" -> "g27" [label="PRECEDES"];
+  "g24" -> "g25" [label="PRECEDES"];
+  "g24" -> "g26" [label="PRECEDES"];
+  "g24" -> "g27" [label="PRECEDES"];
+  "g25" -> "g28" [label="PRECEDES"];
+  "g25" -> "g29" [label="PRECEDES"];
+  "g26" -> "g28" [label="PRECEDES"];
+  "g26" -> "g29" [label="PRECEDES"];
+  "g27" -> "g28" [label="PRECEDES"];
+  "g27" -> "g29" [label="PRECEDES"];
+  "g07" -> "g09" [label="SAME_TRACK", style=dashed, color="#2563eb", constraint=false];
+  "g07" -> "g16" [label="SAME_TRACK", style=dashed, color="#2563eb", constraint=false];
+  "g07" -> "g26" [label="SAME_TRACK", style=dashed, color="#2563eb", constraint=false];
+  "g07" -> "g27" [label="SAME_TRACK", style=dashed, color="#2563eb", constraint=false];
+  "g08" -> "g12" [label="SAME_TRACK", style=dashed, color="#2563eb", constraint=false];
+  "g08" -> "g13" [label="SAME_TRACK", style=dashed, color="#2563eb", constraint=false];
+  "g08" -> "g19" [label="SAME_TRACK", style=dashed, color="#2563eb", constraint=false];
+  "g08" -> "g20" [label="SAME_TRACK", style=dashed, color="#2563eb", constraint=false];
+}

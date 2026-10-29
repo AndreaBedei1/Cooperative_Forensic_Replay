@@ -1,0 +1,18 @@
+{
+  "finished_at": "2026-10-22T18:42:14",
+  "fixed_delta_seconds": 0.05,
+  "late_impact_notifications": 0,
+  "participants": [
+    "A",
+    "B",
+    "C"
+  ],
+  "platform": "Windows-10-10.0.26200-SP0",
+  "python": "3.8.20 (default, Oct  3 2024, 15:19:54) [MSC v.1929 64 bit (AMD64)]",
+  "recorded_duration_s": 14.200000211596489,
+  "scenario_id": "S04",
+  "seed": 0,
+  "simulation_end_timestamp": 1906.828943286091,
+  "simulation_start_timestamp": 1892.6289430744946,
+  "variant": "b_rear_first"
+}

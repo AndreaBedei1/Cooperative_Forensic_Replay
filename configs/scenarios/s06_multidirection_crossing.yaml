@@ -1,0 +1,76 @@
+scenario:
+  scenario_id: S06
+  name: multidirection_crossing
+  description: 'A crosses the junction from one direction while B enters from a perpendicular
+    one without yielding, striking A. C approaches from the opposite direction to
+    A, brakes short of the conflict region, and observes the collision from a third
+    viewpoint.
+
+    '
+  map: Town05
+  context:
+    road_environment: urban junction, three approaches
+    speed_limit_kmh: 50
+  default_variant: crash
+  max_duration_s: 30.0
+  participants:
+  - id: A
+    blueprint: vehicle.tesla.model3
+    spawn:
+      anchor: junction_approach
+      junction_x: 101.6
+      junction_y: 0.3
+      bearing_deg: 0.0
+      back_m: 42.0
+    route:
+      length_m: 110.0
+      step_m: 2.0
+      turns:
+      - straight
+    initial_speed: 10.0
+    target_speed: 10.0
+    actions: []
+  - id: B
+    blueprint: vehicle.audi.tt
+    spawn:
+      anchor: junction_approach
+      junction_x: 101.6
+      junction_y: 0.3
+      bearing_deg: -90.0
+      back_m: 50.0
+    route:
+      length_m: 110.0
+      step_m: 2.0
+      turns:
+      - straight
+    initial_speed: 9.0
+    target_speed: 9.0
+    actions:
+    - action_id: B_fail_to_yield
+      kind: set_speed
+      t_start: 1.2
+      duration: 14.0
+      params:
+        target_speed: 12.5
+  - id: C
+    blueprint: vehicle.nissan.patrol
+    spawn:
+      anchor: junction_approach
+      junction_x: 101.6
+      junction_y: 0.3
+      bearing_deg: 180.0
+      back_m: 46.0
+    route:
+      length_m: 100.0
+      step_m: 2.0
+      turns:
+      - straight
+    initial_speed: 9.0
+    target_speed: 9.0
+    actions:
+    - action_id: C_defensive_stop
+      kind: stop
+      t_start: 2.4
+      duration: 1.0
+  variants:
+    crash: {}

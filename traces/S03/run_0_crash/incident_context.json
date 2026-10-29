@@ -1,0 +1,6 @@
+{
+  "map": "Town05",
+  "note": "supplied incident context from the scenario configuration; not perceived, not ground truth",
+  "road_environment": "urban junction, perpendicular crossing",
+  "speed_limit_kmh": 50
+}

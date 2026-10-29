@@ -1,0 +1,78 @@
+scenario:
+  scenario_id: S11
+  name: secondary_collision
+  description: 'Three lanes, one direction.  C, a van, drives in the left lane at 9 m/s.
+    A, in the middle lane, moves over into the left lane behind C and slows to its
+    speed.  B, following A too closely, reacts late and runs into the back of A while
+    A is still angled across the lane line; the shunt carries A (coasting, no pedals)
+    on into the back of C.  Two collisions, A-B then A-C; the second one is physics
+    only.  Without B, A''s merge ends about 2 m behind C without contact.
+
+    '
+  map: Town05
+  context:
+    road_environment: urban road, multiple lanes
+    speed_limit_kmh: 50
+  default_variant: consequential
+  max_duration_s: 12.0
+  participants:
+  - id: A
+    blueprint: vehicle.audi.tt
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 20.0
+      lane_offset: 0
+    route:
+      length_m: 200.0
+      step_m: 2.0
+    initial_speed: 12.0
+    target_speed: 12.0
+    post_impact_mode: coast
+    actions:
+    - action_id: A_lane_change_left
+      kind: lane_shift
+      t_start: 4.0
+      duration: 3.0
+      params:
+        lateral_m: -3.5
+    - action_id: A_match_speed
+      kind: set_speed
+      t_start: 4.0
+      duration: 8.0
+      params:
+        target_speed: 9.0
+  - id: B
+    blueprint: vehicle.nissan.patrol
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 8.0
+      lane_offset: 0
+    route:
+      length_m: 200.0
+      step_m: 2.0
+    initial_speed: 12.5
+    target_speed: 12.5
+    actions:
+    - action_id: B_late_brake
+      kind: brake
+      t_start: 5.45
+      duration: 3.0
+      params:
+        intensity: 0.15
+  - id: C
+    blueprint: vehicle.mercedes.sprinter
+    spawn:
+      anchor: spawn_index
+      index: 265
+      forward_m: 39.0
+      lane_offset: -1
+    route:
+      length_m: 200.0
+      step_m: 2.0
+    initial_speed: 9.0
+    target_speed: 9.0
+    actions: []
+  variants:
+    consequential: {}

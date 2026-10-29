@@ -1,0 +1,1 @@
+{"best_bbox":[746,314,33,33],"best_confidence":0.9895,"centredness":0.8086,"class":"STOP","frame_confirmed":120053,"frame_first":120045,"frame_last":120092,"growing":true,"min_bearing_deg":9.9,"n_detections":23,"relevant_to_ego_path":true,"sensor_id":"front_rgb","sign_track_id":"sign-0","timestamp_confirmed":1970.8583,"timestamp_first":1970.4583,"timestamp_last":1972.8083}

@@ -1,0 +1,64 @@
+digraph "global" {
+  graph [rankdir=LR, labelloc=t, fontname=Helvetica, label="Global graph - S01/run_0_crash (t=0 at the reference collision)"];
+  node [shape=box, style="rounded,filled", fontname=Helvetica, fontsize=10];
+  edge [fontname=Helvetica, fontsize=8];
+  "g01" [label="MOVING_START\nA\nt=-6.75", fillcolor="#e5e7eb"];
+  "g02" [label="MOVING_START\nB\nt=-6.75", fillcolor="#e5e7eb"];
+  "g03" [label="THROTTLE_START\nA\nt=-6.75", fillcolor="#fde68a"];
+  "g04" [label="THROTTLE_START\nB\nt=-6.75", fillcolor="#fde68a"];
+  "g05" [label="TRACK_APPEARED_FRONT\nA -> B\nt=-6.75", fillcolor="#bfdbfe"];
+  "g06" [label="THROTTLE_END\nB\nt=-2.80", fillcolor="#fde68a"];
+  "g07" [label="BRAKE_START\nB\nt=-2.80", fillcolor="#fde68a"];
+  "g08" [label="CLOSING_START\nA -> B\nt=-2.55", fillcolor="#bfdbfe", peripheries=2];
+  "g09" [label="CRITICAL_TTC_START\nA -> B\nt=-2.35", fillcolor="#bfdbfe", peripheries=2];
+  "g10" [label="MOVING_END\nB\nt=-1.60", fillcolor="#e5e7eb"];
+  "g11" [label="STOP_START\nB\nt=-1.60", fillcolor="#e5e7eb"];
+  "g12" [label="THROTTLE_END\nA\nt=-1.20", fillcolor="#fde68a"];
+  "g13" [label="BRAKE_START\nA\nt=-1.20", fillcolor="#fde68a"];
+  "g14" [label="COLLISION\nA + B\nt=+0.00", fillcolor="#fca5a5", peripheries=2];
+  "g15" [label="CRITICAL_TTC_END\nA -> B\nt=+0.00", fillcolor="#bfdbfe"];
+  "g16" [label="CLOSING_END\nA -> B\nt=+0.00", fillcolor="#bfdbfe"];
+  "g17" [label="MOVING_END\nA\nt=+0.05", fillcolor="#e5e7eb"];
+  "g18" [label="STOP_START\nA\nt=+0.05", fillcolor="#e5e7eb"];
+  {rank=same; "g01"; "g02"; "g03"; "g04"; "g05";}
+  {rank=same; "g06"; "g07";}
+  {rank=same; "g10"; "g11";}
+  {rank=same; "g12"; "g13";}
+  {rank=same; "g14"; "g15"; "g16";}
+  {rank=same; "g17"; "g18";}
+  "g01" -> "g06" [label="PRECEDES"];
+  "g01" -> "g07" [label="PRECEDES"];
+  "g02" -> "g06" [label="PRECEDES"];
+  "g02" -> "g07" [label="PRECEDES"];
+  "g03" -> "g06" [label="PRECEDES"];
+  "g03" -> "g07" [label="PRECEDES"];
+  "g04" -> "g06" [label="PRECEDES"];
+  "g04" -> "g07" [label="PRECEDES"];
+  "g05" -> "g06" [label="PRECEDES"];
+  "g05" -> "g07" [label="PRECEDES"];
+  "g06" -> "g08" [label="PRECEDES"];
+  "g07" -> "g08" [label="PRECEDES"];
+  "g08" -> "g09" [label="PRECEDES"];
+  "g09" -> "g10" [label="PRECEDES"];
+  "g09" -> "g11" [label="PRECEDES"];
+  "g10" -> "g12" [label="PRECEDES"];
+  "g10" -> "g13" [label="PRECEDES"];
+  "g11" -> "g12" [label="PRECEDES"];
+  "g11" -> "g13" [label="PRECEDES"];
+  "g12" -> "g14" [label="PRECEDES"];
+  "g12" -> "g15" [label="PRECEDES"];
+  "g12" -> "g16" [label="PRECEDES"];
+  "g13" -> "g14" [label="PRECEDES"];
+  "g13" -> "g15" [label="PRECEDES"];
+  "g13" -> "g16" [label="PRECEDES"];
+  "g14" -> "g17" [label="PRECEDES"];
+  "g14" -> "g18" [label="PRECEDES"];
+  "g15" -> "g17" [label="PRECEDES"];
+  "g15" -> "g18" [label="PRECEDES"];
+  "g16" -> "g17" [label="PRECEDES"];
+  "g16" -> "g18" [label="PRECEDES"];
+  "g05" -> "g08" [label="SAME_TRACK", style=dashed, color="#2563eb", constraint=false];
+  "g05" -> "g09" [label="SAME_TRACK", style=dashed, color="#2563eb", constraint=false];
+  "g05" -> "g15" [label="SAME_TRACK", style=dashed, color="#2563eb", constraint=false];
+  "g05" -> "g16" [label="SAME_TRACK", style=dashed, color="#2563eb", constraint=false];
+}
