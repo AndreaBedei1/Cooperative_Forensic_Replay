@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import subprocess
@@ -10,7 +11,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from canonical import canonical_runs
+from scenarios import scenario_runs
 
 
 def server_line(extra) -> str:
@@ -81,11 +82,12 @@ def side_by_side(run: Path, extra: Sequence[str], gt_port: int, rec_port: int, s
 
 
 def menu(runs, extra=(), gt_port=None):
+    title = "Scenario runs"
     if gt_port:
-        print("\nCanonical development runs (side by side: GROUND TRUTH on port {0} leading, RECONSTRUCTION on the {1} "
-              "following):".format(gt_port, server_line(list(extra))))
+        print("\n{0} (side by side: GROUND TRUTH on port {1} leading, RECONSTRUCTION on the {2} "
+              "following):".format(title, gt_port, server_line(list(extra))))
     else:
-        print("\nCanonical development runs (replay on the {0}):".format(server_line(list(extra))))
+        print("\n{0} (replay on the {1}):".format(title, server_line(list(extra))))
     for number, run in enumerate(runs, 1):
         label = "{0} {1}".format(run.parent.name, run.name[len("run_0_"):])
         missing = "" if (run / "reconstruction").is_dir() else "   (no reconstruction!)"
@@ -95,8 +97,10 @@ def menu(runs, extra=(), gt_port=None):
 
 
 def main() -> int:
-    runs = canonical_runs()
-    gt_port, extra = _option(sys.argv[1:], "--gt-port")
+    parser = argparse.ArgumentParser(description="Review recorded scenario runs")
+    _, extra = parser.parse_known_args()
+    runs = scenario_runs()
+    gt_port, extra = _option(extra, "--gt-port")
     sync_port, extra = _option(extra, "--sync-port")
     while True:
         menu(runs, extra, gt_port)

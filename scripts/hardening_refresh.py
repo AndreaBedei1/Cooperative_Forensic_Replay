@@ -7,6 +7,9 @@ from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src'))
+sys.path.insert(0,str(ROOT/'scripts'))
+
+from scenarios import scenario_runs
 
 
 def refresh(name):
@@ -34,15 +37,13 @@ def refresh(name):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--scope',choices=['canonical'],default='canonical')
     parser.add_argument('--workers',type=int,default=6)
     parser.add_argument('--output',type=Path,default=ROOT/'scratch/hardening_refresh.json')
     args=parser.parse_args()
-    runs=[]
-    runs+=sorted((ROOT/'traces').glob('S*/run_*'))
+    runs=[p.relative_to(ROOT).as_posix() for p in scenario_runs()]
     rows=[]
     with concurrent.futures.ProcessPoolExecutor(max_workers=args.workers) as pool:
-        futures={pool.submit(refresh,p.relative_to(ROOT).as_posix()):p for p in runs}
+        futures={pool.submit(refresh,name):name for name in runs}
         for future in concurrent.futures.as_completed(futures):
             row=future.result();rows.append(row)
             print(row['run'],row['wall_s'],'s',row['metrics']['merges_false'],'false merges',flush=True)

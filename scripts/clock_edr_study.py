@@ -15,6 +15,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
+from scenarios import scenario_runs
+
 CLOCK_RESIDUAL_S = 0.05
 EDR_LEVELS = {"dv5": 0.05, "dv10": 0.10}
 MASS_REL_STD = 0.05
@@ -447,8 +449,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         parser.error("perturbed copies never go into traces/")
     if not args.summarize and not use_maps(args.maps):
         parser.error("no OpenDRIVE maps found (--maps or a CARLA installation): no road model")
-    from canonical import canonical_runs
-    runs = [Path(r) for r in args.runs] or [Path(r) for r in canonical_runs()]
+    runs = [Path(r) for r in args.runs] or scenario_runs()
     args.results.mkdir(parents=True, exist_ok=True)
     jobs_file = args.results / "jobs.jsonl"
     done = _jsonl(jobs_file)

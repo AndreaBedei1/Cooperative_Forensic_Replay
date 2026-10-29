@@ -132,7 +132,7 @@ def extract() -> Dict[str, Any]:
         "completed_unique_jobs": len(complete_keys),
         "archive_attempt_records": attempts,
         "incomplete_attempt_records_excluded": attempts - len(complete_keys),
-        "distinct_canonical_contacts": sum(card["collisions"]["true"] for card in scorecards),
+        "distinct_scenario_contacts": sum(card["collisions"]["true"] for card in scorecards),
         "true_contact_instances": csv_totals["contacts"],
         "detected_contact_instances": csv_totals["detected"],
         "correctly_identified_contact_instances": csv_totals["identified"],
@@ -144,7 +144,7 @@ def extract() -> Dict[str, Any]:
         "recontact_splits": csv_totals["recontact_splits"],
         "extra_node_details": extra_nodes,
     }
-    assert full_campaign["distinct_canonical_contacts"] == 26
+    assert full_campaign["distinct_scenario_contacts"] == 26
 
     decisions: Counter = Counter()
     merges: Counter = Counter()
@@ -203,13 +203,13 @@ def extract() -> Dict[str, Any]:
     }
     return {
         "schema_version": 1,
-        "scope": "Archived campaign-v3 reconstruction evidence; no estimator rerun or altered canonical metrics.",
+        "scope": "Archived campaign-v3 reconstruction evidence; no estimator rerun or altered source metrics.",
         "derivation": {"script": "scripts/paper_reconstruction_metrics.py", "sha256": _hash(Path(__file__))},
         "inputs": [{"path": path.relative_to(ROOT).as_posix(), "sha256": _hash(path)}
                    for path in sorted(input_paths)],
         "aggregation": {
             "conditions": "Archived per-seed means, with seed-based 95% Student t intervals where present.",
-            "g0_association": "Counts over 22 canonical runs; purity is the share of measured source samples.",
+            "g0_association": "Counts over 22 scenario runs; purity is the share of measured source samples.",
             "archived_span_coverage": (
                 "Capped sum of truth-associated entity trajectory spans divided by ideal visible duration; "
                 "averaged over observable non-recording vehicles. Not a pointwise 1.5 m coverage test."
@@ -235,7 +235,7 @@ def main() -> None:
     result = extract()
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, indent=2, sort_keys=True, allow_nan=False) + "\n", encoding="utf-8")
-    print("Wrote {0}: {1} conditions, {2} canonical runs, {3} hashed inputs.".format(
+    print("Wrote {0}: {1} conditions, {2} scenario runs, {3} hashed inputs.".format(
         args.out, len(result["conditions"]), result["g0_association"]["runs"], len(result["inputs"])))
 
 

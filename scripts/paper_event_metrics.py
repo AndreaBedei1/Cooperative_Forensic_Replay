@@ -133,7 +133,7 @@ def incorrect_first_contact_intervals(predictions: Sequence[Mapping[str, Any]], 
                for p in predictions)
 
 
-def canonical_first_contacts(runs: Iterable[str]) -> Tuple[Dict[str, Dict[str, float]], Dict[str, str]]:
+def first_contacts_by_run(runs: Iterable[str]) -> Tuple[Dict[str, Dict[str, float]], Dict[str, str]]:
     result: Dict[str, Dict[str, float]] = {}
     hashes = {}
     for run in sorted(set(runs)):
@@ -220,7 +220,7 @@ def _sha(path: Path) -> str:
 def write_results(source: Path, out: Path) -> Dict[str, Any]:
     with gzip.open(source, "rt", encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle))
-    contacts, contact_hashes = canonical_first_contacts(row["job_run"] for row in rows)
+    contacts, contact_hashes = first_contacts_by_run(row["job_run"] for row in rows)
     result = derive(rows, contacts)
     out.mkdir(parents=True, exist_ok=True)
     _write_csv(out / "event_metrics.csv", result["pooled"])
@@ -248,7 +248,7 @@ def write_results(source: Path, out: Path) -> Dict[str, Any]:
             "positive-duration overlap with [t_first_contact - 1, t_first_contact), for at least one contact "
             "participant recorder. Uses corrected pre-contact classes. Duplicate predictions alone do not flag "
             "context. Witnesses have no window. This differs from original all-contact replay summaries.",
-        "canonical_contact_input_sha256": contact_hashes,
+        "contact_input_sha256": contact_hashes,
         "unchanged_analyses": ["saved states", "recovery", "proximity", "full samplewise active states"],
         "original_campaign_outputs_modified": False,
     }

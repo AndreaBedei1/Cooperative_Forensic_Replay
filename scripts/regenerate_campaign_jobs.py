@@ -21,7 +21,7 @@ def read_records(path: Path) -> List[Dict[str, Any]]:
         return [json.loads(line) for line in handle if line.strip()]
 
 
-def canonical(card: Any) -> str:
+def stable_json(card: Any) -> str:
     return json.dumps(card, sort_keys=True)
 
 
@@ -65,7 +65,7 @@ def _run(record: Dict[str, Any], out: str) -> Dict[str, Any]:
     return {"family": job["family"], "level": job["level"], "recorder": job.get("recorder"), "seed": job["seed"],
             "run": "{0}/{1}".format(Path(job["run"]).parent.name, Path(job["run"]).name), "kept": str(kept),
             "status": result.get("status"), "error": result.get("error"),
-            "scorecard_identical": canonical(result.get("scorecard")) == canonical(record.get("scorecard")),
+            "scorecard_identical": stable_json(result.get("scorecard")) == stable_json(record.get("scorecard")),
             "provenance_commit": (result.get("provenance") or {}).get("git_commit"), "wall_s": result.get("wall_s")}
 
 

@@ -10,20 +10,22 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from cdf.evaluation.scorecard import markdown, scorecard
+from scenarios import scenario_runs
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("runs", nargs="*", type=Path)
-    parser.add_argument("--canonical", action="store_true")
+    parser.add_argument("--scenarios", action="store_true")
     parser.add_argument("--root", type=Path, default=ROOT / "traces")
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--title", default="G0 scorecard")
     args = parser.parse_args()
+    if args.scenarios and args.runs:
+        parser.error("--scenarios cannot be combined with positional run directories")
     runs = list(args.runs)
-    if args.canonical:
-        from canonical import CANONICAL
-        runs += [args.root / s / ("run_0_" + v) for s, vs in sorted(CANONICAL.items()) for v in vs]
+    if args.scenarios:
+        runs = scenario_runs(args.root)
     cards = []
     for run in runs:
         card = scorecard(run)

@@ -14,6 +14,9 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT / "scripts"))
+
+from scenarios import scenario_runs
 
 FAMILIES: Dict[str, Tuple[List[Tuple[str, Any]], bool]] = {
     "baseline": ([("none", None)], False),
@@ -392,7 +395,7 @@ def _cell(row: Dict[str, Any], key: str, decimals: int) -> str:
 def markdown(record: Dict[str, Any]) -> str:
     prov = record["provenance"]
     lines = ["# Robustness of the reconstruction", "",
-             "Every condition applied to every canonical run (`scripts/robustness.py`, `cdf.robustness.perturb`); "
+             "Every condition applied to every selected run (`scripts/robustness.py`, `cdf.robustness.perturb`); "
              "stochastic conditions over seeds (3 at least, more until the standard error of every pooled metric is "
              "below its tolerance, 8 at most).  Per seed the metrics are pooled over the runs (counts: sums over the "
              "runs of one draw); the table gives the mean over seeds +- their standard deviation.  Ground truth is "
@@ -520,8 +523,7 @@ def need_more_seeds(results: Sequence[Dict[str, Any]], family: str, level: str) 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Robustness study over saved recordings (non-destructive)")
     parser.add_argument("runs", nargs="*", type=Path)
-    parser.add_argument("--canonical", action="store_true",
-                        help="the 22 runs of the article (canonical.CANONICAL), no wildcard needed")
+    parser.add_argument("--scenarios", action="store_true")
     parser.add_argument("--families", default=",".join(FAMILIES))
     parser.add_argument("--work", default=str(ROOT / "robustness"))
     parser.add_argument("--results", type=Path, default=ROOT / "results" / "robustness")
@@ -532,13 +534,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--max-attempts", type=int, default=2, help="attempts of a failing job in all (resumes too)")
     parser.add_argument("--summarize", action="store_true", help="only rewrite the summary from jobs.jsonl")
     args = parser.parse_args(argv)
-    if args.canonical:
-        if str(ROOT / "scripts") not in sys.path:
-            sys.path.insert(0, str(ROOT / "scripts"))
-        from canonical import canonical_runs
-        args.runs = list(args.runs) + [Path(run) for run in canonical_runs()]
+    if args.scenarios and args.runs:
+        parser.error("--scenarios cannot be combined with positional run directories")
+    if args.scenarios:
+        args.runs = scenario_runs()
     if not args.runs and not args.summarize:
-        parser.error("no runs: give run directories or --canonical")
+        parser.error("no runs: give run directories or --scenarios")
     if Path(args.work).resolve() == (ROOT / "traces").resolve():
         parser.error("perturbed copies never go into traces/")
     args.results.mkdir(parents=True, exist_ok=True)

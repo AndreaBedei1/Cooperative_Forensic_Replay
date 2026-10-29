@@ -59,15 +59,15 @@ def _summarize(states: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
 
 
 def extract() -> Dict[str, Any]:
-    canonical_path = ROOT / "results/g0_final/scorecard.json"
-    canonical = json.loads(canonical_path.read_text(encoding="utf-8"))
-    names = sorted(card["run"] for card in canonical)
+    scorecard_path = ROOT / "results/g0_final/scorecard.json"
+    scorecards = json.loads(scorecard_path.read_text(encoding="utf-8"))
+    names = sorted(card["run"] for card in scorecards)
     assert len(names) == len(set(names)) == 22
     runs = [ROOT / "traces" / name for name in names]
     reconstruction_paths = [path for run in runs for path in (run / "reconstruction").rglob("*")
                             if path.is_file()]
     before = _manifest(reconstruction_paths)
-    input_paths = [canonical_path, ROOT / "configs/reconstruction.yaml"]
+    input_paths = [scorecard_path, ROOT / "configs/reconstruction.yaml"]
     for run in runs:
         input_paths.append(run / "ground_truth/states.jsonl")
         input_paths.extend(path for path in (run / "reconstruction").rglob("*")
@@ -129,7 +129,7 @@ def extract() -> Dict[str, Any]:
     assert summary["body_reconstruction_and_fusion_centre_error_m"]["median"] == 0.2395
     return {
         "schema_version": 1,
-        "scope": "G0 paired geometric reference on the 22 canonical campaign-v3 reconstructions; no estimator rerun.",
+        "scope": "G0 paired geometric reference on 22 scenario reconstructions from campaign-v3; no estimator rerun.",
         "definition": {
             "population": "Truth-associated non-recording entities at source-consistent reconstructed instants with at least one available nominal source-track box.",
             "nominal_reference": "At each eligible entity instant, median centre error over the available nominal source-track boxes drawn by the phase-0 replay. No body-surface correction or cross-observer body reconstruction is applied to this reference.",
@@ -137,7 +137,7 @@ def extract() -> Dict[str, Any]:
             "weighting": "One pair per entity instant; additional source tracks do not add weight. Pooled statistics weight entity instants equally, not runs or vehicles equally; temporal samples are not independent trials.",
             "bounds": "Combined body reconstruction and fusion comparison, not an isolated multi-observer or smoothing ablation. Identity errors, recorder ghosts and missing entities are assessed separately.",
             "source_consistency": "The fusion evaluator excludes instants where an available source-track identity differs from the entity's majority physical identity; ground truth is used only in evaluation.",
-            "input_manifest": "Hashes cover the canonical run list, configuration, ground truth, recorder ego/metadata files and all reconstruction JSON/JSONL files, including a superset of the files read by the evaluator and replay model.",
+            "input_manifest": "Hashes cover the scenario run list, configuration, ground truth, recorder ego/metadata files and all reconstruction JSON/JSONL files, including a superset of the files read by the evaluator and replay model.",
         },
         "derivation": {
             "script": "scripts/paper_geometry_comparison.py",
@@ -154,7 +154,7 @@ def extract() -> Dict[str, Any]:
             "PyYAML": importlib.metadata.version("PyYAML"),
         },
         "inputs": _manifest(input_paths),
-        "counts": {"canonical_runs": len(runs), "contributing_runs": len(contributing), **dict(counts)},
+        "counts": {"scenario_runs": len(runs), "contributing_runs": len(contributing), **dict(counts)},
         "pooled": summary,
         "runs_with_lower_median": sum(row["body_reconstruction_and_fusion_centre_error_m"]["median"]
                                       < row["nominal_source_boxes_centre_error_m"]["median"] for row in contributing),
@@ -169,8 +169,8 @@ def markdown(result: Dict[str, Any]) -> str:
     pooled = result["pooled"]
     lines = [
         "# Paired geometric comparison used by the paper", "",
-        "Read-only derivation from the existing canonical G0 reconstructions; no estimator rerun.", "",
-        f"The {counts['canonical_runs']} canonical runs provide {pooled['paired_states']} paired entity instants "
+        "Read-only derivation from the existing G0 campaign reconstructions; no estimator rerun.", "",
+        f"The {counts['scenario_runs']} scenario runs provide {pooled['paired_states']} paired entity instants "
         f"in {counts['contributing_runs']} runs, covering {counts['paired_physical_non_recording_vehicles']} "
         f"physical non-recording vehicles and {counts['paired_entities']} reconstructed entities.", "",
         result["definition"]["nominal_reference"], "", result["definition"]["reconstruction"], "",
