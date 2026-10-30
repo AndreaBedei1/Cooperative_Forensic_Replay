@@ -102,6 +102,46 @@ Top-down replay images can also be generated without starting a CARLA server:
 python scripts\replay_run.py traces\S12\run_0_crash --export out\s12 --at -1 --at 0 --format png
 ```
 
+## Collecting New Data
+
+Scenarios are defined in `configs/scenarios/` (S01–S19, with their variants). With CARLA running, acquire one run with:
+
+```bat
+python scripts\run_scenario.py --scenario S01 --variant crash --output scratch\traces
+```
+
+The script connects to CARLA on port 3000 (and starts it if no server is running). The run is written to `<output>\<scenario>\run_<seed>_<variant>`. **Always pass `--output`:** the default is `traces`, so with the default seed 0 the recorded campaign runs would be overwritten. Then reconstruct and evaluate the new run:
+
+```bat
+python scripts\reconstruct_run.py scratch\traces\S01\run_0_crash --evaluate
+```
+
+## Reproducing the Perturbation Campaigns
+
+The scripts below read the recorded runs and write perturbed copies elsewhere; `traces/` is never modified. Point `--work` and `--results` to `scratch\` to keep the committed results in `results/` unchanged.
+
+**Sensor and positioning perturbations** (radar, GNSS and combined families of the paper, all 22 runs):
+
+```bat
+python scripts\robustness.py --scenarios --families baseline,gnss,radar_v3,radar_asym,radar_gnss_v3,radar_asym_gnss --work scratch\robustness --results scratch\robustness_results
+```
+
+**Clock residuals and crash-recorder reports** (needs `CARLA_ROOT` for the OpenDRIVE maps, or `--maps <folder of .xodr>`):
+
+```bat
+python scripts\clock_edr_study.py --work scratch\clock_edr --results scratch\clock_edr_results
+```
+
+**Paper tables** from the committed results in `results/`:
+
+```bat
+python scripts\paper_reconstruction_metrics.py --out scratch\paper\reconstruction_metrics.json
+python scripts\paper_event_metrics.py --out scratch\paper
+python scripts\paper_geometry_comparison.py --out-dir scratch\paper
+```
+
+Interrupted campaigns resume from the `jobs.jsonl` in the results folder.
+
 ## License
 
 MIT License. See [LICENSE](LICENSE).
